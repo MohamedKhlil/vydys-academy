@@ -21,6 +21,10 @@ export default function FormationDetailPage(){
   const [proof,setProof]=useState<File|null>(null);
   const [reference,setReference]=useState("");
   const [message,setMessage]=useState("");
+  const [userId,setUserId]=useState<string|null>(null);
+  const [favorite,setFavorite]=useState(false);
+  const [couponCode,setCouponCode]=useState("");
+  const [coupon,setCoupon]=useState<any>(null);
 
   async function load(){
     const {data:c}=await supabase.from("courses").select("*").eq("slug",params.slug).eq("status","published").single();
@@ -39,17 +43,42 @@ export default function FormationDetailPage(){
       setInstructor(i);setMethods(m||[]);if(m?.[0])setSelectedMethod(m[0].id);
     }
     const {data:{user}}=await supabase.auth.getUser();
+    setUserId(user?.id||null);
     if(user){
-      const {data:e}=await supabase.from("enrollments").select("id").eq("user_id",user.id).eq("course_id",c.id).in("status",["active","completed"]).maybeSingle();
-      setEnrolled(Boolean(e));
-      const {data:my}=await supabase.from("course_reviews").select("rating,review_text").eq("course_id",c.id).eq("user_id",user.id).maybeSingle();
+      const [{data:e},{data:my},{data:fav}]=await Promise.all([
+        supabase.from("enrollments").select("id").eq("user_id",user.id).eq("course_id",c.id).in("status",["active","completed"]).maybeSingle(),
+        supabase.from("course_reviews").select("rating,review_text").eq("course_id",c.id).eq("user_id",user.id).maybeSingle(),
+        supabase.from("course_favorites").select("course_id").eq("user_id",user.id).eq("course_id",c.id).maybeSingle()
+      ]);
+      setEnrolled(Boolean(e));setFavorite(Boolean(fav));
       if(my){setRating(my.rating);setReviewText(my.review_text||"")}
     }
   }
   useEffect(()=>{load()},[params.slug]);
 
   const method=methods.find(m=>m.id===selectedMethod);
-  const payable=useMemo(()=>course&&method?Math.round(course.base_price_mru*(1-Number(method.discount_percent||0)/100)):course?.base_price_mru||0,[course,method]);
+  const methodPrice=useMemo(()=>course&&method?Math.round(course.base_price_mru*(1-Number(method.discount_percent||0)/100)):course?.base_price_mru||0,[course,method]);
+  const payable=useMemo(()=>coupon?.valid?Math.max(0,Math.round(methodPrice*(1-Number(coupon.discount_percent||0)/100))):methodPrice,[methodPrice,coupon]);
+
+  async function toggleFavorite(){
+    if(!userId){window.location.href="/connexion";return}
+    if(favorite){
+      await supabase.from("course_favorites").delete().eq("user_id",userId).eq("course_id",course.id);
+      setFavorite(false);
+    }else{
+      await supabase.from("course_favorites").insert({user_id:userId,course_id:course.id});
+      setFavorite(true);
+    }
+  }
+
+  async function applyCoupon(){
+    setMessage("");
+    if(!couponCode.trim()){setCoupon(null);return}
+    const {data,error}=await supabase.rpc("preview_course_coupon",{p_course_id:course.id,p_code:couponCode.trim()});
+    if(error){setMessage(error.message);return}
+    setCoupon(data);
+    if(!data?.valid)setMessage(t({fr:"Coupon invalide ou expiré.",ar:"القسيمة غير صالحة أو منتهية.",en:"Invalid or expired coupon."}));
+  }
 
   async function buy(e:FormEvent){
     e.preventDefault();setMessage("");
@@ -62,10 +91,10 @@ export default function FormationDetailPage(){
     const path=`${user.id}/${crypto.randomUUID()}-${safe}`;
     const {error:upErr}=await supabase.storage.from("payment-proofs").upload(path,proof,{contentType:proof.type});
     if(upErr){setMessage(upErr.message);return}
-    const {error}=await supabase.rpc("submit_course_payment",{p_course_id:course.id,p_payment_method_id:method.id,p_transaction_reference:reference,p_proof_path:path});
+    const {error}=await supabase.rpc("submit_course_payment_v2",{p_course_id:course.id,p_payment_method_id:method.id,p_transaction_reference:reference,p_proof_path:path,p_coupon_code:coupon?.valid?couponCode.trim():""});
     if(error){setMessage(error.message);return}
     setMessage(t({fr:"Paiement envoyé au formateur pour validation.",ar:"تم إرسال الدفع للمدرب للمراجعة.",en:"Payment submitted to the instructor for approval."}));
-    setProof(null);setReference("");
+    setProof(null);setReference("");setCoupon(null);setCouponCode("");
   }
 
   async function submitReview(){
@@ -86,7 +115,7 @@ export default function FormationDetailPage(){
 
   return <section className="section page-top"><div className="container">
     <div className="course-detail-grid"><div>
-      <span className="tag">{course.category||t({fr:"Formation",ar:"دورة",en:"Course"})}</span><h1 className="course-detail-title">{title}</h1><p className="course-detail-copy">{desc}</p>
+      <div className="course-title-row"><span className="tag">{course.category||t({fr:"Formation",ar:"دورة",en:"Course"})}</span><button className={favorite?"favorite-inline active":"favorite-inline"} onClick={toggleFavorite}>♥ {favorite?t({fr:"Favori",ar:"مفضلة",en:"Saved"}):t({fr:"Ajouter aux favoris",ar:"إضافة للمفضلة",en:"Save"})}</button></div><h1 className="course-detail-title">{title}</h1><p className="course-detail-copy">{desc}</p>
       <div className="rating-line big"><span className="stars">★★★★★</span><strong>{Number(ratings.average_rating||0).toFixed(1)}</strong><span>{ratings.review_count} {t({fr:"avis",ar:"تقييم",en:"reviews"})}</span></div>
       {instructor&&<Link href={"/formateur/"+instructor.public_slug} className="instructor-box"><div className="avatar">{instructor.display_name?.slice(0,2).toUpperCase()}</div><div><small>{t({fr:"Formateur",ar:"المدرب",en:"Instructor"})}</small><strong>{instructor.display_name}</strong><span>{instructor.headline}</span></div></Link>}
 
@@ -101,7 +130,8 @@ export default function FormationDetailPage(){
         <p>{t({fr:"Payez directement au formateur puis envoyez votre capture.",ar:"ادفع مباشرة للمدرب ثم أرسل لقطة الشاشة.",en:"Pay the instructor directly, then upload your screenshot."})}</p>
         {methods.length===0?<p className="manual-note">{t({fr:"Le formateur n'a pas encore configuré de moyen de paiement.",ar:"لم يضف المدرب وسيلة دفع بعد.",en:"The instructor has not configured a payment method yet."})}</p>:<form onSubmit={buy}>
           <div className="checkout-methods">{methods.map(m=><button type="button" key={m.id} onClick={()=>setSelectedMethod(m.id)} className={selectedMethod===m.id?"checkout-method selected":"checkout-method"}><div><strong>{m.method.toUpperCase()}</strong><span>{m.account_number}</span></div><b>{Math.round(course.base_price_mru*(1-Number(m.discount_percent||0)/100)).toLocaleString("fr-FR")} MRU</b></button>)}</div>
-          {method&&<><div className="amount-box"><span>{t({fr:"Montant exact",ar:"المبلغ المحدد",en:"Exact amount"})}</span><strong>{payable.toLocaleString("fr-FR")} MRU</strong>{Number(method.discount_percent)>0&&<small>-{method.discount_percent}%</small>}</div>
+          {method&&<><div className="amount-box"><span>{t({fr:"Montant exact",ar:"المبلغ المحدد",en:"Exact amount"})}</span><strong>{payable.toLocaleString("fr-FR")} MRU</strong>{Number(method.discount_percent)>0&&<small>{t({fr:"Réduction moyen de paiement",ar:"خصم وسيلة الدفع",en:"Payment method discount"})}: -{method.discount_percent}%</small>}{coupon?.valid&&<small>{t({fr:"Coupon",ar:"قسيمة",en:"Coupon"})} {coupon.code}: -{coupon.discount_percent}%</small>}</div>
+          <div className="coupon-box"><input value={couponCode} onChange={e=>setCouponCode(e.target.value.toUpperCase())} placeholder={t({fr:"Code promo",ar:"رمز الخصم",en:"Promo code"})}/><button type="button" onClick={applyCoupon}>{t({fr:"Appliquer",ar:"تطبيق",en:"Apply"})}</button></div>
           <label className="upload-zone"><input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>setProof(e.target.files?.[0]||null)}/><span>↑</span><strong>{proof?.name||t({fr:"Capture de paiement",ar:"لقطة الدفع",en:"Payment screenshot"})}</strong></label>
           <label className="form-field"><span>{t({fr:"Référence transaction",ar:"مرجع العملية",en:"Transaction reference"})}</span><input value={reference} onChange={e=>setReference(e.target.value)}/></label>
           <button className="btn full">{t({fr:"Envoyer au formateur",ar:"إرسال للمدرب",en:"Submit to instructor"})}</button></>}
