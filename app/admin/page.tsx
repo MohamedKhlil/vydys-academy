@@ -61,7 +61,11 @@ export default function AdminPage(){
   if(!allowed)return <section className="dashboard-shell"><div className="container"><article className="panel"><h1>{t({fr:"Accès réservé",ar:"دخول مخصص",en:"Restricted access"})}</h1><p>{t({fr:"Cette page est réservée à la Direction Vydys Academy.",ar:"هذه الصفحة مخصصة لإدارة Vydys Academy.",en:"This page is reserved for Vydys Academy Management."})}</p></article></div></section>;
 
   return <section className="dashboard-shell"><div className="container">
-    <div className="dash-header"><div><span className="eyebrow">{t({fr:"Direction / Administration",ar:"الإدارة",en:"Management / Admin"})}</span><h1>{t({fr:"Tableau de bord",ar:"لوحة التحكم",en:"Dashboard"})}</h1><p>{t({fr:"Validation manuelle des paiements et activation des inscriptions.",ar:"مراجعة الدفعات يدوياً وتفعيل التسجيلات.",en:"Manual payment review and enrollment activation."})}</p></div></div>
+    <div className="dash-header"><div><span className="eyebrow">{t({fr:"Direction / Administration",ar:"الإدارة",en:"Management / Admin"})}</span><h1>{t({fr:"Tableau de bord",ar:"لوحة التحكم",en:"Dashboard"})}</h1><p>{t({fr:"Pilotez les paiements, formateurs, tarifs et la marketplace.",ar:"إدارة المدفوعات والمدربين والأسعار والسوق.",en:"Manage payments, instructors, pricing and the marketplace."})}</p></div></div>
+    <div className="admin-nav-cards">
+      <a className="panel admin-nav-card" href="/admin/formateurs"><strong>{t({fr:"Demandes formateurs",ar:"طلبات المدربين",en:"Instructor applications"})}</strong><span>{t({fr:"Valider ou refuser les nouveaux profils",ar:"قبول أو رفض ملفات المدربين",en:"Approve or reject new instructor profiles"})}</span></a>
+      <a className="panel admin-nav-card" href="/admin/tarifs"><strong>{t({fr:"Tarifs plateforme",ar:"أسعار المنصة",en:"Platform pricing"})}</strong><span>{t({fr:"Abonnements, commission et règles",ar:"الاشتراكات والعمولة والقواعد",en:"Subscriptions, commission and rules"})}</span></a>
+    </div>
 
     <div className="stat-grid">
       <article className="panel stat"><span>{t({fr:"Paiements à valider",ar:"دفعات للمراجعة",en:"Payments to review"})}</span><strong>{payments.length}</strong><small>{t({fr:"en attente",ar:"قيد الانتظار",en:"pending"})}</small></article>
