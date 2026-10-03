@@ -1,10 +1,36 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useLanguage } from "./language-provider";
+import { supabase } from "../lib/supabase";
 
 export function Header() {
   const { lang, setLang, t } = useLanguage();
+  const [role,setRole]=useState<string|null>(null);
+  const [signedIn,setSignedIn]=useState(false);
+
+  useEffect(()=>{
+    let active=true;
+    async function loadUser(){
+      const {data:{user}}=await supabase.auth.getUser();
+      if(!active)return;
+      if(!user){setSignedIn(false);setRole(null);return}
+      setSignedIn(true);
+      const {data}=await supabase.from("profiles").select("role").eq("id",user.id).single();
+      if(active)setRole(data?.role||"student");
+    }
+    loadUser();
+    const {data:listener}=supabase.auth.onAuthStateChange(()=>{loadUser()});
+    return ()=>{active=false;listener.subscription.unsubscribe()};
+  },[]);
+
+  async function logout(){
+    await supabase.auth.signOut();
+    window.location.href="/";
+  }
+
+  const isManagement=role==="direction"||role==="admin";
 
   return (
     <header className="site-header">
@@ -16,7 +42,9 @@ export function Header() {
         <nav className="main-nav" aria-label={t({fr:"Navigation principale",ar:"التنقل الرئيسي",en:"Main navigation"})}>
           <Link href="/formations">{t({fr:"Formations",ar:"الدورات",en:"Courses"})}</Link>
           <Link href="/classroom">{t({fr:"Classroom",ar:"الفصل المباشر",en:"Classroom"})}</Link>
-          <Link href="/dashboard">{t({fr:"Mon espace",ar:"حسابي",en:"My space"})}</Link>
+          {isManagement
+            ? <Link href="/admin">{t({fr:"Administration",ar:"الإدارة",en:"Administration"})}</Link>
+            : <Link href="/dashboard">{t({fr:"Mon espace",ar:"حسابي",en:"My space"})}</Link>}
           <Link href="/paiement">{t({fr:"Paiement",ar:"الدفع",en:"Payment"})}</Link>
         </nav>
         <div className="language-switcher" aria-label="Language selector">
@@ -26,7 +54,9 @@ export function Header() {
             </button>
           ))}
         </div>
-        <Link className="btn btn-small" href="/connexion">{t({fr:"Se connecter",ar:"تسجيل الدخول",en:"Sign in"})}</Link>
+        {signedIn
+          ? <button className="btn btn-small" onClick={logout}>{t({fr:"Déconnexion",ar:"تسجيل الخروج",en:"Sign out"})}</button>
+          : <Link className="btn btn-small" href="/connexion">{t({fr:"Se connecter",ar:"تسجيل الدخول",en:"Sign in"})}</Link>}
       </div>
     </header>
   );
