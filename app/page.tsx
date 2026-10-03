@@ -1,76 +1,29 @@
-import Link from "next/link";
+"use client";
 
-const features = [
-  ["Cours courts & pratiques", "Apprenez avec des vidéos ciblées, des exercices et des modèles prêts à l'emploi."],
-  ["Classrooms en direct", "Participez à des sessions live, posez vos questions et travaillez avec votre promotion."],
-  ["IA appliquée au marketing", "Utilisez ChatGPT et les outils d'IA pour créer du contenu, vendre et gagner du temps."],
-  ["Certificat de fin", "Validez votre progression, vos quiz et votre projet final pour obtenir votre certificat."],
-];
+import Link from "next/link";
+import { useLanguage } from "../components/language-provider";
 
 export default function HomePage() {
-  return (
-    <>
-      <section className="hero">
-        <div className="container hero-grid">
-          <div>
-            <div className="eyebrow">L'académie digitale pensée pour aujourd'hui</div>
-            <h1>Apprenez le <span>marketing digital</span> à l'ère de l'IA.</h1>
-            <p className="hero-copy">Une formation en ligne simple, pratique et accessible pour apprendre à créer du contenu, trouver des clients et lancer des campagnes avec l'intelligence artificielle.</p>
-            <div className="hero-actions">
-              <Link className="btn" href="/formations">Découvrir la formation</Link>
-              <Link className="btn btn-ghost" href="/classroom">Voir les Classrooms</Link>
-            </div>
-            <div className="hero-stats">
-              <div><strong>6</strong><span>modules pratiques</span></div>
-              <div><strong>100%</strong><span>en ligne</span></div>
-              <div><strong>Live</strong><span>avec formateur</span></div>
-            </div>
-          </div>
-          <div className="hero-card">
-            <div className="browser-dots"><i></i><i></i><i></i></div>
-            <div className="lesson-card">
-              <span className="tag">En cours</span>
-              <h3>Créer 30 publications avec ChatGPT</h3>
-              <p>Module 3 · Création de contenu avec l'IA</p>
-              <div className="progress"><span style={{width:"65%"}} /></div>
-              <div className="lesson-meta"><span>Progression</span><strong>65%</strong></div>
-            </div>
-            <div className="live-card">
-              <span className="live-dot"></span>
-              <div><strong>Prochaine Classroom</strong><p>Mardi · 19:00</p></div>
-              <button>Rejoindre</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="container">
-          <div className="section-head"><div><span className="eyebrow">Pourquoi Vydys Academy ?</span><h2>Une formation conçue pour passer à l'action.</h2></div><p>Pas de théorie interminable. Chaque module vous aide à produire quelque chose d'utile pour votre activité.</p></div>
-          <div className="feature-grid">{features.map(([title, text], i) => <article className="feature" key={title}><span className="feature-num">0{i+1}</span><h3>{title}</h3><p>{text}</p></article>)}</div>
-        </div>
-      </section>
-
-      <section className="section muted">
-        <div className="container course-showcase">
-          <div>
-            <span className="eyebrow">Formation principale</span>
-            <h2>Marketing Digital & Intelligence Artificielle</h2>
-            <p>De zéro à votre première campagne : stratégie, contenu, ChatGPT, Canva, réseaux sociaux, publicité et conversion.</p>
-            <ul className="check-list"><li>6 modules structurés</li><li>Quiz & exercices pratiques</li><li>Classroom et replays</li><li>Projet final et certificat</li></ul>
-            <Link href="/formations" className="text-link">Voir le programme →</Link>
-          </div>
-          <div className="pricing-card">
-            <span className="tag">Lancement</span>
-            <p className="price"><strong>1 500</strong> MRU</p>
-            <p>Formation complète + Classroom + certificat</p>
-            <Link href="/connexion" className="btn full">S'inscrire en ligne</Link>
-            <small>Paiement en ligne à connecter avant ouverture publique.</small>
-          </div>
-        </div>
-      </section>
-
-      <section className="section cta-section"><div className="container cta"><div><span className="eyebrow">Votre prochaine compétence commence ici</span><h2>Rejoignez Vydys Academy.</h2></div><Link className="btn btn-light" href="/connexion">Créer mon compte</Link></div></section>
-    </>
-  );
+  const { t } = useLanguage();
+  const features = [
+    [t({fr:"Cours courts & pratiques",ar:"دروس قصيرة وعملية",en:"Short & practical lessons"}), t({fr:"Vidéos ciblées, exercices et modèles prêts à l'emploi.",ar:"فيديوهات مركزة وتمارين وقوالب جاهزة.",en:"Focused videos, exercises and ready-to-use templates."})],
+    [t({fr:"Classrooms en direct",ar:"فصول مباشرة",en:"Live classrooms"}), t({fr:"Participez aux sessions live avec votre promotion.",ar:"شارك في الحصص المباشرة مع مجموعتك.",en:"Join live sessions with your cohort."})],
+    [t({fr:"IA appliquée au marketing",ar:"الذكاء الاصطناعي في التسويق",en:"AI applied to marketing"}), t({fr:"Utilisez ChatGPT et les outils IA pour créer et vendre.",ar:"استخدم ChatGPT وأدوات الذكاء الاصطناعي لصناعة المحتوى والبيع.",en:"Use ChatGPT and AI tools to create and sell."})],
+    [t({fr:"Certificat de fin",ar:"شهادة إتمام",en:"Completion certificate"}), t({fr:"Validez votre progression et votre projet final.",ar:"أكمل تقدمك ومشروعك النهائي للحصول على الشهادة.",en:"Complete your progress and final project."})],
+  ];
+  return <>
+    <section className="hero"><div className="container hero-grid"><div>
+      <div className="eyebrow">{t({fr:"L'académie digitale pensée pour aujourd'hui",ar:"أكاديمية رقمية لعصر اليوم",en:"The digital academy built for today"})}</div>
+      <h1>{t({fr:"Apprenez le ",ar:"تعلّم ",en:"Learn "})}<span>{t({fr:"marketing digital",ar:"التسويق الرقمي",en:"digital marketing"})}</span>{t({fr:" à l'ère de l'IA.",ar:" في عصر الذكاء الاصطناعي.",en:" in the age of AI."})}</h1>
+      <p className="hero-copy">{t({
+        fr:"Une formation en ligne simple, pratique et accessible pour apprendre à créer du contenu, trouver des clients et lancer des campagnes avec l'intelligence artificielle.",
+        ar:"دورة عبر الإنترنت بسيطة وعملية لتعلّم صناعة المحتوى وجذب العملاء وإطلاق الحملات باستخدام الذكاء الاصطناعي.",
+        en:"A simple, practical online course to learn content creation, customer acquisition and campaign building with artificial intelligence."
+      })}</p>
+      <div className="hero-actions"><Link className="btn" href="/formations">{t({fr:"Découvrir la formation",ar:"اكتشف الدورة",en:"Explore the course"})}</Link><Link className="btn btn-ghost" href="/classroom">{t({fr:"Voir les Classrooms",ar:"شاهد الفصول",en:"View classrooms"})}</Link></div>
+      <div className="hero-stats"><div><strong>6</strong><span>{t({fr:"modules pratiques",ar:"وحدات عملية",en:"practical modules"})}</span></div><div><strong>100%</strong><span>{t({fr:"en ligne",ar:"عبر الإنترنت",en:"online"})}</span></div><div><strong>Live</strong><span>{t({fr:"avec formateur",ar:"مع مدرب",en:"with instructor"})}</span></div></div>
+    </div><div className="hero-card"><div className="browser-dots"><i></i><i></i><i></i></div><div className="lesson-card"><span className="tag">{t({fr:"En cours",ar:"قيد التعلّم",en:"In progress"})}</span><h3>{t({fr:"Créer 30 publications avec ChatGPT",ar:"إنشاء 30 منشوراً باستخدام ChatGPT",en:"Create 30 posts with ChatGPT"})}</h3><p>{t({fr:"Module 3 · Création de contenu avec l'IA",ar:"الوحدة 3 · صناعة المحتوى بالذكاء الاصطناعي",en:"Module 3 · AI content creation"})}</p><div className="progress"><span style={{width:"65%"}} /></div><div className="lesson-meta"><span>{t({fr:"Progression",ar:"التقدم",en:"Progress"})}</span><strong>65%</strong></div></div><div className="live-card"><span className="live-dot"></span><div><strong>{t({fr:"Prochaine Classroom",ar:"الفصل القادم",en:"Next Classroom"})}</strong><p>{t({fr:"Mardi · 19:00",ar:"الثلاثاء · 19:00",en:"Tuesday · 19:00"})}</p></div><button>{t({fr:"Rejoindre",ar:"انضم",en:"Join"})}</button></div></div></div></section>
+    <section className="section"><div className="container"><div className="section-head"><div><span className="eyebrow">{t({fr:"Pourquoi Vydys Academy ?",ar:"لماذا Vydys Academy؟",en:"Why Vydys Academy?"})}</span><h2>{t({fr:"Une formation conçue pour passer à l'action.",ar:"تعلّم مصمم للتطبيق العملي.",en:"Training designed for action."})}</h2></div><p>{t({fr:"Chaque module vous aide à produire quelque chose d'utile pour votre activité.",ar:"كل وحدة تساعدك على إنتاج شيء مفيد لنشاطك.",en:"Every module helps you produce something useful for your business."})}</p></div><div className="feature-grid">{features.map(([title,text],i)=><article className="feature" key={title}><span className="feature-num">0{i+1}</span><h3>{title}</h3><p>{text}</p></article>)}</div></div></section>
+    <section className="section muted"><div className="container course-showcase"><div><span className="eyebrow">{t({fr:"Formation principale",ar:"الدورة الرئيسية",en:"Featured course"})}</span><h2>Marketing Digital & Intelligence Artificielle</h2><p>{t({fr:"De zéro à votre première campagne : stratégie, contenu, ChatGPT, Canva, réseaux sociaux, publicité et conversion.",ar:"من الصفر إلى أول حملة: الاستراتيجية والمحتوى وChatGPT وCanva والشبكات الاجتماعية والإعلانات والتحويل.",en:"From zero to your first campaign: strategy, content, ChatGPT, Canva, social media, advertising and conversion."})}</p><ul className="check-list"><li>{t({fr:"6 modules structurés",ar:"6 وحدات منظمة",en:"6 structured modules"})}</li><li>{t({fr:"Quiz & exercices pratiques",ar:"اختبارات وتمارين عملية",en:"Quizzes & practical exercises"})}</li><li>{t({fr:"Classroom et replays",ar:"فصول مباشرة وإعادات",en:"Classroom and replays"})}</li><li>{t({fr:"Projet final et certificat",ar:"مشروع نهائي وشهادة",en:"Final project and certificate"})}</li></ul><Link href="/formations" className="text-link">{t({fr:"Voir le programme →",ar:"عرض البرنامج ←",en:"View curriculum →"})}</Link></div><div className="pricing-card"><span className="tag">{t({fr:"Lancement",ar:"عرض الإطلاق",en:"Launch offer"})}</span><p className="price"><strong>1 500</strong> MRU</p><p>{t({fr:"Ou 1 350 MRU avec Click (-10 %).",ar:"أو 1,350 أوقية عبر Click بخصم 10٪.",en:"Or 1,350 MRU with Click (-10%)."})}</p><Link href="/paiement" className="btn full">{t({fr:"S'inscrire et payer",ar:"سجّل وادفع",en:"Enroll and pay"})}</Link><small>{t({fr:"Paiement vérifié manuellement par la Direction.",ar:"يتم التحقق من الدفع يدوياً من طرف الإدارة.",en:"Payment is manually verified by Management."})}</small></div></div></section>
+  </>;
 }
