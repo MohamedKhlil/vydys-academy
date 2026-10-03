@@ -25,39 +25,22 @@ export function Header() {
     return ()=>{active=false;listener.subscription.unsubscribe()};
   },[]);
 
-  async function logout(){
-    await supabase.auth.signOut();
-    window.location.href="/";
-  }
+  async function logout(){await supabase.auth.signOut();window.location.href="/";}
 
   const isManagement=role==="direction"||role==="admin";
+  const isInstructor=role==="instructor";
 
-  return (
-    <header className="site-header">
-      <div className="container nav-wrap">
-        <Link className="brand" href="/">
-          <span className="brand-mark">V</span>
-          <span>Vydys <strong>Academy</strong></span>
-        </Link>
-        <nav className="main-nav" aria-label={t({fr:"Navigation principale",ar:"التنقل الرئيسي",en:"Main navigation"})}>
-          <Link href="/formations">{t({fr:"Formations",ar:"الدورات",en:"Courses"})}</Link>
-          <Link href="/classroom">{t({fr:"Classroom",ar:"الفصل المباشر",en:"Classroom"})}</Link>
-          {isManagement
-            ? <Link href="/admin">{t({fr:"Administration",ar:"الإدارة",en:"Administration"})}</Link>
-            : <Link href="/dashboard">{t({fr:"Mon espace",ar:"حسابي",en:"My space"})}</Link>}
-          <Link href="/paiement">{t({fr:"Paiement",ar:"الدفع",en:"Payment"})}</Link>
-        </nav>
-        <div className="language-switcher" aria-label="Language selector">
-          {(["fr","ar","en"] as const).map((code) => (
-            <button key={code} className={lang===code ? "active" : ""} onClick={() => setLang(code)}>
-              {code.toUpperCase()}
-            </button>
-          ))}
-        </div>
-        {signedIn
-          ? <button className="btn btn-small" onClick={logout}>{t({fr:"Déconnexion",ar:"تسجيل الخروج",en:"Sign out"})}</button>
-          : <Link className="btn btn-small" href="/connexion">{t({fr:"Se connecter",ar:"تسجيل الدخول",en:"Sign in"})}</Link>}
-      </div>
-    </header>
-  );
+  return <header className="site-header"><div className="container nav-wrap">
+    <Link className="brand" href="/"><span className="brand-mark">V</span><span>Vydys <strong>Academy</strong></span></Link>
+    <nav className="main-nav" aria-label={t({fr:"Navigation principale",ar:"التنقل الرئيسي",en:"Main navigation"})}>
+      <Link href="/formations">{t({fr:"Formations",ar:"الدورات",en:"Courses"})}</Link>
+      <Link href="/classroom">{t({fr:"Classroom",ar:"الفصل المباشر",en:"Classroom"})}</Link>
+      {isManagement?<Link href="/admin">{t({fr:"Administration",ar:"الإدارة",en:"Administration"})}</Link>
+      :isInstructor?<Link href="/formateur">{t({fr:"Espace formateur",ar:"مساحة المدرب",en:"Instructor area"})}</Link>
+      :<Link href="/dashboard">{t({fr:"Mon espace",ar:"حسابي",en:"My space"})}</Link>}
+      {!signedIn&&<Link href="/devenir-formateur">{t({fr:"Devenir formateur",ar:"كن مدرباً",en:"Teach on Vydys"})}</Link>}
+    </nav>
+    <div className="language-switcher" aria-label="Language selector">{(["fr","ar","en"] as const).map(code=><button key={code} className={lang===code?"active":""} onClick={()=>setLang(code)}>{code.toUpperCase()}</button>)}</div>
+    {signedIn?<button className="btn btn-small" onClick={logout}>{t({fr:"Déconnexion",ar:"تسجيل الخروج",en:"Sign out"})}</button>:<Link className="btn btn-small" href="/connexion">{t({fr:"Se connecter",ar:"تسجيل الدخول",en:"Sign in"})}</Link>}
+  </div></header>
 }
