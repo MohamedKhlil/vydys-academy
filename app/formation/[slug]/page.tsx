@@ -28,7 +28,7 @@ export default function FormationDetailPage(){
     setCourse(c);
     const [{data:rs},{data:rv}]=await Promise.all([
       supabase.from("course_rating_summary").select("*").eq("course_id",c.id).single(),
-      supabase.from("course_reviews").select("id,rating,review_text,created_at,profiles:user_id(full_name)").eq("course_id",c.id).order("created_at",{ascending:false})
+      supabase.from("course_reviews").select("id,rating,review_text,created_at").eq("course_id",c.id).order("created_at",{ascending:false})
     ]);
     if(rs)setRatings(rs);setReviews(rv||[]);
     if(c.instructor_id){
@@ -91,7 +91,7 @@ export default function FormationDetailPage(){
       {instructor&&<Link href={"/formateur/"+instructor.public_slug} className="instructor-box"><div className="avatar">{instructor.display_name?.slice(0,2).toUpperCase()}</div><div><small>{t({fr:"Formateur",ar:"المدرب",en:"Instructor"})}</small><strong>{instructor.display_name}</strong><span>{instructor.headline}</span></div></Link>}
 
       <section className="reviews-section"><h2>{t({fr:"Avis des étudiants",ar:"آراء الطلاب",en:"Student reviews"})}</h2>
-        {reviews.length===0?<p>{t({fr:"Pas encore d'avis.",ar:"لا توجد تقييمات بعد.",en:"No reviews yet."})}</p>:reviews.map(r=><article className="review-card" key={r.id}><div className="rating-line"><span className="stars">★★★★★</span><strong>{r.rating}/5</strong></div><p>{r.review_text}</p><small>{r.profiles?.full_name||t({fr:"Étudiant",ar:"طالب",en:"Student"})}</small></article>)}
+        {reviews.length===0?<p>{t({fr:"Pas encore d'avis.",ar:"لا توجد تقييمات بعد.",en:"No reviews yet."})}</p>:reviews.map(r=><article className="review-card" key={r.id}><div className="rating-line"><span className="stars">★★★★★</span><strong>{r.rating}/5</strong></div><p>{r.review_text}</p><small>{t({fr:"Étudiant vérifié",ar:"طالب مسجل",en:"Verified student"})}</small></article>)}
         {enrolled&&<article className="panel review-form"><h3>{t({fr:"Notez cette formation",ar:"قيّم هذه الدورة",en:"Rate this course"})}</h3><div className="rating-picker">{[1,2,3,4,5].map(n=><button key={n} className={n<=rating?"active":""} onClick={()=>setRating(n)}>★</button>)}</div><textarea rows={4} value={reviewText} onChange={e=>setReviewText(e.target.value)} placeholder={t({fr:"Votre avis...",ar:"رأيك...",en:"Your review..."})}/><button className="btn" onClick={submitReview}>{t({fr:"Publier mon avis",ar:"نشر التقييم",en:"Publish review"})}</button></article>}
       </section>
     </div>
