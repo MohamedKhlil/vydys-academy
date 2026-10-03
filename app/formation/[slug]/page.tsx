@@ -91,7 +91,7 @@ export default function FormationDetailPage(){
     const path=`${user.id}/${crypto.randomUUID()}-${safe}`;
     const {error:upErr}=await supabase.storage.from("payment-proofs").upload(path,proof,{contentType:proof.type});
     if(upErr){setMessage(upErr.message);return}
-    const {error}=await supabase.rpc("submit_course_payment_v2",{p_course_id:course.id,p_payment_method_id:method.id,p_transaction_reference:reference,p_proof_path:path,p_coupon_code:coupon?.valid?couponCode.trim():""});
+    const {error}=await supabase.rpc("submit_course_payment_v3",{p_course_id:course.id,p_payment_method_id:method.id,p_transaction_reference:reference,p_proof_path:path,p_coupon_code:coupon?.valid?couponCode.trim():""});
     if(error){setMessage(error.message);return}
     setMessage(t({fr:"Paiement envoyé au formateur pour validation.",ar:"تم إرسال الدفع للمدرب للمراجعة.",en:"Payment submitted to the instructor for approval."}));
     setProof(null);setReference("");setCoupon(null);setCouponCode("");
