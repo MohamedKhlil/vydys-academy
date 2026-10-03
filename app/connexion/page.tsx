@@ -63,9 +63,10 @@ export default function ConnexionPage(){
         <label>{t({fr:"Téléphone",ar:"رقم الهاتف",en:"Phone"})}<input value={phone} onChange={e=>setPhone(e.target.value)} required /></label>
       </>}
       <label>Email<input type="email" value={email} onChange={e=>setEmail(e.target.value)} required /></label>
-      <label>{t({fr:"Mot de passe",ar:"كلمة المرور",en:"Password"})}<input type="password" minLength={6} value={password} onChange={e=>setPassword(e.target.value)} required /></label>
+      <label>{t({fr:"Mot de passe",ar:"كلمة المرور",en:"Password"})}<input type="password" minLength={8} value={password} onChange={e=>setPassword(e.target.value)} required /></label>
       <button className="btn full" disabled={loading}>{loading?"...":mode==="login"?t({fr:"Se connecter",ar:"تسجيل الدخول",en:"Sign in"}):t({fr:"Créer mon compte",ar:"إنشاء الحساب",en:"Create account"})}</button>
     </form>
+    {mode==="login"&&<a className="auth-link" href="/mot-de-passe-oublie">{t({fr:"Mot de passe oublié ?",ar:"نسيت كلمة المرور؟",en:"Forgot password?"})}</a>}
     {message && <div className="auth-note">{message}</div>}
     <button className="auth-switch" onClick={()=>setMode(mode==="login"?"register":"login")}>
       {mode==="login"?t({fr:"Pas encore de compte ? S'inscrire",ar:"ليس لديك حساب؟ سجّل الآن",en:"No account yet? Register"}):t({fr:"Déjà inscrit ? Se connecter",ar:"لديك حساب؟ سجّل الدخول",en:"Already registered? Sign in"})}
