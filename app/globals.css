@@ -7,3 +7,34 @@
 .payment-methods.four{grid-template-columns:repeat(2,minmax(0,1fr))}
 .proof-link{color:var(--accent);text-decoration:none}
 @media(max-width:620px){.payment-methods.four{grid-template-columns:1fr}}
+
+.form-field textarea,.form-field select{border:1px solid var(--line);border-radius:12px;padding:13px;outline:none;width:100%;font:inherit;background:#fff;color:var(--ink)}
+.form-field textarea:focus,.form-field select:focus{border-color:var(--accent)}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 18px}
+.full-row{grid-column:1/-1}
+.form-actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+.trainer-status{margin-bottom:20px}
+.subscription-warning{margin-bottom:20px;background:#fff8df;border-color:#f1df9e}
+.quick-actions a{border:1px solid var(--line);background:#fff;text-align:left;padding:13px;border-radius:12px;display:block}
+.admin-nav-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.admin-nav-card{display:flex;flex-direction:column;gap:8px;margin:0!important;transition:.2s ease}
+.admin-nav-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.admin-nav-card span{color:var(--muted);font-size:12px;line-height:1.45}
+.application-list{display:grid;gap:14px}
+.application-card{display:grid;grid-template-columns:1fr auto;gap:25px;align-items:start}
+.application-card h2{margin:12px 0 6px}
+.application-card p{color:var(--muted);line-height:1.6}
+.review-actions.vertical{flex-direction:column;min-width:150px}
+.review-actions .btn-ghost{border:1px solid var(--line);background:#fff;color:var(--ink)}
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.plan-card{border:1px solid var(--line);background:#fff;border-radius:20px;padding:24px;text-align:left;display:flex;flex-direction:column;gap:10px;cursor:pointer}
+.plan-card.selected{border:2px solid var(--accent);background:#f7f6ff}
+.plan-card strong{font-size:26px}
+.method-list{display:grid;gap:10px;margin-top:15px}
+.method-row{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid var(--line);border-radius:14px;padding:14px}
+.method-row div{display:flex;flex-direction:column;gap:4px}.method-row span{font-size:12px;color:var(--muted)}
+.method-row button{border:0;background:#ffecef;color:#c8334f;border-radius:9px;padding:8px 10px;font-weight:700;cursor:pointer}
+.checkbox-field{grid-template-columns:auto 1fr!important;align-items:center}
+.checkbox-field input{width:auto!important}
+@media(max-width:900px){.admin-nav-cards{grid-template-columns:1fr 1fr}.pricing-grid{grid-template-columns:1fr}.application-card{grid-template-columns:1fr}.review-actions.vertical{flex-direction:row;min-width:0}}
+@media(max-width:620px){.form-grid,.admin-nav-cards{grid-template-columns:1fr}.full-row{grid-column:auto}.review-actions.vertical{flex-direction:column}}
