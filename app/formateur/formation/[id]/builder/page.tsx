@@ -150,7 +150,7 @@ export default function CourseBuilderPage(){
   async function submitForReview(){
     if(!activeSub){setMessage(t({fr:"Activez d'abord votre abonnement formateur.",ar:"فعّل اشتراك المدرب أولاً.",en:"Activate your instructor subscription first."}));return}
     if(modules.length===0||lessons.length===0){setMessage(t({fr:"Ajoutez au moins un module et une leçon avant soumission.",ar:"أضف وحدة ودرساً واحداً على الأقل قبل الإرسال.",en:"Add at least one module and one lesson before submitting."}));return}
-    const {error}=await supabase.from("courses").update({status:"pending",submitted_at:new Date().toISOString(),is_published:false}).eq("id",id);
+    const {error}=await supabase.rpc("submit_course_for_review",{p_course_id:id});
     if(error)setMessage(error.message);else{setMessage(t({fr:"Formation envoyée à la Direction pour validation.",ar:"تم إرسال الدورة إلى الإدارة للمراجعة.",en:"Course submitted to Management for review."}));await load()}
   }
 
