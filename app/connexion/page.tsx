@@ -13,6 +13,7 @@ export default function ConnexionPage(){
   const [phone,setPhone]=useState("");
   const [message,setMessage]=useState("");
   const [loading,setLoading]=useState(false);
+  const [accepted,setAccepted]=useState(false);
 
   async function submit(e:FormEvent){
     e.preventDefault();
@@ -21,7 +22,7 @@ export default function ConnexionPage(){
       if(mode==="register"){
         const { error } = await supabase.auth.signUp({
           email,password,
-          options:{data:{full_name:fullName,phone}}
+          options:{data:{full_name:fullName,phone,terms_accepted:true,terms_version:"2026-10-03"}}
         });
         if(error) throw error;
         setMessage(t({
@@ -61,10 +62,11 @@ export default function ConnexionPage(){
       {mode==="register" && <>
         <label>{t({fr:"Nom complet",ar:"الاسم الكامل",en:"Full name"})}<input value={fullName} onChange={e=>setFullName(e.target.value)} required /></label>
         <label>{t({fr:"Téléphone",ar:"رقم الهاتف",en:"Phone"})}<input value={phone} onChange={e=>setPhone(e.target.value)} required /></label>
+        <label className="legal-check"><input type="checkbox" checked={accepted} onChange={e=>setAccepted(e.target.checked)} required/><span>{t({fr:"J’accepte les",ar:"أوافق على",en:"I accept the"})} <a href="/conditions" target="_blank">{t({fr:"Conditions d’utilisation",ar:"شروط الاستخدام",en:"Terms of Use"})}</a> {t({fr:"et la",ar:"و",en:"and"})} <a href="/confidentialite" target="_blank">{t({fr:"Politique de confidentialité",ar:"سياسة الخصوصية",en:"Privacy Policy"})}</a>.</span></label>
       </>}
       <label>Email<input type="email" value={email} onChange={e=>setEmail(e.target.value)} required /></label>
       <label>{t({fr:"Mot de passe",ar:"كلمة المرور",en:"Password"})}<input type="password" minLength={8} value={password} onChange={e=>setPassword(e.target.value)} required /></label>
-      <button className="btn full" disabled={loading}>{loading?"...":mode==="login"?t({fr:"Se connecter",ar:"تسجيل الدخول",en:"Sign in"}):t({fr:"Créer mon compte",ar:"إنشاء الحساب",en:"Create account"})}</button>
+      <button className="btn full" disabled={loading||(mode==="register"&&!accepted)}>{loading?"...":mode==="login"?t({fr:"Se connecter",ar:"تسجيل الدخول",en:"Sign in"}):t({fr:"Créer mon compte",ar:"إنشاء الحساب",en:"Create account"})}</button>
     </form>
     {mode==="login"&&<a className="auth-link" href="/mot-de-passe-oublie">{t({fr:"Mot de passe oublié ?",ar:"نسيت كلمة المرور؟",en:"Forgot password?"})}</a>}
     {message && <div className="auth-note">{message}</div>}
