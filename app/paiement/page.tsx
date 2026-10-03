@@ -31,12 +31,15 @@ export default function PaiementPage(){
       const path=`${user.id}/${crypto.randomUUID()}-${safe}`;
       const up=await supabase.storage.from("payment-proofs").upload(path,proof,{contentType:proof.type,upsert:false});
       if(up.error) throw up.error;
-      const ins=await supabase.from("payment_submissions").insert({
-        user_id:user.id,course_id:COURSE_ID,payment_method:method,payment_number:PAYMENT_NUMBER,
-        expected_amount_mru:amount,submitted_amount_mru:amount,transaction_reference:reference||null,proof_path:path
+      const ins=await supabase.rpc("submit_platform_course_payment",{
+        p_course_id:COURSE_ID,
+        p_payment_method:method,
+        p_transaction_reference:reference,
+        p_proof_path:path
       });
       if(ins.error) throw ins.error;
-      await supabase.from("profiles").update({full_name:fullName,phone}).eq("id",user.id);
+      const profileUpdate=await supabase.rpc("update_my_profile",{p_full_name:fullName,p_phone:phone});
+      if(profileUpdate.error) throw profileUpdate.error;
       setMessage(t({fr:"Preuve envoyée. Votre paiement est maintenant en attente de validation par la Direction.",ar:"تم إرسال الإثبات. الدفع الآن قيد مراجعة الإدارة.",en:"Proof submitted. Your payment is now pending Management approval."}));
       setProof(null); setReference("");
     }catch(err){setMessage(err instanceof Error?err.message:"Erreur")}finally{setLoading(false)}
