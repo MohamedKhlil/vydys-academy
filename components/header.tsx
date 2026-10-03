@@ -34,10 +34,14 @@ export function Header() {
     <Link className="brand" href="/"><span className="brand-mark">V</span><span>Vydys <strong>Academy</strong></span></Link>
     <nav className="main-nav" aria-label={t({fr:"Navigation principale",ar:"التنقل الرئيسي",en:"Main navigation"})}>
       <Link href="/formations">{t({fr:"Formations",ar:"الدورات",en:"Courses"})}</Link>
+      <Link href="/formateurs">{t({fr:"Formateurs",ar:"المدربون",en:"Instructors"})}</Link>
       <Link href="/classroom">{t({fr:"Classroom",ar:"الفصل المباشر",en:"Classroom"})}</Link>
       {isManagement?<Link href="/admin">{t({fr:"Administration",ar:"الإدارة",en:"Administration"})}</Link>
       :isInstructor?<Link href="/formateur">{t({fr:"Espace formateur",ar:"مساحة المدرب",en:"Instructor area"})}</Link>
       :<Link href="/dashboard">{t({fr:"Mon espace",ar:"حسابي",en:"My space"})}</Link>}
+      {signedIn&&<Link href="/messages">💬</Link>}
+      {signedIn&&<Link href="/notifications">🔔</Link>}
+      {signedIn&&!isInstructor&&!isManagement&&<Link href="/favoris">♥</Link>}
       {!signedIn&&<Link href="/devenir-formateur">{t({fr:"Devenir formateur",ar:"كن مدرباً",en:"Teach on Vydys"})}</Link>}
     </nav>
     <div className="language-switcher" aria-label="Language selector">{(["fr","ar","en"] as const).map(code=><button key={code} className={lang===code?"active":""} onClick={()=>setLang(code)}>{code.toUpperCase()}</button>)}</div>
