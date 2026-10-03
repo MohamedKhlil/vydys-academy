@@ -38,3 +38,48 @@
 .checkbox-field input{width:auto!important}
 @media(max-width:900px){.admin-nav-cards{grid-template-columns:1fr 1fr}.pricing-grid{grid-template-columns:1fr}.application-card{grid-template-columns:1fr}.review-actions.vertical{flex-direction:row;min-width:0}}
 @media(max-width:620px){.form-grid,.admin-nav-cards{grid-template-columns:1fr}.full-row{grid-column:auto}.review-actions.vertical{flex-direction:column}}
+
+.market-filters{display:grid;grid-template-columns:1fr 260px;gap:12px;margin-bottom:28px}
+.market-filters input,.market-filters select{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff;font:inherit}
+.market-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.market-card{border:1px solid var(--line);border-radius:22px;background:#fff;overflow:hidden;display:flex;flex-direction:column}
+.course-cover{height:190px;background:linear-gradient(135deg,#11172a,#5b5cf0);display:grid;place-items:center;position:relative;overflow:hidden}
+.course-cover img{width:100%;height:100%;object-fit:cover}
+.course-cover>span{font-size:58px;font-weight:900;color:#fff}
+.course-cover>b{position:absolute;top:14px;left:14px;background:var(--lime);color:var(--navy);border-radius:999px;padding:7px 10px;font-size:11px}
+.market-card-body{padding:20px;display:flex;flex-direction:column;gap:10px;flex:1}
+.market-card-body h2{font-size:22px;margin:0}
+.market-card-body p{color:var(--muted);font-size:14px;line-height:1.55;margin:0}
+.trainer-link{font-size:12px;color:var(--accent);font-weight:800}
+.course-card-footer{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:auto;padding-top:10px}
+.rating-line{display:flex;align-items:center;gap:6px;font-size:12px}
+.rating-line.big{font-size:15px;margin:18px 0}
+.stars{letter-spacing:1px;color:#f2b01e}
+.course-detail-grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:34px;align-items:start}
+.course-detail-title{font-size:56px;line-height:1.02;letter-spacing:-.045em;margin:18px 0}
+.course-detail-copy{font-size:18px;line-height:1.75;color:var(--muted);max-width:760px}
+.instructor-box{display:flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:18px;padding:15px;margin:22px 0;max-width:520px}
+.instructor-box>div:last-child{display:flex;flex-direction:column;gap:3px}
+.instructor-box small,.instructor-box span{color:var(--muted);font-size:12px}
+.course-checkout{position:sticky;top:95px}
+.checkout-methods{display:grid;gap:8px;margin:16px 0}
+.checkout-method{border:1px solid var(--line);background:#fff;border-radius:13px;padding:13px;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:12px;cursor:pointer}
+.checkout-method.selected{border:2px solid var(--accent);background:#f7f6ff}
+.checkout-method div{display:flex;flex-direction:column;gap:3px}.checkout-method span{font-size:11px;color:var(--muted)}
+.reviews-section{margin-top:44px}
+.review-card{border-top:1px solid var(--line);padding:18px 0}
+.review-card p{color:var(--muted);line-height:1.6}
+.review-form{margin-top:22px!important}
+.rating-picker{display:flex;gap:4px;margin:10px 0 14px}
+.rating-picker button{border:0;background:transparent;font-size:30px;color:#d8dbe5;cursor:pointer;padding:0 2px}
+.rating-picker button.active{color:#f2b01e}
+.review-form textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;margin-bottom:12px}
+.trainer-public-hero{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:start;padding:34px;border:1px solid var(--line);border-radius:26px;background:#fff}
+.trainer-avatar{width:82px;height:82px;font-size:22px}
+.trainer-public-hero h1{font-size:46px;margin:0 0 8px}.trainer-public-hero h3{margin:0 0 10px}.trainer-public-hero p{color:var(--muted);line-height:1.65;max-width:760px}
+.course-rating-mini{display:block;color:#f2b01e;margin-top:4px}
+.sales-history{margin-top:20px!important}
+.sales-history .tr{grid-template-columns:1fr 1.3fr .7fr .6fr}
+.status.rejected{color:#c8334f}
+@media(max-width:900px){.market-grid{grid-template-columns:1fr 1fr}.course-detail-grid{grid-template-columns:1fr}.course-checkout{position:static}}
+@media(max-width:620px){.market-filters,.market-grid{grid-template-columns:1fr}.course-detail-title{font-size:40px}.trainer-public-hero{grid-template-columns:1fr}.sales-history .tr{grid-template-columns:1fr 1fr}.sales-history .tr span:nth-child(3),.sales-history .tr span:nth-child(4){display:block}}
