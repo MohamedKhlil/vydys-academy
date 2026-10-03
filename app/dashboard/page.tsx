@@ -66,6 +66,13 @@ export default function DashboardPage(){
       <article className="panel stat"><span>{t({fr:"Paiements en attente",ar:"دفعات معلقة",en:"Pending payments"})}</span><strong>{pending.length}</strong></article>
     </div>
 
+    <div className="vydys-tools-grid">
+      <Link className="panel vydys-tool-card ai" href="/ai-tutor"><span className="tool-icon">AI</span><div><strong>{t({fr:"AI Tutor",ar:"المدرس الذكي",en:"AI Tutor"})}</strong><p>{t({fr:"Comprendre, pratiquer et réviser avec votre tuteur IA.",ar:"افهم وطبّق وراجع مع مدرسك الذكي.",en:"Learn, practice and revise with your AI tutor."})}</p></div></Link>
+      <Link className="panel vydys-tool-card" href="/projects"><span className="tool-icon">⌘</span><div><strong>{t({fr:"Projects",ar:"المشاريع",en:"Projects"})}</strong><p>{t({fr:"Construisez des projets validés par vos formateurs.",ar:"أنشئ مشاريع يعتمدها مدربوك.",en:"Build projects validated by instructors."})}</p></div></Link>
+      <Link className="panel vydys-tool-card" href="/competences"><span className="tool-icon">✓</span><div><strong>{t({fr:"Skills Passport",ar:"جواز المهارات",en:"Skills Passport"})}</strong><p>{t({fr:"Vos compétences vérifiées et votre niveau.",ar:"مهاراتك المعتمدة ومستواك.",en:"Your verified skills and level."})}</p></div></Link>
+      <Link className="panel vydys-tool-card" href="/portfolio"><span className="tool-icon">↗</span><div><strong>{t({fr:"Portfolio",ar:"الملف المهني",en:"Portfolio"})}</strong><p>{t({fr:"Montrez vos projets et certificats aux entreprises.",ar:"اعرض مشاريعك وشهاداتك للشركات.",en:"Show employers your projects and certificates."})}</p></div></Link>
+    </div>
+
     {pending.length>0&&<article className="panel pending-orders"><h2>{t({fr:"Paiements en cours de validation",ar:"دفعات قيد المراجعة",en:"Payments awaiting approval"})}</h2>{pending.map(p=><div className="pending-order" key={p.id}><div><strong>{title(p.courses)}</strong><small>{Number(p.expected_amount_mru).toLocaleString("fr-FR")} MRU</small></div><span className="status pending">{t({fr:"En attente",ar:"قيد المراجعة",en:"Pending"})}</span></div>)}</article>}
 
     <div className="student-course-grid">
