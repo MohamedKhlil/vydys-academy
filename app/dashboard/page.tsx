@@ -1,10 +1,33 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useLanguage } from "../../components/language-provider";
+import { supabase } from "../../lib/supabase";
 
 export default function DashboardPage(){
   const { t } = useLanguage();
+  const [checking,setChecking]=useState(true);
+
+  useEffect(()=>{
+    let active=true;
+    async function checkRole(){
+      const {data:{user}}=await supabase.auth.getUser();
+      if(!user){window.location.href="/connexion";return}
+      const {data}=await supabase.from("profiles").select("role").eq("id",user.id).single();
+      if(!active)return;
+      if(data?.role==="direction" || data?.role==="admin"){
+        window.location.href="/admin";
+        return;
+      }
+      setChecking(false);
+    }
+    checkRole();
+    return ()=>{active=false};
+  },[]);
+
+  if(checking) return <section className="dashboard-shell"><div className="container"><p>...</p></div></section>;
+
   return <section className="dashboard-shell"><div className="container">
     <div className="dash-header"><div><span className="eyebrow">{t({fr:"Espace étudiant",ar:"مساحة الطالب",en:"Student area"})}</span><h1>{t({fr:"Bonjour 👋",ar:"مرحباً 👋",en:"Hello 👋"})}</h1><p>{t({fr:"Continuez votre apprentissage là où vous vous êtes arrêté.",ar:"واصل التعلم من حيث توقفت.",en:"Continue learning where you left off."})}</p></div><div className="avatar">MK</div></div>
     <div className="dash-grid"><div className="dash-main">
