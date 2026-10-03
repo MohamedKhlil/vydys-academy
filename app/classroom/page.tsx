@@ -1,0 +1,8 @@
+export default function ClassroomPage(){
+  return <section className="section page-top"><div className="container">
+    <div className="page-hero"><span className="eyebrow">Classroom</span><h1>Apprenez ensemble, en direct avec votre formateur.</h1><p>Planning, sessions live, devoirs, replays et échanges regroupés au même endroit.</p></div>
+    <div className="class-layout"><article className="panel live-room"><div className="live-room-top"><div><span className="tag live">PROCHAINE SESSION</span><h2>Créer une campagne Meta Ads avec l'IA</h2><p>Mardi · 19:00 — 20:30 · Promotion Octobre 2026</p></div><button className="btn">Rejoindre la classe</button></div><div className="video-placeholder"><span>▶</span><p>La salle vidéo sera disponible au début du cours</p></div></article>
+    <aside className="class-side"><article className="panel"><h3>Votre promotion</h3><p><b>Marketing Digital & IA</b></p><p>Promotion Octobre 2026</p><div className="members"><span>AM</span><span>FS</span><span>MB</span><span>+21</span></div></article><article className="panel"><h3>Devoir à rendre</h3><p>Créer 3 publicités avec ChatGPT.</p><small>Échéance : dimanche</small><button className="btn btn-ghost full">Déposer mon devoir</button></article></aside></div>
+    <h2 className="subhead">Planning</h2><div className="schedule"><div><b>08 OCT</b><span>19:00</span><p><strong>Stratégie de contenu</strong><small>Classroom · 1h30</small></p><em>À venir</em></div><div><b>15 OCT</b><span>19:00</span><p><strong>Meta Ads + IA</strong><small>Classroom · 1h30</small></p><em>À venir</em></div><div><b>01 OCT</b><span>19:00</span><p><strong>Introduction & objectifs</strong><small>Replay disponible</small></p><em className="done">Replay</em></div></div>
+  </div></section>
+}
