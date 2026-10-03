@@ -11,6 +11,8 @@ type Payment = {
   transaction_reference:string|null;
   proof_path:string;
   created_at:string;
+  risk_status:string;
+  risk_reason:string|null;
   profiles:{full_name:string|null;phone:string|null}|null;
   proofUrl?:string;
 };
@@ -29,7 +31,7 @@ export default function AdminPage(){
     setAllowed(ok);
     if(!ok)return;
     const {data,error}=await supabase.from("payment_submissions")
-      .select("id,payment_method,expected_amount_mru,transaction_reference,proof_path,created_at,profiles:user_id(full_name,phone)")
+      .select("id,payment_method,expected_amount_mru,transaction_reference,proof_path,created_at,risk_status,risk_reason,profiles:user_id(full_name,phone)")
       .eq("status","pending").order("created_at",{ascending:true});
     if(error){setMessage(error.message);return}
     const rows=(data||[]) as unknown as Payment[];
@@ -70,6 +72,8 @@ export default function AdminPage(){
       <a className="panel admin-nav-card" href="/admin/analytics"><strong>{t({fr:"Analytics marketplace",ar:"تحليلات السوق",en:"Marketplace analytics"})}</strong><span>{t({fr:"Revenus, commissions, étudiants et croissance",ar:"الإيرادات والعمولات والطلاب والنمو",en:"Revenue, fees, students and growth"})}</span></a>
       <a className="panel admin-nav-card" href="/admin/support"><strong>{t({fr:"Support & litiges",ar:"الدعم والنزاعات",en:"Support & disputes"})}</strong><span>{t({fr:"Traiter les demandes des étudiants et formateurs",ar:"معالجة طلبات الطلاب والمدربين",en:"Handle student and instructor requests"})}</span></a>
       <a className="panel admin-nav-card" href="/admin/export"><strong>{t({fr:"Exports financiers",ar:"التقارير المالية",en:"Financial exports"})}</strong><span>{t({fr:"Télécharger ventes et abonnements en CSV",ar:"تنزيل المبيعات والاشتراكات بصيغة CSV",en:"Download sales and subscriptions as CSV"})}</span></a>
+      <a className="panel admin-nav-card" href="/admin/moderation"><strong>{t({fr:"Modération des avis",ar:"إدارة التقييمات",en:"Review moderation"})}</strong><span>{t({fr:"Masquer ou rétablir les avis problématiques",ar:"إخفاء أو إعادة التقييمات المخالفة",en:"Hide or restore problematic reviews"})}</span></a>
+      <a className="panel admin-nav-card" href="/admin/audit"><strong>{t({fr:"Journal d’audit",ar:"سجل التدقيق",en:"Audit log"})}</strong><span>{t({fr:"Tracer les modifications sensibles",ar:"تتبع التغييرات الحساسة",en:"Track sensitive changes"})}</span></a>
     </div>
 
     <div className="stat-grid">
@@ -86,7 +90,7 @@ export default function AdminPage(){
         {payments.length===0&&<p>{t({fr:"Aucun paiement en attente.",ar:"لا توجد دفعات قيد المراجعة.",en:"No pending payments."})}</p>}
         {payments.map(p=><div className="payment-review" key={p.id}>
           {p.proofUrl?<a className="proof-thumb proof-link" href={p.proofUrl} target="_blank" rel="noreferrer">IMG</a>:<div className="proof-thumb">IMG</div>}
-          <div className="payment-review-main"><strong>{p.profiles?.full_name||t({fr:"Étudiant",ar:"طالب",en:"Student"})}</strong><span>{p.payment_method.toUpperCase()} · {p.expected_amount_mru.toLocaleString("fr-FR")} MRU</span><small>{(p.profiles?.phone||"") + (p.transaction_reference ? " · Ref: " + p.transaction_reference : "")}</small></div>
+          <div className="payment-review-main"><strong>{p.profiles?.full_name||t({fr:"Étudiant",ar:"طالب",en:"Student"})} {p.risk_status==="review"&&<span className="risk-badge">⚠ {t({fr:"À vérifier",ar:"يحتاج مراجعة",en:"Review"})}</span>}</strong><span>{p.payment_method.toUpperCase()} · {p.expected_amount_mru.toLocaleString("fr-FR")} MRU</span><small>{(p.profiles?.phone||"") + (p.transaction_reference ? " · Ref: " + p.transaction_reference : "")}</small>{p.risk_reason&&<small className="risk-reason">{p.risk_reason}</small>}</div>
           <div className="review-actions"><button className="approve" onClick={()=>approve(p.id)}>{t({fr:"Valider",ar:"قبول",en:"Approve"})}</button><button className="reject" onClick={()=>reject(p.id)}>{t({fr:"Refuser",ar:"رفض",en:"Reject"})}</button></div>
         </div>)}
       </div>
