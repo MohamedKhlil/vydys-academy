@@ -31,9 +31,22 @@ export default function ConnexionPage(){
         }));
         setMode("login");
       }else{
-        const { error } = await supabase.auth.signInWithPassword({email,password});
+        const { data, error } = await supabase.auth.signInWithPassword({email,password});
         if(error) throw error;
-        window.location.href="/dashboard";
+
+        const userId=data.user?.id;
+        if(!userId){window.location.href="/dashboard";return}
+
+        const { data:profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id",userId)
+          .single();
+
+        window.location.href =
+          profile?.role==="direction" || profile?.role==="admin"
+            ? "/admin"
+            : "/dashboard";
       }
     }catch(err){
       setMessage(err instanceof Error ? err.message : "Erreur");
