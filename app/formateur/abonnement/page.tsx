@@ -33,9 +33,11 @@ export default function AbonnementPage(){
       const {error:upError}=await supabase.storage.from("trainer-files").upload(proofPath,proof,{contentType:proof.type});
       if(upError){setMessage(upError.message);return}
     }
-    const {error}=await supabase.from("trainer_subscriptions").insert({
-      instructor_id:user.id,plan,amount_mru:amount,payment_method:method,
-      payment_number:settings.platform_payment_number,transaction_reference:reference||null,proof_path:proofPath,status:"pending"
+    const {error}=await supabase.rpc("submit_trainer_subscription_secure",{
+      p_plan:plan,
+      p_payment_method:method,
+      p_transaction_reference:reference,
+      p_proof_path:proofPath
     });
     setMessage(error?error.message:t({fr:"Demande d'abonnement envoyée à la Direction.",ar:"تم إرسال طلب الاشتراك إلى الإدارة.",en:"Subscription request sent to Management."}));
   }
