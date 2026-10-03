@@ -60,7 +60,7 @@ export default function CourseBuilderPage(){
       supabase.from("quizzes").select("*").eq("course_id",id).order("created_at"),
       supabase.from("assignments").select("*").eq("course_id",id).order("created_at"),
       supabase.from("classrooms").select("*").eq("course_id",id).order("starts_at"),
-      supabase.from("assignment_submissions").select("id,status,grade,feedback,submission_text,file_path,submitted_at,assignment_id,profiles:user_id(full_name),assignments:assignment_id(title_fr)").eq("course_id",id).order("submitted_at",{ascending:false}),
+      supabase.from("assignment_submission_view").select("*").eq("course_id",id).order("submitted_at",{ascending:false}),
       supabase.from("trainer_subscriptions").select("id,ends_at").eq("instructor_id",user.id).eq("status","active")
     ]);
     setModules(m||[]);setLessons(l||[]);setQuizzes(q||[]);setAssignments(a||[]);setClassrooms(cl||[]);setSubmissions(sub||[]);
@@ -240,7 +240,7 @@ export default function CourseBuilderPage(){
     </section>
 
     <section className="panel assignment-review"><h2>{t({fr:"Devoirs reçus",ar:"الواجبات المستلمة",en:"Assignment submissions"})}</h2>
-      {submissions.length===0?<p>{t({fr:"Aucun devoir reçu.",ar:"لا توجد واجبات.",en:"No submissions yet."})}</p>:submissions.map(s=><div className="submission-row" key={s.id}><div><strong>{s.assignments?.title_fr}</strong><span>{s.profiles?.full_name||t({fr:"Étudiant",ar:"طالب",en:"Student"})}</span><p>{s.submission_text}</p></div><div className="review-actions"><button className="approve" onClick={()=>gradeSubmission(s,"accepted")}>{t({fr:"Accepter",ar:"قبول",en:"Accept"})}</button><button className="reject" onClick={()=>gradeSubmission(s,"revision_required")}>{t({fr:"Révision",ar:"مراجعة",en:"Revision"})}</button></div></div>)}
+      {submissions.length===0?<p>{t({fr:"Aucun devoir reçu.",ar:"لا توجد واجبات.",en:"No submissions yet."})}</p>:submissions.map(s=><div className="submission-row" key={s.id}><div><strong>{s.assignment_title_fr}</strong><span>{s.student_name||t({fr:"Étudiant",ar:"طالب",en:"Student"})}</span><p>{s.submission_text}</p></div><div className="review-actions"><button className="approve" onClick={()=>gradeSubmission(s,"accepted")}>{t({fr:"Accepter",ar:"قبول",en:"Accept"})}</button><button className="reject" onClick={()=>gradeSubmission(s,"revision_required")}>{t({fr:"Révision",ar:"مراجعة",en:"Revision"})}</button></div></div>)}
     </section>
   </div></section>
 }
