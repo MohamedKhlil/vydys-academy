@@ -36,6 +36,7 @@ export function Header() {
       <Link href="/formations">{t({fr:"Formations",ar:"الدورات",en:"Courses"})}</Link>
       <Link href="/formateurs">{t({fr:"Formateurs",ar:"المدربون",en:"Instructors"})}</Link>
       <Link href="/classroom">{t({fr:"Classroom",ar:"الفصل المباشر",en:"Classroom"})}</Link>
+      {signedIn&&!isManagement&&(isInstructor?<Link href="/formateur/copilote">Vydys AI</Link>:<Link href="/ai-tutor">Vydys AI</Link>)}
       {isManagement?<Link href="/admin">{t({fr:"Administration",ar:"الإدارة",en:"Administration"})}</Link>
       :isInstructor?<Link href="/formateur">{t({fr:"Espace formateur",ar:"مساحة المدرب",en:"Instructor area"})}</Link>
       :<Link href="/dashboard">{t({fr:"Mon espace",ar:"حسابي",en:"My space"})}</Link>}
