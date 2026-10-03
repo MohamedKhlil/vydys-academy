@@ -222,3 +222,14 @@
   .ai-page{padding:22px 0}.ai-page-head h1{font-size:34px}.ai-course-bar{flex-direction:column}.ai-suggestions{grid-template-columns:1fr}.ai-composer{grid-template-columns:1fr}.ai-message{max-width:96%}
   .talent-hero{padding:22px}.talent-hero h1{font-size:36px}
 }
+
+/* Vydys 2.0 homepage */
+.vydys2-hero .hero-grid{align-items:center}.vydys2-demo{display:grid;gap:14px}
+.ai-demo-card{border-radius:18px;background:#141832;color:#fff;padding:20px;display:grid;gap:10px}.ai-demo-card p{margin:0;color:#c9cbee;line-height:1.5}.ai-demo-card strong{font-size:19px;line-height:1.4}
+.skill-demo,.project-demo{display:flex;gap:12px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:16px;padding:15px}.skill-demo>div:last-child,.project-demo>div:last-child{display:flex;flex-direction:column;gap:3px}.skill-demo p,.project-demo p{margin:0;color:var(--muted);font-size:11px}.project-demo>span{width:42px;height:42px;border-radius:12px;background:#edecff;color:var(--accent);display:grid;place-items:center;font-size:20px;font-weight:900}
+.vydys-pillar .pillar-icon{display:grid;place-items:center;width:46px;height:46px;border-radius:14px;background:#efefff;color:var(--accent);font-weight:900;font-size:17px;margin-bottom:14px}
+.track-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.track-card{min-height:105px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:17px;display:flex;flex-direction:column;justify-content:space-between;transition:.2s}.track-card:hover{transform:translateY(-2px);border-color:#b7b4ff}.track-card>span{color:var(--accent);align-self:flex-end}.track-card strong{font-size:17px}
+.dual-audience{display:grid;grid-template-columns:1fr 1fr;gap:18px}.audience-card{border-radius:26px;padding:34px;min-height:310px;display:flex;flex-direction:column;align-items:flex-start}.audience-card h2{font-size:32px;margin:12px 0}.audience-card p{line-height:1.6;margin-bottom:24px}.audience-card .btn{margin-top:auto}.audience-card.student{background:#151932;color:#fff}.audience-card.student p{color:#d7d9ef}.audience-card.instructor{background:#eeedff;color:#252664}
+.vydys-mission{text-align:center;background:linear-gradient(135deg,#f4f3ff,#fff)}.vydys-mission .container{max-width:950px}.vydys-mission h2{font-size:38px;line-height:1.25;margin:15px auto 26px}
+@media(max-width:900px){.track-grid{grid-template-columns:1fr 1fr}.dual-audience{grid-template-columns:1fr}}
+@media(max-width:620px){.track-grid{grid-template-columns:1fr}.audience-card{padding:24px}.audience-card h2{font-size:27px}.vydys-mission h2{font-size:29px}}
