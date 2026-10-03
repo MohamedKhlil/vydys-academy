@@ -24,6 +24,7 @@ export default function LearnCoursePage(){
   const [answers,setAnswers]=useState<Record<string,Record<string,string>>>({});
   const [message,setMessage]=useState("");
   const [certificate,setCertificate]=useState<string|null>(null);
+  const [announcements,setAnnouncements]=useState<any[]>([]);
 
   async function load(){
     const {data:{user}}=await supabase.auth.getUser();
@@ -34,7 +35,7 @@ export default function LearnCoursePage(){
     if(!e){window.location.href="/formation/"+slug;return}
     setCourse(c);
 
-    const [{data:m},{data:l},{data:r},{data:q},{data:a},{data:cl},{data:p},{data:at},{data:sub},{data:cert}]=await Promise.all([
+    const [{data:m},{data:l},{data:r},{data:q},{data:a},{data:cl},{data:p},{data:at},{data:sub},{data:cert},{data:ann}]=await Promise.all([
       supabase.from("course_modules").select("*").eq("course_id",c.id).order("position"),
       supabase.from("course_lessons").select("*").eq("course_id",c.id).order("position"),
       supabase.from("lesson_resources").select("*").eq("course_id",c.id),
@@ -44,11 +45,13 @@ export default function LearnCoursePage(){
       supabase.from("lesson_progress").select("lesson_id").eq("course_id",c.id).eq("user_id",user.id),
       supabase.from("quiz_attempts").select("quiz_id,score,passed,created_at").eq("course_id",c.id).eq("user_id",user.id).order("created_at",{ascending:false}),
       supabase.from("assignment_submissions").select("*").eq("course_id",c.id).eq("user_id",user.id),
-      supabase.from("certificates").select("certificate_code").eq("course_id",c.id).eq("user_id",user.id).maybeSingle()
+      supabase.from("certificates").select("certificate_code").eq("course_id",c.id).eq("user_id",user.id).maybeSingle(),
+      supabase.from("course_announcements").select("*").eq("course_id",c.id).order("created_at",{ascending:false}).limit(10)
     ]);
     setModules(m||[]);setLessons(l||[]);setResources(r||[]);setQuizzes(q||[]);setAssignments(a||[]);setClassrooms(cl||[]);
     setProgress((p||[]).map((x:any)=>x.lesson_id));setAttempts(at||[]);setSubmissions(sub||[]);
     if(cert?.certificate_code)setCertificate(cert.certificate_code);
+    setAnnouncements(ann||[]);
     if(!activeLesson&&l?.[0])setActiveLesson(l[0]);
   }
   useEffect(()=>{load()},[slug]);
@@ -106,6 +109,13 @@ export default function LearnCoursePage(){
     if(res.error)setMessage(res.error.message);else{setMessage(t({fr:"Devoir envoyé.",ar:"تم إرسال الواجب.",en:"Assignment submitted."}));await load()}
   }
 
+  async function contactInstructor(){
+    if(!course?.instructor_id){return}
+    const {data,error}=await supabase.rpc("get_or_create_conversation",{p_course_id:course.id});
+    if(error){setMessage(error.message);return}
+    window.location.href="/messages/"+data;
+  }
+
   async function issueCertificate(){
     const {data,error}=await supabase.rpc("try_issue_certificate",{p_course_id:course.id});
     if(error){setMessage(t({fr:"Certificat pas encore disponible : terminez les leçons, réussissez les quiz et faites valider les devoirs.",ar:"الشهادة غير متاحة بعد: أكمل الدروس والاختبارات والواجبات.",en:"Certificate not available yet: complete lessons, pass quizzes and have assignments accepted."}));return}
@@ -124,7 +134,9 @@ export default function LearnCoursePage(){
     </aside>
 
     <main className="learn-main">
+      <div className="learn-top-actions"><Link className="btn btn-ghost" href="/notifications">🔔 {t({fr:"Notifications",ar:"الإشعارات",en:"Notifications"})}</Link>{course.instructor_id&&<button className="btn btn-ghost" onClick={contactInstructor}>💬 {t({fr:"Écrire au formateur",ar:"مراسلة المدرب",en:"Message instructor"})}</button>}</div>
       {message&&<p className="manual-note">{message}</p>}
+      {announcements.length>0&&<section className="learning-block announcements-block"><h2>{t({fr:"Annonces",ar:"الإعلانات",en:"Announcements"})}</h2>{announcements.map(a=><article className="announcement-student" key={a.id}><div><strong>{a.title}</strong><small>{new Date(a.created_at).toLocaleDateString()}</small></div><p>{a.body}</p></article>)}</section>}
       {activeLesson&&<article className="lesson-view">
         <span className="tag">{activeLesson.lesson_type}</span><h1>{local(activeLesson,"title")}</h1>
         {activeLesson.video_url&&<div className="video-embed"><iframe src={activeLesson.video_url} title={local(activeLesson,"title")} allowFullScreen/></div>}
