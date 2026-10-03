@@ -1,36 +1,86 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useLanguage } from "../../components/language-provider";
+import { supabase } from "../../lib/supabase";
 
-const payments = [
-  { name:"Ahmed M.", method:"Click", amount:"1 350 MRU", status:"pending" },
-  { name:"Fatimetou S.", method:"Bankily / Sedad", amount:"1 500 MRU", status:"pending" },
-];
+type Payment = {
+  id:string;
+  payment_method:string;
+  expected_amount_mru:number;
+  transaction_reference:string|null;
+  proof_path:string;
+  created_at:string;
+  profiles:{full_name:string|null;phone:string|null}|null;
+  proofUrl?:string;
+};
 
 export default function AdminPage(){
-  const { t } = useLanguage();
-  const stats = [
-    [t({fr:"Étudiants actifs",ar:"الطلاب النشطون",en:"Active students"}),"128","+18"],
-    [t({fr:"Classrooms",ar:"الفصول",en:"Classrooms"}),"6","3"],
-    [t({fr:"Paiements à valider",ar:"دفعات للمراجعة",en:"Payments to review"}),"2",""],
-    [t({fr:"Revenus",ar:"الإيرادات",en:"Revenue"}),"186 500 MRU",""],
-  ];
-  return <section className="dashboard-shell"><div className="container">
-    <div className="dash-header"><div><span className="eyebrow">{t({fr:"Direction / Administration",ar:"الإدارة",en:"Management / Admin"})}</span><h1>{t({fr:"Tableau de bord",ar:"لوحة التحكم",en:"Dashboard"})}</h1><p>{t({fr:"Gérez les formations, étudiants et validations de paiement.",ar:"إدارة الدورات والطلاب والتحقق من الدفعات.",en:"Manage courses, students and payment approvals."})}</p></div><button className="btn">{t({fr:"+ Nouvelle formation",ar:"+ دورة جديدة",en:"+ New course"})}</button></div>
+  const {t}=useLanguage();
+  const [payments,setPayments]=useState<Payment[]>([]);
+  const [allowed,setAllowed]=useState<boolean|null>(null);
+  const [message,setMessage]=useState("");
 
-    <div className="stat-grid">{stats.map(([a,b,c])=><article className="panel stat" key={a}><span>{a}</span><strong>{b}</strong>{c && <small>{c}</small>}</article>)}</div>
+  async function load(){
+    const {data:{user}}=await supabase.auth.getUser();
+    if(!user){setAllowed(false);return}
+    const roleRes=await supabase.from("profiles").select("role").eq("id",user.id).single();
+    const ok=roleRes.data?.role==="direction"||roleRes.data?.role==="admin";
+    setAllowed(ok);
+    if(!ok)return;
+    const {data,error}=await supabase.from("payment_submissions")
+      .select("id,payment_method,expected_amount_mru,transaction_reference,proof_path,created_at,profiles:user_id(full_name,phone)")
+      .eq("status","pending").order("created_at",{ascending:true});
+    if(error){setMessage(error.message);return}
+    const rows=(data||[]) as unknown as Payment[];
+    const enriched=await Promise.all(rows.map(async p=>{
+      const {data:signed}=await supabase.storage.from("payment-proofs").createSignedUrl(p.proof_path,3600);
+      return {...p,proofUrl:signed?.signedUrl};
+    }));
+    setPayments(enriched);
+  }
+
+  useEffect(()=>{load()},[]);
+
+  async function approve(id:string){
+    setMessage("");
+    const {error}=await supabase.rpc("approve_payment",{p_payment_id:id});
+    if(error){setMessage(error.message);return}
+    setPayments(v=>v.filter(p=>p.id!==id));
+  }
+
+  async function reject(id:string){
+    const reason=window.prompt(t({fr:"Motif du refus",ar:"سبب الرفض",en:"Reason for rejection"}));
+    if(reason===null)return;
+    const {error}=await supabase.rpc("reject_payment",{p_payment_id:id,p_reason:reason});
+    if(error){setMessage(error.message);return}
+    setPayments(v=>v.filter(p=>p.id!==id));
+  }
+
+  if(allowed===null)return <section className="dashboard-shell"><div className="container"><p>...</p></div></section>;
+  if(!allowed)return <section className="dashboard-shell"><div className="container"><article className="panel"><h1>{t({fr:"Accès réservé",ar:"دخول مخصص",en:"Restricted access"})}</h1><p>{t({fr:"Cette page est réservée à la Direction Vydys Academy.",ar:"هذه الصفحة مخصصة لإدارة Vydys Academy.",en:"This page is reserved for Vydys Academy Management."})}</p></article></div></section>;
+
+  return <section className="dashboard-shell"><div className="container">
+    <div className="dash-header"><div><span className="eyebrow">{t({fr:"Direction / Administration",ar:"الإدارة",en:"Management / Admin"})}</span><h1>{t({fr:"Tableau de bord",ar:"لوحة التحكم",en:"Dashboard"})}</h1><p>{t({fr:"Validation manuelle des paiements et activation des inscriptions.",ar:"مراجعة الدفعات يدوياً وتفعيل التسجيلات.",en:"Manual payment review and enrollment activation."})}</p></div></div>
+
+    <div className="stat-grid">
+      <article className="panel stat"><span>{t({fr:"Paiements à valider",ar:"دفعات للمراجعة",en:"Payments to review"})}</span><strong>{payments.length}</strong><small>{t({fr:"en attente",ar:"قيد الانتظار",en:"pending"})}</small></article>
+      <article className="panel stat"><span>{t({fr:"Formation",ar:"الدورة",en:"Course"})}</span><strong>1</strong><small>Marketing Digital & IA</small></article>
+      <article className="panel stat"><span>Click</span><strong>1 350</strong><small>MRU</small></article>
+      <article className="panel stat"><span>Bankily / Sedad / Masrvi</span><strong>1 500</strong><small>MRU</small></article>
+    </div>
 
     <article className="panel admin-payments">
-      <div className="admin-section-head"><div><span className="tag">{t({fr:"Validation manuelle",ar:"مراجعة يدوية",en:"Manual approval"})}</span><h2>{t({fr:"Preuves de paiement en attente",ar:"إثباتات الدفع قيد المراجعة",en:"Pending payment proofs"})}</h2></div><p>{t({fr:"La Direction vérifie la capture et le montant avant d'activer l'accès.",ar:"تتحقق الإدارة من لقطة الشاشة والمبلغ قبل تفعيل الوصول.",en:"Management checks the screenshot and amount before granting access."})}</p></div>
+      <div className="admin-section-head"><div><span className="tag">{t({fr:"Validation manuelle",ar:"مراجعة يدوية",en:"Manual approval"})}</span><h2>{t({fr:"Preuves de paiement en attente",ar:"إثباتات الدفع قيد المراجعة",en:"Pending payment proofs"})}</h2></div><p>{t({fr:"Vérifiez la capture, le montant et le numéro 34540455 avant validation.",ar:"تحقق من الصورة والمبلغ والرقم 34540455 قبل القبول.",en:"Check the screenshot, amount and number 34540455 before approval."})}</p></div>
+      {message&&<p className="manual-note">{message}</p>}
       <div className="payment-review-list">
-        {payments.map((p)=><div className="payment-review" key={p.name}>
-          <div className="proof-thumb">IMG</div>
-          <div className="payment-review-main"><strong>{p.name}</strong><span>{p.method} · {p.amount}</span><small>{t({fr:"Preuve reçue · En attente",ar:"تم استلام الإثبات · قيد المراجعة",en:"Proof received · Pending"})}</small></div>
-          <div className="review-actions"><button className="approve">{t({fr:"Valider",ar:"قبول",en:"Approve"})}</button><button className="reject">{t({fr:"Refuser",ar:"رفض",en:"Reject"})}</button></div>
+        {payments.length===0&&<p>{t({fr:"Aucun paiement en attente.",ar:"لا توجد دفعات قيد المراجعة.",en:"No pending payments."})}</p>}
+        {payments.map(p=><div className="payment-review" key={p.id}>
+          {p.proofUrl?<a className="proof-thumb proof-link" href={p.proofUrl} target="_blank" rel="noreferrer">IMG</a>:<div className="proof-thumb">IMG</div>}
+          <div className="payment-review-main"><strong>{p.profiles?.full_name||t({fr:"Étudiant",ar:"طالب",en:"Student"})}</strong><span>{p.payment_method.toUpperCase()} · {p.expected_amount_mru.toLocaleString("fr-FR")} MRU</span><small>{(p.profiles?.phone||"") + (p.transaction_reference ? " · Ref: " + p.transaction_reference : "")}</small></div>
+          <div className="review-actions"><button className="approve" onClick={()=>approve(p.id)}>{t({fr:"Valider",ar:"قبول",en:"Approve"})}</button><button className="reject" onClick={()=>reject(p.id)}>{t({fr:"Refuser",ar:"رفض",en:"Reject"})}</button></div>
         </div>)}
       </div>
     </article>
-
-    <div className="dash-grid admin-secondary"><article className="panel dash-main"><h2>{t({fr:"Dernières inscriptions",ar:"آخر التسجيلات",en:"Latest enrollments"})}</h2><div className="table"><div className="tr head"><span>{t({fr:"Étudiant",ar:"الطالب",en:"Student"})}</span><span>{t({fr:"Formation",ar:"الدورة",en:"Course"})}</span><span>{t({fr:"Statut",ar:"الحالة",en:"Status"})}</span></div><div className="tr"><span>Ahmed M.</span><span>Marketing Digital & IA</span><span className="status pending">{t({fr:"En attente",ar:"قيد المراجعة",en:"Pending"})}</span></div><div className="tr"><span>Fatimetou S.</span><span>Marketing Digital & IA</span><span className="status pending">{t({fr:"En attente",ar:"قيد المراجعة",en:"Pending"})}</span></div></div></article><aside className="dash-side"><article className="panel"><h3>{t({fr:"Actions rapides",ar:"إجراءات سريعة",en:"Quick actions"})}</h3><div className="quick-actions"><button>{t({fr:"Créer une Classroom",ar:"إنشاء فصل",en:"Create Classroom"})}</button><button>{t({fr:"Ajouter un formateur",ar:"إضافة مدرب",en:"Add instructor"})}</button><button>{t({fr:"Publier une annonce",ar:"نشر إعلان",en:"Post announcement"})}</button><button>{t({fr:"Générer les certificats",ar:"إنشاء الشهادات",en:"Generate certificates"})}</button></div></article></aside></div>
   </div></section>
 }
