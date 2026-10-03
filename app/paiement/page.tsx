@@ -7,6 +7,7 @@ type Method = "click" | "bankily";
 
 const BASE_PRICE = 1500;
 const CLICK_DISCOUNT = 0.10;
+const PAYMENT_NUMBER = "34540455";
 
 export default function PaiementPage() {
   const { t } = useLanguage();
@@ -17,6 +18,8 @@ export default function PaiementPage() {
     () => method === "click" ? Math.round(BASE_PRICE * (1 - CLICK_DISCOUNT)) : BASE_PRICE,
     [method]
   );
+
+  const methodLabel = method === "click" ? "Click" : "Bankily / Sedad / Masrvi";
 
   return (
     <section className="section page-top payment-page">
@@ -44,7 +47,7 @@ export default function PaiementPage() {
             </button>
             <button className={method==="bankily" ? "payment-option selected" : "payment-option"} onClick={() => setMethod("bankily")}>
               <div>
-                <strong>Bankily / Sedad</strong>
+                <strong>Bankily / Sedad / Masrvi</strong>
                 <span>{t({fr:"Tarif standard",ar:"السعر العادي",en:"Standard price"})}</span>
               </div>
               <b>1 500 MRU</b>
@@ -54,24 +57,19 @@ export default function PaiementPage() {
           <article className="panel payment-instructions">
             <span className="tag">{t({fr:"Étape 1",ar:"الخطوة 1",en:"Step 1"})}</span>
             <h2>{t({fr:"Effectuez le paiement",ar:"قم بالدفع",en:"Make the payment"})}</h2>
-            {method === "click" ? (
-              <>
-                <p>{t({
-                  fr:"Envoyez exactement le montant ci-dessous sur le numéro Click :",
-                  ar:"أرسل المبلغ المحدد أدناه إلى رقم Click:",
-                  en:"Send exactly the amount below to this Click number:"
-                })}</p>
-                <div className="pay-number"><span>Click</span><strong>34540455</strong></div>
-              </>
-            ) : (
-              <>
-                <p>{t({
-                  fr:"Effectuez le paiement via Bankily / Sedad pour le montant indiqué. Les références du bénéficiaire doivent être celles communiquées par Vydys Academy.",
-                  ar:"قم بالدفع عبر Bankily / Sedad بالمبلغ الموضح. يجب استخدام بيانات المستفيد المعتمدة من Vydys Academy.",
-                  en:"Pay via Bankily / Sedad for the amount shown. Use the beneficiary details provided by Vydys Academy."
-                })}</p>
-              </>
-            )}
+            <p>{t({
+              fr: method === "click"
+                ? "Envoyez exactement le montant ci-dessous sur le numéro Click :"
+                : "Envoyez exactement le montant ci-dessous via Bankily, Sedad ou Masrvi au numéro suivant :",
+              ar: method === "click"
+                ? "أرسل المبلغ المحدد أدناه إلى رقم Click:"
+                : "أرسل المبلغ المحدد أدناه عبر Bankily أو Sedad أو Masrvi إلى الرقم التالي:",
+              en: method === "click"
+                ? "Send exactly the amount below to this Click number:"
+                : "Send exactly the amount below via Bankily, Sedad or Masrvi to this number:"
+            })}</p>
+            <div className="pay-number"><span>{methodLabel}</span><strong>{PAYMENT_NUMBER}</strong></div>
+
             <div className="amount-box">
               <span>{t({fr:"Montant à payer",ar:"المبلغ المطلوب",en:"Amount to pay"})}</span>
               <strong>{amount.toLocaleString("fr-FR")} MRU</strong>
@@ -83,9 +81,9 @@ export default function PaiementPage() {
             <span className="tag">{t({fr:"Étape 2",ar:"الخطوة 2",en:"Step 2"})}</span>
             <h2>{t({fr:"Envoyez votre preuve de paiement",ar:"أرسل إثبات الدفع",en:"Upload your payment proof"})}</h2>
             <p>{t({
-              fr:"La capture doit montrer clairement le montant payé et la confirmation de la transaction.",
-              ar:"يجب أن تُظهر لقطة الشاشة بوضوح المبلغ المدفوع وتأكيد العملية.",
-              en:"The screenshot must clearly show the amount paid and the transaction confirmation."
+              fr:"La capture doit montrer clairement le montant payé, le numéro destinataire 34540455 et la confirmation de la transaction.",
+              ar:"يجب أن تُظهر لقطة الشاشة بوضوح المبلغ المدفوع والرقم المستلم 34540455 وتأكيد العملية.",
+              en:"The screenshot must clearly show the paid amount, recipient number 34540455 and transaction confirmation."
             })}</p>
             <label className="upload-zone">
               <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e)=>setProofName(e.target.files?.[0]?.name ?? "")} />
@@ -123,6 +121,8 @@ export default function PaiementPage() {
           <h3>Marketing Digital & IA</h3>
           <div className="summary-row"><span>{t({fr:"Prix formation",ar:"سعر الدورة",en:"Course price"})}</span><strong>1 500 MRU</strong></div>
           {method==="click" && <div className="summary-row discount"><span>{t({fr:"Réduction Click -10 %",ar:"خصم Click -10٪",en:"Click discount -10%"})}</span><strong>-150 MRU</strong></div>}
+          <div className="summary-row"><span>{t({fr:"Moyen",ar:"وسيلة الدفع",en:"Method"})}</span><strong>{methodLabel}</strong></div>
+          <div className="summary-row"><span>{t({fr:"Numéro",ar:"الرقم",en:"Number"})}</span><strong>{PAYMENT_NUMBER}</strong></div>
           <div className="summary-total"><span>{t({fr:"Total",ar:"الإجمالي",en:"Total"})}</span><strong>{amount.toLocaleString("fr-FR")} MRU</strong></div>
           <div className="pending-card">
             <span>⏳</span>
