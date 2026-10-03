@@ -67,6 +67,7 @@ export default function AdminPage(){
       <a className="panel admin-nav-card" href="/admin/abonnements"><strong>{t({fr:"Abonnements",ar:"الاشتراكات",en:"Subscriptions"})}</strong><span>{t({fr:"Valider les paiements des formateurs",ar:"مراجعة مدفوعات المدربين",en:"Approve instructor subscription payments"})}</span></a>
       <a className="panel admin-nav-card" href="/admin/formations"><strong>{t({fr:"Formations à publier",ar:"دورات للنشر",en:"Courses to publish"})}</strong><span>{t({fr:"Contrôler les nouvelles formations",ar:"مراجعة الدورات الجديدة",en:"Review new courses"})}</span></a>
       <a className="panel admin-nav-card" href="/admin/tarifs"><strong>{t({fr:"Tarifs plateforme",ar:"أسعار المنصة",en:"Platform pricing"})}</strong><span>{t({fr:"Abonnements, commission et règles",ar:"الاشتراكات والعمولة والقواعد",en:"Subscriptions, commission and rules"})}</span></a>
+      <a className="panel admin-nav-card" href="/admin/analytics"><strong>{t({fr:"Analytics marketplace",ar:"تحليلات السوق",en:"Marketplace analytics"})}</strong><span>{t({fr:"Revenus, commissions, étudiants et croissance",ar:"الإيرادات والعمولات والطلاب والنمو",en:"Revenue, fees, students and growth"})}</span></a>
     </div>
 
     <div className="stat-grid">
