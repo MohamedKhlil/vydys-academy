@@ -74,6 +74,7 @@ export default function AdminPage(){
       <a className="panel admin-nav-card" href="/admin/export"><strong>{t({fr:"Exports financiers",ar:"التقارير المالية",en:"Financial exports"})}</strong><span>{t({fr:"Télécharger ventes et abonnements en CSV",ar:"تنزيل المبيعات والاشتراكات بصيغة CSV",en:"Download sales and subscriptions as CSV"})}</span></a>
       <a className="panel admin-nav-card" href="/admin/moderation"><strong>{t({fr:"Modération des avis",ar:"إدارة التقييمات",en:"Review moderation"})}</strong><span>{t({fr:"Masquer ou rétablir les avis problématiques",ar:"إخفاء أو إعادة التقييمات المخالفة",en:"Hide or restore problematic reviews"})}</span></a>
       <a className="panel admin-nav-card" href="/admin/audit"><strong>{t({fr:"Journal d’audit",ar:"سجل التدقيق",en:"Audit log"})}</strong><span>{t({fr:"Tracer les modifications sensibles",ar:"تتبع التغييرات الحساسة",en:"Track sensitive changes"})}</span></a>
+      <a className="panel admin-nav-card" href="/admin/ai"><strong>Vydys AI</strong><span>{t({fr:"Modèles, quotas et activation AI Tutor / Copilote",ar:"النماذج والحصص وتفعيل المدرس والمساعد الذكي",en:"Models, quotas and AI Tutor / Copilot controls"})}</span></a>
     </div>
 
     <div className="stat-grid">
