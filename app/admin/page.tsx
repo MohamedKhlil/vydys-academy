@@ -22,7 +22,7 @@ export default function AdminPage(){
   const [payments,setPayments]=useState<Payment[]>([]);
   const [allowed,setAllowed]=useState<boolean|null>(null);
   const [message,setMessage]=useState("");
-  const [overview,setOverview]=useState({applications:0,courses:0,subscriptions:0,support:0});
+  const [overview,setOverview]=useState({applications:0,courses:0,classrooms:0,subscriptions:0,support:0});
 
   async function load(){
     const {data:{user}}=await supabase.auth.getUser();
@@ -31,12 +31,13 @@ export default function AdminPage(){
     const ok=roleRes.data?.role==="direction"||roleRes.data?.role==="admin";
     setAllowed(ok);
     if(!ok)return;
-    const [{data,error},{count:applications},{count:courses},{count:subscriptions},{count:support}]=await Promise.all([
+    const [{data,error},{count:applications},{count:courses},{count:classrooms},{count:subscriptions},{count:support}]=await Promise.all([
       supabase.from("payment_submissions")
         .select("id,user_id,payment_method,expected_amount_mru,transaction_reference,proof_path,created_at,risk_status,risk_reason")
         .eq("status","pending").order("created_at",{ascending:true}),
       supabase.from("trainer_applications").select("id",{count:"exact",head:true}).in("status",["pending","more_info"]),
       supabase.from("courses").select("id",{count:"exact",head:true}).eq("status","pending"),
+      supabase.from("classrooms").select("id",{count:"exact",head:true}).eq("status","pending"),
       supabase.from("trainer_subscriptions").select("id",{count:"exact",head:true}).eq("status","pending"),
       supabase.from("support_cases").select("id",{count:"exact",head:true}).in("status",["open","in_review"])
     ]);
@@ -53,7 +54,7 @@ export default function AdminPage(){
       return {...p,profiles:profileMap[p.user_id]||null,proofUrl:signed?.signedUrl};
     }));
     setPayments(enriched as Payment[]);
-    setOverview({applications:applications||0,courses:courses||0,subscriptions:subscriptions||0,support:support||0});
+    setOverview({applications:applications||0,courses:courses||0,classrooms:classrooms||0,subscriptions:subscriptions||0,support:support||0});
   }
 
   useEffect(()=>{load()},[]);
@@ -82,6 +83,7 @@ export default function AdminPage(){
       <a className="panel admin-nav-card" href="/admin/formateurs"><strong>{t({fr:"Demandes formateurs",ar:"طلبات المدربين",en:"Instructor applications"})}</strong><span>{t({fr:"Valider ou refuser les nouveaux profils",ar:"قبول أو رفض ملفات المدربين",en:"Approve or reject new instructor profiles"})}</span></a>
       <a className="panel admin-nav-card" href="/admin/abonnements"><strong>{t({fr:"Abonnements",ar:"الاشتراكات",en:"Subscriptions"})}</strong><span>{t({fr:"Valider les paiements des formateurs",ar:"مراجعة مدفوعات المدربين",en:"Approve instructor subscription payments"})}</span></a>
       <a className="panel admin-nav-card" href="/admin/formations"><strong>{t({fr:"Formations à publier",ar:"دورات للنشر",en:"Courses to publish"})}</strong><span>{t({fr:"Contrôler les nouvelles formations",ar:"مراجعة الدورات الجديدة",en:"Review new courses"})}</span></a>
+      <a className="panel admin-nav-card" href="/admin/classrooms"><strong>Vydys Classroom</strong><span>{t({fr:"Valider cohortes live, frais et publications",ar:"اعتماد الفصول المباشرة والرسوم والنشر",en:"Review live cohorts, fees and publishing"})}</span></a>
       <a className="panel admin-nav-card" href="/admin/tarifs"><strong>{t({fr:"Tarifs plateforme",ar:"أسعار المنصة",en:"Platform pricing"})}</strong><span>{t({fr:"Abonnements, commission et règles",ar:"الاشتراكات والعمولة والقواعد",en:"Subscriptions, commission and rules"})}</span></a>
       <a className="panel admin-nav-card" href="/admin/analytics"><strong>{t({fr:"Analytics marketplace",ar:"تحليلات السوق",en:"Marketplace analytics"})}</strong><span>{t({fr:"Revenus, commissions, étudiants et croissance",ar:"الإيرادات والعمولات والطلاب والنمو",en:"Revenue, fees, students and growth"})}</span></a>
       <a className="panel admin-nav-card" href="/admin/support"><strong>{t({fr:"Support & litiges",ar:"الدعم والنزاعات",en:"Support & disputes"})}</strong><span>{t({fr:"Traiter les demandes des étudiants et formateurs",ar:"معالجة طلبات الطلاب والمدربين",en:"Handle student and instructor requests"})}</span></a>
@@ -95,6 +97,7 @@ export default function AdminPage(){
       <a className="panel admin-op-stat" href="#payments"><span>MRU</span><div><small>{t({fr:"Paiements étudiants",ar:"مدفوعات الطلاب",en:"Student payments"})}</small><strong>{payments.length}</strong><p>{t({fr:"à valider",ar:"بانتظار المراجعة",en:"awaiting review"})}</p></div></a>
       <a className="panel admin-op-stat" href="/admin/formateurs"><span>◎</span><div><small>{t({fr:"Candidatures formateurs",ar:"طلبات المدربين",en:"Instructor applications"})}</small><strong>{overview.applications}</strong><p>{t({fr:"à traiter",ar:"للمعالجة",en:"to process"})}</p></div></a>
       <a className="panel admin-op-stat" href="/admin/formations"><span>▤</span><div><small>{t({fr:"Formations",ar:"الدورات",en:"Courses"})}</small><strong>{overview.courses}</strong><p>{t({fr:"à publier",ar:"للنشر",en:"to review"})}</p></div></a>
+      <a className="panel admin-op-stat" href="/admin/classrooms"><span>LIVE</span><div><small>Classrooms</small><strong>{overview.classrooms}</strong><p>{t({fr:"à valider",ar:"للمراجعة",en:"to review"})}</p></div></a>
       <a className="panel admin-op-stat" href="/admin/abonnements"><span>◇</span><div><small>{t({fr:"Abonnements",ar:"الاشتراكات",en:"Subscriptions"})}</small><strong>{overview.subscriptions}</strong><p>{t({fr:"paiements en attente",ar:"دفعات معلقة",en:"payments pending"})}</p></div></a>
       <a className="panel admin-op-stat" href="/admin/support"><span>?</span><div><small>{t({fr:"Support",ar:"الدعم",en:"Support"})}</small><strong>{overview.support}</strong><p>{t({fr:"dossiers ouverts",ar:"طلبات مفتوحة",en:"open cases"})}</p></div></a>
     </div>
