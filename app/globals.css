@@ -258,3 +258,38 @@
 
 .ai-lab-card{background:linear-gradient(135deg,#f5f4ff,#ffffff);border-color:#c9c6ff!important}
 .ai-lab-card .tool-icon{background:#171b3b;color:#fff}
+
+/* Vydys AI Lab 2 — Knowledge/RAG + Code Lab */
+.knowledge-page,.code-lab-page{background:radial-gradient(circle at 88% 0,#edf0ff 0,transparent 28%),var(--bg);min-height:100vh;padding:38px 0 70px}
+.dash-actions{display:flex;gap:8px;flex-wrap:wrap}
+.lab2-launch-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0 6px}
+.lab2-launch-card{margin:0!important;display:flex;gap:13px;align-items:center;transition:.2s}.lab2-launch-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.lab2-launch-card>span{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-weight:900;background:#ececff;color:#3536a0}
+.lab2-launch-card.code>span{background:#171b3b;color:#fff}.lab2-launch-card.tutor>span{background:#e9f8ef;color:#25824d}
+.lab2-launch-card p{margin:4px 0 0;color:var(--muted);font-size:11px;line-height:1.45}
+
+.agent-knowledge-picker{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fbfbfe;display:grid;gap:10px}
+.agent-knowledge-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.agent-knowledge-head>div{display:grid;gap:3px}.agent-knowledge-head small{color:var(--muted);line-height:1.35}.agent-knowledge-head>a{font-size:10px;font-weight:900;color:var(--accent);white-space:nowrap}
+.knowledge-picker-list{display:grid;gap:7px;max-height:190px;overflow:auto}.knowledge-picker-list label{display:flex;gap:9px;align-items:flex-start;padding:9px;border-radius:10px;background:#fff;border:1px solid var(--line)}
+.knowledge-picker-list input{width:auto;margin-top:3px}.knowledge-picker-list span{display:grid;gap:2px}.knowledge-picker-list small{color:var(--muted)}.knowledge-picker-empty{font-size:11px;color:var(--muted);margin:0}
+.agent-tags{display:flex;gap:6px;flex-wrap:wrap}
+
+.knowledge-input-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;align-items:start}
+.knowledge-input-grid>.panel{margin:0!important}.knowledge-drop{border:1.5px dashed #c8c6e8;border-radius:16px;min-height:150px;padding:20px;display:grid;place-items:center;text-align:center;background:#fafaff;cursor:pointer}
+.knowledge-drop input{display:none}.knowledge-drop strong{font-size:13px}.knowledge-drop small{color:var(--muted)}
+.knowledge-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.knowledge-card{margin:0!important;display:flex;flex-direction:column;min-height:190px}
+.knowledge-card-top{display:flex;justify-content:space-between;align-items:center}.knowledge-card-top small{color:var(--muted)}
+.knowledge-status{font-size:10px;font-weight:900;border-radius:999px;padding:5px 8px;background:#f1f2f6;color:#626a7c}.knowledge-status.ready{background:#e8f8ef;color:#247b4a}.knowledge-status.error{background:#fff0f1;color:#a82b40}
+.knowledge-card h3{margin:12px 0 4px;font-size:19px}.knowledge-card>p{margin:0;color:var(--muted);font-size:11px;overflow-wrap:anywhere}
+.knowledge-meta{display:flex;gap:6px;flex-wrap:wrap;margin:13px 0 auto}.knowledge-meta span{background:#f0f1f5;border-radius:999px;padding:5px 7px;font-size:9px;font-weight:800;color:#5a6170}.knowledge-error{color:#aa2d3e!important;background:#fff1f2;padding:8px;border-radius:8px;margin-bottom:8px!important}
+
+.code-toolbar{margin:0 0 12px!important;display:grid;grid-template-columns:auto minmax(180px,1fr) auto auto;gap:8px;align-items:center;padding:10px}
+.code-toolbar>input{border:1px solid var(--line);border-radius:10px;padding:9px 11px;font:inherit}.code-tabs{display:flex;background:#eef0f5;border-radius:10px;padding:3px}.code-tabs button{border:0;background:transparent;padding:8px 11px;border-radius:8px;font-weight:800;cursor:pointer}.code-tabs button.active{background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.05);color:var(--accent)}
+.code-lab-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:12px;min-height:560px}.code-editor,.code-output{margin:0!important;padding:0;overflow:hidden}.code-pane-head{height:46px;padding:0 13px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;background:#f8f9fb}.code-pane-head span{font-size:10px;color:var(--muted)}.code-pane-head button{border:0;background:transparent;color:var(--accent);font-weight:800;cursor:pointer}
+.code-editor textarea{width:100%;height:514px;border:0;outline:0;resize:none;padding:17px;background:#111528;color:#e9ebff;font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;tab-size:2}
+.code-output pre{margin:0;padding:17px;height:514px;overflow:auto;white-space:pre-wrap;background:#0c1020;color:#d9f7df;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+.code-sandbox-frame{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;border:0}
+.snippet-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}.snippet-card{margin:0!important}.snippet-card h3{margin:10px 0 5px}.snippet-card small{color:var(--muted)}.snippet-card>div{display:flex;gap:10px;margin-top:12px}
+
+@media(max-width:980px){.lab2-launch-grid{grid-template-columns:1fr}.knowledge-input-grid,.code-lab-grid{grid-template-columns:1fr}.knowledge-grid,.snippet-grid{grid-template-columns:1fr 1fr}.code-toolbar{grid-template-columns:1fr 1fr}.code-editor textarea,.code-output pre{height:430px}}
+@media(max-width:620px){.knowledge-page,.code-lab-page{padding:22px 0 50px}.knowledge-grid,.snippet-grid{grid-template-columns:1fr}.code-toolbar{grid-template-columns:1fr}.agent-knowledge-head{display:grid}}
