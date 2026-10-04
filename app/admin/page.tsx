@@ -22,6 +22,7 @@ export default function AdminPage(){
   const [payments,setPayments]=useState<Payment[]>([]);
   const [allowed,setAllowed]=useState<boolean|null>(null);
   const [message,setMessage]=useState("");
+  const [overview,setOverview]=useState({applications:0,courses:0,subscriptions:0,support:0});
 
   async function load(){
     const {data:{user}}=await supabase.auth.getUser();
@@ -30,16 +31,29 @@ export default function AdminPage(){
     const ok=roleRes.data?.role==="direction"||roleRes.data?.role==="admin";
     setAllowed(ok);
     if(!ok)return;
-    const {data,error}=await supabase.from("payment_submissions")
-      .select("id,payment_method,expected_amount_mru,transaction_reference,proof_path,created_at,risk_status,risk_reason,profiles:user_id(full_name,phone)")
-      .eq("status","pending").order("created_at",{ascending:true});
+    const [{data,error},{count:applications},{count:courses},{count:subscriptions},{count:support}]=await Promise.all([
+      supabase.from("payment_submissions")
+        .select("id,user_id,payment_method,expected_amount_mru,transaction_reference,proof_path,created_at,risk_status,risk_reason")
+        .eq("status","pending").order("created_at",{ascending:true}),
+      supabase.from("trainer_applications").select("id",{count:"exact",head:true}).in("status",["pending","more_info"]),
+      supabase.from("courses").select("id",{count:"exact",head:true}).eq("status","pending"),
+      supabase.from("trainer_subscriptions").select("id",{count:"exact",head:true}).eq("status","pending"),
+      supabase.from("support_cases").select("id",{count:"exact",head:true}).in("status",["open","in_review"])
+    ]);
     if(error){setMessage(error.message);return}
-    const rows=(data||[]) as unknown as Payment[];
-    const enriched=await Promise.all(rows.map(async p=>{
+    const raw=(data||[]) as any[];
+    const userIds=[...new Set(raw.map(x=>x.user_id).filter(Boolean))];
+    const profileMap:Record<string,any>={};
+    if(userIds.length){
+      const {data:profiles}=await supabase.from("profiles").select("id,full_name,phone").in("id",userIds);
+      (profiles||[]).forEach((p:any)=>profileMap[p.id]=p);
+    }
+    const enriched=await Promise.all(raw.map(async p=>{
       const {data:signed}=await supabase.storage.from("payment-proofs").createSignedUrl(p.proof_path,3600);
-      return {...p,proofUrl:signed?.signedUrl};
+      return {...p,profiles:profileMap[p.user_id]||null,proofUrl:signed?.signedUrl};
     }));
-    setPayments(enriched);
+    setPayments(enriched as Payment[]);
+    setOverview({applications:applications||0,courses:courses||0,subscriptions:subscriptions||0,support:support||0});
   }
 
   useEffect(()=>{load()},[]);
@@ -77,14 +91,15 @@ export default function AdminPage(){
       <a className="panel admin-nav-card" href="/admin/ai"><strong>Vydys AI</strong><span>{t({fr:"Modèles, quotas et activation AI Tutor / Copilote",ar:"النماذج والحصص وتفعيل المدرس والمساعد الذكي",en:"Models, quotas and AI Tutor / Copilot controls"})}</span></a>
     </div>
 
-    <div className="stat-grid">
-      <article className="panel stat"><span>{t({fr:"Paiements à valider",ar:"دفعات للمراجعة",en:"Payments to review"})}</span><strong>{payments.length}</strong><small>{t({fr:"en attente",ar:"قيد الانتظار",en:"pending"})}</small></article>
-      <article className="panel stat"><span>{t({fr:"Formation",ar:"الدورة",en:"Course"})}</span><strong>1</strong><small>Marketing Digital & IA</small></article>
-      <article className="panel stat"><span>Click</span><strong>1 350</strong><small>MRU</small></article>
-      <article className="panel stat"><span>Bankily / Sedad / Masrvi</span><strong>1 500</strong><small>MRU</small></article>
+    <div className="admin-ops-grid">
+      <a className="panel admin-op-stat" href="#payments"><span>MRU</span><div><small>{t({fr:"Paiements étudiants",ar:"مدفوعات الطلاب",en:"Student payments"})}</small><strong>{payments.length}</strong><p>{t({fr:"à valider",ar:"بانتظار المراجعة",en:"awaiting review"})}</p></div></a>
+      <a className="panel admin-op-stat" href="/admin/formateurs"><span>◎</span><div><small>{t({fr:"Candidatures formateurs",ar:"طلبات المدربين",en:"Instructor applications"})}</small><strong>{overview.applications}</strong><p>{t({fr:"à traiter",ar:"للمعالجة",en:"to process"})}</p></div></a>
+      <a className="panel admin-op-stat" href="/admin/formations"><span>▤</span><div><small>{t({fr:"Formations",ar:"الدورات",en:"Courses"})}</small><strong>{overview.courses}</strong><p>{t({fr:"à publier",ar:"للنشر",en:"to review"})}</p></div></a>
+      <a className="panel admin-op-stat" href="/admin/abonnements"><span>◇</span><div><small>{t({fr:"Abonnements",ar:"الاشتراكات",en:"Subscriptions"})}</small><strong>{overview.subscriptions}</strong><p>{t({fr:"paiements en attente",ar:"دفعات معلقة",en:"payments pending"})}</p></div></a>
+      <a className="panel admin-op-stat" href="/admin/support"><span>?</span><div><small>{t({fr:"Support",ar:"الدعم",en:"Support"})}</small><strong>{overview.support}</strong><p>{t({fr:"dossiers ouverts",ar:"طلبات مفتوحة",en:"open cases"})}</p></div></a>
     </div>
 
-    <article className="panel admin-payments">
+    <article id="payments" className="panel admin-payments">
       <div className="admin-section-head"><div><span className="tag">{t({fr:"Validation manuelle",ar:"مراجعة يدوية",en:"Manual approval"})}</span><h2>{t({fr:"Preuves de paiement en attente",ar:"إثباتات الدفع قيد المراجعة",en:"Pending payment proofs"})}</h2></div><p>{t({fr:"Vérifiez la capture, le montant et le numéro 34540455 avant validation.",ar:"تحقق من الصورة والمبلغ والرقم 34540455 قبل القبول.",en:"Check the screenshot, amount and number 34540455 before approval."})}</p></div>
       {message&&<p className="manual-note">{message}</p>}
       <div className="payment-review-list">
