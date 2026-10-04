@@ -36,6 +36,8 @@ export function Footer() {
           <Link href="/practice/interview">Interview Simulator</Link>
           <Link href="/practice/peer-review">Peer Review</Link>
           <Link href="/practice/runner">Secure Runner</Link>
+          <Link href="/practice/toolkit">Developer Toolkit</Link>
+          <Link href="/practice/safety">AI Safety Lab</Link>
         </div>
         <div>
           <strong>{t({fr:"Informations",ar:"المعلومات",en:"Information"})}</strong>
