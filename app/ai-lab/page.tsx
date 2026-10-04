@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useLanguage } from "../../components/language-provider";
+import { AILabNav } from "../../components/ai-lab-nav";
 import { supabase } from "../../lib/supabase";
 
 const providerLabels:Record<string,string>={openai:"OpenAI",anthropic:"Claude",google:"Gemini"};
@@ -149,6 +150,7 @@ export default function AILabPage(){
   if(!allowed)return <section className="dashboard-shell"><div className="container"><article className="panel"><h1>{t({fr:"Vydys AI Lab est réservé aux étudiants.",ar:"مختبر Vydys AI مخصص للطلاب.",en:"Vydys AI Lab is for students."})}</h1></article></div></section>;
 
   return <section className="ai-lab-page"><div className="container">
+    <AILabNav/>
     <div className="dash-header ai-lab-hero"><div><span className="eyebrow">Vydys AI Lab · BYOK</span><h1>{t({fr:"Construisez votre propre agent IA.",ar:"ابنِ وكيل الذكاء الاصطناعي الخاص بك.",en:"Build your own AI agent."})}</h1><p>{t({fr:"Connectez votre propre fournisseur IA, choisissez un modèle, donnez des instructions à votre agent et utilisez éventuellement le contenu de vos formations Vydys comme contexte.",ar:"اربط مزود الذكاء الاصطناعي الخاص بك واختر النموذج والتعليمات ويمكنك استخدام محتوى دورات Vydys كسياق.",en:"Connect your own AI provider, choose a model, define your agent instructions, and optionally use your Vydys course content as context."})}</p></div><a className="btn btn-ghost" href="/ai-tutor">{t({fr:"Utiliser Vydys AI",ar:"استخدام Vydys AI",en:"Use Vydys AI"})}</a></div>
     {notice&&<p className="manual-note">{notice}</p>}
 
