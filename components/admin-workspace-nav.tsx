@@ -23,7 +23,7 @@ export default function AdminWorkspaceNav(){
   const pathname=usePathname();
   const {lang,t}=useLanguage();
   return <div className="workspace-nav-shell admin-workspace-nav"><div className="container workspace-nav-wrap">
-    <div className="workspace-nav-brand"><span>V</span><div><strong>Vydys Control</strong><small>{t({fr:"Direction & Administration",ar:"الإدارة والتحكم",en:"Management & Administration"})}</small></div></div>
+    <div className="workspace-nav-brand"><img src="/vydys-icon.svg" alt="" className="workspace-brand-icon"/><div><strong>Vydys Control</strong><small>{t({fr:"Direction & Administration",ar:"الإدارة والتحكم",en:"Management & Administration"})}</small></div></div>
     <nav className="workspace-nav-links" aria-label="Admin navigation">
       {items.map(item=>{
         const active=item.href==="/admin"?pathname==="/admin":pathname.startsWith(item.href);
