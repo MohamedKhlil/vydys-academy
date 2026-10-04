@@ -14,8 +14,16 @@ export default function AdminFormationsPage(){
     const {data:{user}}=await supabase.auth.getUser();if(!user){setAllowed(false);return}
     const {data:p}=await supabase.from("profiles").select("role").eq("id",user.id).single();
     const ok=p?.role==="direction"||p?.role==="admin";setAllowed(ok);if(!ok)return;
-    const {data,error}=await supabase.from("courses").select("id,title_fr,title_ar,title_en,description_fr,category,base_price_mru,status,instructor_id,profiles:instructor_id(full_name)").eq("status","pending").order("submitted_at",{ascending:true});
-    if(error)setMessage(error.message); else setRows(data||[]);
+    const {data,error}=await supabase.from("courses").select("id,title_fr,title_ar,title_en,description_fr,category,base_price_mru,status,instructor_id,submitted_at").eq("status","pending").order("submitted_at",{ascending:true});
+    if(error){setMessage(error.message);return}
+    const raw=data||[];
+    const ids=[...new Set(raw.map((x:any)=>x.instructor_id).filter(Boolean))];
+    const names:Record<string,string>={};
+    if(ids.length){
+      const {data:profiles}=await supabase.from("profiles").select("id,full_name").in("id",ids);
+      (profiles||[]).forEach((x:any)=>names[x.id]=x.full_name||"");
+    }
+    setRows(raw.map((x:any)=>({...x,instructor_name:names[x.instructor_id]||null})));
   }
   useEffect(()=>{load()},[]);
 
@@ -27,6 +35,6 @@ export default function AdminFormationsPage(){
 
   return <section className="dashboard-shell"><div className="container"><div className="dash-header"><div><span className="eyebrow">{t({fr:"Catalogue marketplace",ar:"كتالوج السوق",en:"Marketplace catalog"})}</span><h1>{t({fr:"Formations à valider",ar:"دورات للمراجعة",en:"Courses to review"})}</h1></div></div>
     {message&&<p className="manual-note">{message}</p>}
-    <div className="application-list">{rows.length===0?<article className="panel"><p>{t({fr:"Aucune formation en attente.",ar:"لا توجد دورات معلقة.",en:"No pending courses."})}</p></article>:rows.map((r:any)=><article className="panel application-card" key={r.id}><div><span className="tag">{r.category||t({fr:"Sans catégorie",ar:"بدون فئة",en:"Uncategorized"})}</span><h2>{r.title_fr}</h2><p>{r.description_fr}</p><small>{t({fr:"Formateur :",ar:"المدرب:",en:"Instructor:"})} {r.profiles?.full_name||"—"} · {r.base_price_mru.toLocaleString("fr-FR")} MRU</small></div><div className="review-actions vertical"><button className="approve" onClick={()=>approve(r.id)}>{t({fr:"Publier",ar:"نشر",en:"Publish"})}</button><button className="reject" onClick={()=>reject(r.id)}>{t({fr:"Refuser",ar:"رفض",en:"Reject"})}</button></div></article>)}</div>
+    <div className="application-list">{rows.length===0?<article className="panel"><p>{t({fr:"Aucune formation en attente.",ar:"لا توجد دورات معلقة.",en:"No pending courses."})}</p></article>:rows.map((r:any)=><article className="panel application-card" key={r.id}><div><span className="tag">{r.category||t({fr:"Sans catégorie",ar:"بدون فئة",en:"Uncategorized"})}</span><h2>{r.title_fr}</h2><p>{r.description_fr}</p><small>{t({fr:"Formateur :",ar:"المدرب:",en:"Instructor:"})} {r.instructor_name||"—"} · {r.base_price_mru.toLocaleString("fr-FR")} MRU</small></div><div className="review-actions vertical"><button className="approve" onClick={()=>approve(r.id)}>{t({fr:"Publier",ar:"نشر",en:"Publish"})}</button><button className="reject" onClick={()=>reject(r.id)}>{t({fr:"Refuser",ar:"رفض",en:"Reject"})}</button></div></article>)}</div>
   </div></section>
 }
