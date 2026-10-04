@@ -15,7 +15,7 @@ const items=[
   {href:"/admin/moderation",icon:"◉",fr:"Modération",ar:"الإشراف",en:"Moderation"},
   {href:"/admin/audit",icon:"≡",fr:"Audit",ar:"التدقيق",en:"Audit"},
   {href:"/admin/ai",icon:"AI",fr:"Vydys AI",ar:"Vydys AI",en:"Vydys AI"},
-  {href:"/admin/tarifs",icon:"MRU",fr:"Tarifs",ar:"الأسعار",en:"Pricing"},
+  {href:"/admin/tarifs",icon:"$",fr:"Tarifs",ar:"الأسعار",en:"Pricing"},
   {href:"/admin/export",icon:"↓",fr:"Exports",ar:"التقارير",en:"Exports"}
 ];
 
