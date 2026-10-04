@@ -11,7 +11,7 @@ const items=[
   {href:"/formateur/projets",icon:"◆",fr:"Projets",ar:"المشاريع",en:"Projects"},
   {href:"/formateur/copilote",icon:"AI",fr:"Copilote",ar:"المساعد",en:"Copilot"},
   {href:"/formateur/marketing",icon:"↗",fr:"Marketing",ar:"التسويق",en:"Marketing"},
-  {href:"/formateur/paiements",icon:"MRU",fr:"Paiements",ar:"الدفع",en:"Payments"},
+  {href:"/formateur/paiements",icon:"$",fr:"Paiements",ar:"الدفع",en:"Payments"},
   {href:"/formateur/abonnement",icon:"◇",fr:"Abonnement",ar:"الاشتراك",en:"Subscription"}
 ];
 
