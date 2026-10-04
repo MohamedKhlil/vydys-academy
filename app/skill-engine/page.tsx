@@ -102,6 +102,7 @@ export default function SkillEnginePage(){
   const paths=engine?.career_paths||[];
   const goal=engine?.goal;
   const verified=Math.round(Number(engine?.verified_readiness||0));
+  const measured=Math.round(Number(engine?.measured_readiness||0));
   const estimated=Math.round(Number(engine?.estimated_readiness||0));
   const stats=engine?.stats||{};
 
@@ -135,9 +136,13 @@ export default function SkillEnginePage(){
         <p>{textOf(goal,"description")}</p>
         <div className="skill-goal-meta"><span>◷ {goal.weekly_hours}h/{t({fr:"semaine",ar:"أسبوع",en:"week"})}</span><span>◎ {goal.target_months} {t({fr:"mois",ar:"أشهر",en:"months"})}</span><button onClick={()=>setEditingGoal(true)}>{t({fr:"Changer l’objectif",ar:"تغيير الهدف",en:"Change goal"})}</button></div>
       </div>
-      <div className="readiness-zone">
-        <div className="readiness-ring" style={{"--score":verified} as any}><div><strong>{verified}%</strong><span>{t({fr:"Verified",ar:"موثّق",en:"Verified"})}</span></div></div>
-        <div className="readiness-copy"><span>{t({fr:"Career Readiness",ar:"الجاهزية المهنية",en:"Career Readiness"})}</span><strong>{estimated}% {t({fr:"estimé",ar:"تقديري",en:"estimated"})}</strong><small>{t({fr:"Le score Verified utilise uniquement les compétences prouvées dans Vydys.",ar:"تستخدم درجة Verified فقط المهارات المثبتة داخل Vydys.",en:"Verified score only uses skills proven inside Vydys."})}</small></div>
+      <div className="readiness-zone readiness-v2">
+        <div className="readiness-ring" style={{"--score":verified} as any}><div><strong>{verified}%</strong><span>Verified</span></div></div>
+        <div className="readiness-metrics">
+          <div><span>{t({fr:"Mesuré",ar:"مقاس",en:"Measured"})}</span><strong>{measured}%</strong><small>{t({fr:"Tests objectifs",ar:"اختبارات موضوعية",en:"Objective assessments"})}</small></div>
+          <div><span>{t({fr:"Estimé",ar:"تقديري",en:"Estimated"})}</span><strong>{estimated}%</strong><small>{t({fr:"Mesuré + déclaré",ar:"مقاس + معلن",en:"Measured + self-declared"})}</small></div>
+        </div>
+        <div className="readiness-copy"><span>{t({fr:"Career Readiness",ar:"الجاهزية المهنية",en:"Career Readiness"})}</span><small>{t({fr:"Verified repose uniquement sur des preuves validées. Measured vient des micro-assessments. Estimated ajoute votre auto-diagnostic.",ar:"Verified يعتمد فقط على الأدلة المعتمدة. Measured يأتي من الاختبارات القصيرة. Estimated يضيف تقييمك الذاتي.",en:"Verified uses approved evidence only. Measured comes from micro-assessments. Estimated also includes your self-assessment."})}</small></div>
       </div>
     </div>
 
@@ -145,6 +150,7 @@ export default function SkillEnginePage(){
 
     <div className="skill-engine-stat-grid">
       <article><span>◆</span><div><small>{t({fr:"Compétences vérifiées",ar:"مهارات موثقة",en:"Verified skills"})}</small><strong>{stats.verified_skills||0}</strong></div></article>
+      <article><span>◎</span><div><small>{t({fr:"Compétences mesurées",ar:"مهارات مقاسة",en:"Measured skills"})}</small><strong>{stats.measured_skills||0}</strong></div></article>
       <article><span>⌘</span><div><small>{t({fr:"Projets validés",ar:"مشاريع معتمدة",en:"Approved projects"})}</small><strong>{stats.approved_projects||0}</strong></div></article>
       <article><span>✓</span><div><small>{t({fr:"Certificats",ar:"الشهادات",en:"Certificates"})}</small><strong>{stats.certificates||0}</strong></div></article>
       <article><span>XP</span><div><small>Vydys XP</small><strong>{stats.xp||0}</strong></div></article>
@@ -169,12 +175,14 @@ export default function SkillEnginePage(){
           <div className="skill-gap-list">
             {(engine?.skills||[]).map((s:any)=>{
               const verifiedPct=s.target_value?Math.min(100,Math.round(Number(s.verified_value)/Number(s.target_value)*100)):0;
-              const estimatedPct=s.target_value?Math.min(100,Math.round(Number(s.estimated_value)/Number(s.target_value)*100)):0;
-              return <article className="skill-gap-row" key={s.id}>
-                <div className="skill-gap-name"><div><strong>{textOf(s,"name")}</strong><small>{s.category}</small></div><span className={s.verified_gap===0?"skill-ready":"skill-gap"}>{s.verified_gap===0?"✓ "+t({fr:"Cible atteinte",ar:"تم بلوغ الهدف",en:"Target reached"}):t({fr:"Cible",ar:"الهدف",en:"Target"})+": "+levelLabel(s.target_level)}</span></div>
-                <div className="skill-bars">
+              const measuredPct=s.target_value?Math.min(100,Math.round(Number(s.measured_value||0)/Number(s.target_value)*100)):0;
+              const declaredPct=s.target_value?Math.min(100,Math.round(Number(s.self_value||0)/Number(s.target_value)*100)):0;
+              return <article className="skill-gap-row skill-gap-v2" key={s.id}>
+                <div className="skill-gap-name"><div><strong>{textOf(s,"name")}</strong><small>{s.category}</small></div><div className="skill-gap-actions">{s.assessment_slug&&<Link className="assessment-link" href={"/skill-engine/assessment/"+s.assessment_slug}>{Number(s.measured_score)>0?t({fr:"Repasser",ar:"إعادة",en:"Retake"})+" · "+Math.round(Number(s.measured_score))+"%":t({fr:"Mesurer",ar:"قياس",en:"Measure"})+" · "+(s.assessment_duration_minutes||8)+" min"}</Link>}<span className={s.verified_gap===0?"skill-ready":"skill-gap"}>{s.verified_gap===0?"✓ "+t({fr:"Cible atteinte",ar:"تم بلوغ الهدف",en:"Target reached"}):t({fr:"Cible",ar:"الهدف",en:"Target"})+": "+levelLabel(s.target_level)}</span></div></div>
+                <div className="skill-bars skill-bars-v2">
                   <div><label><span>{t({fr:"Vérifié",ar:"موثّق",en:"Verified"})}</span><b>{levelLabel(s.verified_level)}</b></label><div className="skill-track"><i style={{width:verifiedPct+"%"}}/></div></div>
-                  <div className="estimated"><label><span>{t({fr:"Estimé",ar:"تقديري",en:"Estimated"})}</span><b>{levelLabel(s.self_level==="none"?s.verified_level:s.self_level)}</b></label><div className="skill-track"><i style={{width:estimatedPct+"%"}}/></div></div>
+                  <div className="measured"><label><span>{t({fr:"Mesuré",ar:"مقاس",en:"Measured"})}</span><b>{Number(s.measured_score)>0?Math.round(Number(s.measured_score))+"% · "+levelLabel(s.measured_level):t({fr:"Non testé",ar:"غير مختبر",en:"Not tested"})}</b></label><div className="skill-track"><i style={{width:measuredPct+"%"}}/></div></div>
+                  <div className="declared"><label><span>{t({fr:"Déclaré",ar:"معلن",en:"Self"})}</span><b>{levelLabel(s.self_level)}</b></label><div className="skill-track"><i style={{width:declaredPct+"%"}}/></div></div>
                 </div>
               </article>
             })}
@@ -188,15 +196,20 @@ export default function SkillEnginePage(){
           <div>{priorities.map((s:any,i:number)=><article key={s.id}><span>{i+1}</span><div><strong>{textOf(s,"name")}</strong><small>{t({fr:"Écart vérifié",ar:"الفجوة الموثقة",en:"Verified gap"})} · {s.verified_gap} pts</small></div></article>)}</div>
         </section>
 
+        <section className="panel skill-assessment-center">
+          <span className="eyebrow">Skill Engine V2</span><h2>{t({fr:"Mesurez-vous objectivement",ar:"قِس مستواك بموضوعية",en:"Measure yourself objectively"})}</h2><p>{t({fr:"Passez des micro-assessments courts. Les bonnes réponses restent côté serveur.",ar:"اجتز اختبارات قصيرة. تبقى الإجابات الصحيحة على الخادم.",en:"Take short micro-assessments. Correct answers remain server-side."})}</p>
+          <div>{(engine?.skills||[]).filter((s:any)=>s.assessment_slug).slice(0,6).map((s:any)=><Link href={"/skill-engine/assessment/"+s.assessment_slug} key={s.id}><span>{textOf(s,"name")}</span><strong>{Number(s.measured_score)>0?Math.round(Number(s.measured_score))+"%":"→"}</strong></Link>)}</div>
+        </section>
+
         <section className="panel skill-diagnostic-card">
-          <span className="eyebrow">{t({fr:"Diagnostic rapide",ar:"تشخيص سريع",en:"Quick diagnostic"})}</span><h2>{t({fr:"Où vous situez-vous ?",ar:"ما هو مستواك؟",en:"Where are you now?"})}</h2><p>{t({fr:"Votre auto-évaluation améliore le score Estimated, mais ne transforme jamais une compétence en compétence vérifiée.",ar:"يحسّن تقييمك الذاتي الدرجة التقديرية لكنه لا يحوّل المهارة إلى مهارة موثقة.",en:"Self-assessment improves Estimated readiness but never turns a skill into a verified skill."})}</p>
+          <span className="eyebrow">{t({fr:"Niveau déclaré",ar:"المستوى المعلن",en:"Self-declared level"})}</span><h2>{t({fr:"Où pensez-vous vous situer ?",ar:"أين تعتقد أن مستواك؟",en:"Where do you think you are?"})}</h2><p>{t({fr:"Votre auto-évaluation alimente seulement Estimated. Utilisez les tests V2 pour obtenir un niveau Measured.",ar:"تقييمك الذاتي يؤثر فقط على Estimated. استخدم اختبارات V2 للحصول على مستوى Measured.",en:"Self-assessment only feeds Estimated. Use V2 tests to obtain a Measured level."})}</p>
           <div className="diagnostic-list">
             {(engine?.skills||[]).map((s:any)=><label key={s.id}><span>{textOf(s,"name")}</span><select disabled={busy} value={s.self_level||"none"} onChange={e=>updateDiagnostic(s.id,e.target.value)}>{levelOrder.map(l=><option value={l} key={l}>{levelLabel(l)}</option>)}</select></label>)}
           </div>
         </section>
 
         <section className="panel skill-proof-card">
-          <span>✓</span><div><strong>{t({fr:"Preuve > promesse",ar:"الدليل أهم من الادعاء",en:"Evidence > claims"})}</strong><p>{t({fr:"Les missions donnent de l’XP. Seuls projets, évaluations et certificats peuvent faire progresser votre score Verified.",ar:"تعطي المهام XP. فقط المشاريع والتقييمات والشهادات ترفع درجة Verified.",en:"Missions give XP. Only projects, assessments and certificates can increase Verified readiness."})}</p></div>
+          <span>✓</span><div><strong>{t({fr:"Trois niveaux de confiance",ar:"ثلاث درجات من الثقة",en:"Three confidence layers"})}</strong><p>{t({fr:"Déclaré = votre estimation. Mesuré = micro-assessment objectif. Verified = preuve validée par Vydys. Les tests V2 ne donnent jamais automatiquement le statut Verified.",ar:"Declared = تقييمك. Measured = اختبار موضوعي. Verified = دليل معتمد من Vydys. اختبارات V2 لا تمنح Verified تلقائياً.",en:"Self = your estimate. Measured = objective micro-assessment. Verified = Vydys-approved evidence. V2 tests never automatically grant Verified status."})}</p></div>
         </section>
       </aside>
     </div>
