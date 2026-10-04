@@ -9,6 +9,7 @@ export function Header() {
   const { lang, setLang, t } = useLanguage();
   const [role,setRole]=useState<string|null>(null);
   const [signedIn,setSignedIn]=useState(false);
+  const [mobileOpen,setMobileOpen]=useState(false);
 
   useEffect(()=>{
     let active=true;
@@ -75,7 +76,41 @@ export function Header() {
       {signedIn&&!isInstructor&&!isManagement&&<Link href="/favoris">♥</Link>}
       {!signedIn&&<Link href="/devenir-formateur">{t({fr:"Devenir formateur",ar:"كن مدرباً",en:"Teach on Vydys"})}</Link>}
     </nav>
+    <button className="mobile-nav-toggle" aria-label={t({fr:"Ouvrir le menu",ar:"فتح القائمة",en:"Open menu"})} aria-expanded={mobileOpen} onClick={()=>setMobileOpen(v=>!v)}><span></span><span></span><span></span></button>
     <div className="language-switcher" aria-label="Language selector">{(["fr","ar","en"] as const).map(code=><button key={code} className={lang===code?"active":""} onClick={()=>setLang(code)}>{code.toUpperCase()}</button>)}</div>
     {signedIn?<button className="btn btn-small" onClick={logout}>{t({fr:"Déconnexion",ar:"تسجيل الخروج",en:"Sign out"})}</button>:<Link className="btn btn-small" href="/connexion">{t({fr:"Se connecter",ar:"تسجيل الدخول",en:"Sign in"})}</Link>}
-  </div></header>
+  </div>
+  {mobileOpen&&<div className="mobile-nav-panel"><div className="container" onClick={e=>{if((e.target as HTMLElement).closest("a"))setMobileOpen(false)}}>
+    <nav className="mobile-nav-links" aria-label={t({fr:"Navigation mobile",ar:"تنقل الهاتف",en:"Mobile navigation"})}>
+      <Link href="/formations">{t({fr:"Formations",ar:"الدورات",en:"Courses"})}</Link>
+      <Link href="/formateurs">{t({fr:"Formateurs",ar:"المدربون",en:"Instructors"})}</Link>
+      <Link href="/classroom">Classroom</Link>
+      {signedIn&&!isManagement&&!isInstructor&&<>
+        <Link href="/dashboard">{t({fr:"Mon espace",ar:"حسابي",en:"My space"})}</Link>
+        <Link href="/practice">Practice Hub</Link>
+        <Link href="/skill-engine">Skill Engine</Link>
+        <Link href="/ai-tutor">Vydys AI Tutor</Link>
+        <Link href="/ai-lab">AI Lab</Link>
+        <Link href="/ai-lab/knowledge">Knowledge Base</Link>
+        <Link href="/ai-lab/code">Code Lab</Link>
+        <Link href="/projects">{t({fr:"Mes projets",ar:"مشاريعي",en:"My projects"})}</Link>
+        <Link href="/competences">Skills Passport</Link>
+        <Link href="/portfolio">Portfolio</Link>
+      </>}
+      {signedIn&&isInstructor&&<>
+        <Link href="/formateur">{t({fr:"Espace formateur",ar:"مساحة المدرب",en:"Instructor area"})}</Link>
+        <Link href="/formateur/copilote">Vydys AI Copilot</Link>
+        <Link href="/formateur/projets">{t({fr:"Projets étudiants",ar:"مشاريع الطلاب",en:"Student projects"})}</Link>
+      </>}
+      {signedIn&&isManagement&&<Link href="/admin">{t({fr:"Administration",ar:"الإدارة",en:"Administration"})}</Link>}
+      {signedIn&&<Link href="/messages">{t({fr:"Messages",ar:"الرسائل",en:"Messages"})}</Link>}
+      {signedIn&&<Link href="/notifications">{t({fr:"Notifications",ar:"الإشعارات",en:"Notifications"})}</Link>}
+      {!signedIn&&<Link href="/devenir-formateur">{t({fr:"Devenir formateur",ar:"كن مدرباً",en:"Teach on Vydys"})}</Link>}
+    </nav>
+    <div className="mobile-nav-footer">
+      <div className="language-switcher">{(["fr","ar","en"] as const).map(code=><button key={code} className={lang===code?"active":""} onClick={()=>setLang(code)}>{code.toUpperCase()}</button>)}</div>
+      {signedIn?<button className="btn" onClick={logout}>{t({fr:"Déconnexion",ar:"تسجيل الخروج",en:"Sign out"})}</button>:<Link className="btn" href="/connexion">{t({fr:"Se connecter",ar:"تسجيل الدخول",en:"Sign in"})}</Link>}
+    </div>
+  </div></div>}
+  </header>
 }
