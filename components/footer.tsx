@@ -30,6 +30,11 @@ export function Footer() {
           <Link href="/practice/api">API Lab</Link>
           <Link href="/practice/data">Data Lab</Link>
           <Link href="/practice/prompt">Prompt Lab</Link>
+          <Link href="/practice/git">Git Lab</Link>
+          <Link href="/practice/automation">Automation Lab</Link>
+          <Link href="/practice/cloud">Cloud Lab</Link>
+          <Link href="/practice/interview">Interview Simulator</Link>
+          <Link href="/practice/peer-review">Peer Review</Link>
         </div>
         <div>
           <strong>{t({fr:"Informations",ar:"المعلومات",en:"Information"})}</strong>
