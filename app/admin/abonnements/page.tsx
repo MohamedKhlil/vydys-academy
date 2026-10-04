@@ -15,7 +15,7 @@ export default function AdminAbonnementsPage(){
     const {data:p}=await supabase.from("profiles").select("role").eq("id",user.id).single();
     const ok=p?.role==="direction"||p?.role==="admin"; setAllowed(ok); if(!ok)return;
     const {data,error}=await supabase.from("trainer_subscriptions")
-      .select("id,plan,amount_mru,payment_method,payment_number,transaction_reference,proof_path,status,created_at,instructor_id")
+      .select("id,plan,amount_mru,amount,currency,payment_method,payment_mode,provider_code,payment_number,transaction_reference,proof_path,status,created_at,instructor_id")
       .eq("status","pending").order("created_at",{ascending:true});
     if(error){setMessage(error.message);return}
     const raw=data||[];
@@ -40,13 +40,13 @@ export default function AdminAbonnementsPage(){
   if(!allowed)return <section className="dashboard-shell"><div className="container"><article className="panel"><h1>{t({fr:"Accès réservé",ar:"دخول مخصص",en:"Restricted access"})}</h1></article></div></section>;
 
   return <section className="dashboard-shell"><div className="container">
-    <div className="dash-header"><div><span className="eyebrow">{t({fr:"Abonnements formateurs",ar:"اشتراكات المدربين",en:"Instructor subscriptions"})}</span><h1>{t({fr:"Paiements à valider",ar:"دفعات للمراجعة",en:"Payments to approve"})}</h1></div></div>
+    <div className="dash-header"><div><span className="eyebrow">{t({fr:"Abonnements formateurs",ar:"اشتراكات المدربين",en:"Instructor subscriptions"})}</span><h1>{t({fr:"Paiements manuels à valider",ar:"المدفوعات اليدوية للمراجعة",en:"Manual payments to approve"})}</h1><p>{t({fr:"Les abonnements Stripe/PayPal sont activés automatiquement après confirmation serveur et n’apparaissent pas dans cette file.",ar:"اشتراكات Stripe/PayPal تُفعل تلقائياً بعد تأكيد الخادم ولا تظهر في هذه القائمة.",en:"Stripe/PayPal subscriptions activate automatically after server confirmation and do not appear in this queue."})}</p></div></div>
     {message&&<p className="manual-note">{message}</p>}
     <div className="payment-review-list">
       {rows.length===0&&<article className="panel"><p>{t({fr:"Aucun abonnement en attente.",ar:"لا توجد اشتراكات معلقة.",en:"No pending subscriptions."})}</p></article>}
       {rows.map((r:any)=><article className="panel payment-review" key={r.id}>
         {r.proofUrl?<a className="proof-thumb proof-link" href={r.proofUrl} target="_blank" rel="noreferrer">IMG</a>:<div className="proof-thumb">—</div>}
-        <div className="payment-review-main"><strong>{r.profiles?.full_name||t({fr:"Formateur",ar:"مدرب",en:"Instructor"})}</strong><span>{r.plan} · {r.amount_mru.toLocaleString("fr-FR")} MRU · {r.payment_method.toUpperCase()}</span><small>{r.profiles?.phone||""}{r.transaction_reference?" · Ref: "+r.transaction_reference:""}</small></div>
+        <div className="payment-review-main"><strong>{r.profiles?.full_name||t({fr:"Formateur",ar:"مدرب",en:"Instructor"})}</strong><span>{r.plan} · {Number(r.amount??r.amount_mru).toLocaleString("fr-FR")} {r.currency||"MRU"} · {String(r.provider_code||r.payment_method).toUpperCase()}</span><small>{r.profiles?.phone||""}{r.transaction_reference?" · Ref: "+r.transaction_reference:""}</small></div>
         <div className="review-actions"><button className="approve" onClick={()=>approve(r.id)}>{t({fr:"Activer",ar:"تفعيل",en:"Activate"})}</button><button className="reject" onClick={()=>reject(r.id)}>{t({fr:"Refuser",ar:"رفض",en:"Reject"})}</button></div>
       </article>)}
     </div>
