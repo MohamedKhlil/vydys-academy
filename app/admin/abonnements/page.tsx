@@ -15,12 +15,19 @@ export default function AdminAbonnementsPage(){
     const {data:p}=await supabase.from("profiles").select("role").eq("id",user.id).single();
     const ok=p?.role==="direction"||p?.role==="admin"; setAllowed(ok); if(!ok)return;
     const {data,error}=await supabase.from("trainer_subscriptions")
-      .select("id,plan,amount_mru,payment_method,payment_number,transaction_reference,proof_path,status,created_at,instructor_id,profiles:instructor_id(full_name,phone)")
+      .select("id,plan,amount_mru,payment_method,payment_number,transaction_reference,proof_path,status,created_at,instructor_id")
       .eq("status","pending").order("created_at",{ascending:true});
     if(error){setMessage(error.message);return}
-    const enriched=await Promise.all((data||[]).map(async (r:any)=>{
-      const {data:signed}=r.proof_path?await supabase.storage.from("trainer-files").createSignedUrl(r.proof_path,3600):{data:null};
-      return {...r,proofUrl:signed?.signedUrl};
+    const raw=data||[];
+    const ids=[...new Set(raw.map((x:any)=>x.instructor_id).filter(Boolean))];
+    const profiles:Record<string,any>={};
+    if(ids.length){
+      const {data:ps}=await supabase.from("profiles").select("id,full_name,phone").in("id",ids);
+      (ps||[]).forEach((x:any)=>profiles[x.id]=x);
+    }
+    const enriched=await Promise.all(raw.map(async (row:any)=>{
+      const {data:signed}=row.proof_path?await supabase.storage.from("trainer-files").createSignedUrl(row.proof_path,3600):{data:null};
+      return {...row,profiles:profiles[row.instructor_id]||null,proofUrl:signed?.signedUrl};
     }));
     setRows(enriched);
   }
