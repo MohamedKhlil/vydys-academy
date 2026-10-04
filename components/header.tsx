@@ -36,7 +36,17 @@ export function Header() {
       <Link href="/formations">{t({fr:"Formations",ar:"الدورات",en:"Courses"})}</Link>
       <Link href="/formateurs">{t({fr:"Formateurs",ar:"المدربون",en:"Instructors"})}</Link>
       <Link href="/classroom">{t({fr:"Classroom",ar:"الفصل المباشر",en:"Classroom"})}</Link>
-      {signedIn&&!isManagement&&(isInstructor?<Link href="/formateur/copilote">Vydys AI</Link>:<><Link href="/ai-tutor">Vydys AI</Link><Link href="/ai-lab">AI Lab</Link></>)}
+      {signedIn&&!isManagement&&(isInstructor?<Link href="/formateur/copilote">Vydys AI</Link>:<>
+        <Link href="/ai-tutor">Vydys AI</Link>
+        <details className="nav-dropdown">
+          <summary>AI Lab <span>⌄</span></summary>
+          <div className="nav-dropdown-menu">
+            <Link href="/ai-lab"><b>✦ AI Lab</b><small>{t({fr:"Agents personnels & BYOK",ar:"وكلاء شخصيون و BYOK",en:"Personal agents & BYOK"})}</small></Link>
+            <Link href="/ai-lab/knowledge"><b>◆ Knowledge Base</b><small>{t({fr:"Documents, notes & RAG",ar:"مستندات وملاحظات و RAG",en:"Documents, notes & RAG"})}</small></Link>
+            <Link href="/ai-lab/code"><b>&lt;/&gt; Code Lab</b><small>Python · JavaScript</small></Link>
+          </div>
+        </details>
+      </>)}
       {isManagement?<Link href="/admin">{t({fr:"Administration",ar:"الإدارة",en:"Administration"})}</Link>
       :isInstructor?<Link href="/formateur">{t({fr:"Espace formateur",ar:"مساحة المدرب",en:"Instructor area"})}</Link>
       :<Link href="/dashboard">{t({fr:"Mon espace",ar:"حسابي",en:"My space"})}</Link>}
