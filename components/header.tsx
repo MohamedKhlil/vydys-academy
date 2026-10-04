@@ -99,10 +99,11 @@ export function Header() {
       </>}
       {signedIn&&isInstructor&&<>
         <Link href="/formateur">{t({fr:"Espace formateur",ar:"مساحة المدرب",en:"Instructor area"})}</Link>
+        <Link href="/formateur/classrooms">{t({fr:"Mes Classrooms",ar:"فصولي",en:"My Classrooms"})}</Link>
         <Link href="/formateur/copilote">Vydys AI Copilot</Link>
         <Link href="/formateur/projets">{t({fr:"Projets étudiants",ar:"مشاريع الطلاب",en:"Student projects"})}</Link>
       </>}
-      {signedIn&&isManagement&&<Link href="/admin">{t({fr:"Administration",ar:"الإدارة",en:"Administration"})}</Link>}
+      {signedIn&&isManagement&&<><Link href="/admin">{t({fr:"Administration",ar:"الإدارة",en:"Administration"})}</Link><Link href="/admin/classrooms">{t({fr:"Gestion Classrooms",ar:"إدارة الفصول",en:"Classroom control"})}</Link><Link href="/admin/tarifs">{t({fr:"Finance & tarifs",ar:"المالية والأسعار",en:"Finance & pricing"})}</Link></>}
       {signedIn&&<Link href="/messages">{t({fr:"Messages",ar:"الرسائل",en:"Messages"})}</Link>}
       {signedIn&&<Link href="/notifications">{t({fr:"Notifications",ar:"الإشعارات",en:"Notifications"})}</Link>}
       {!signedIn&&<Link href="/devenir-formateur">{t({fr:"Devenir formateur",ar:"كن مدرباً",en:"Teach on Vydys"})}</Link>}
