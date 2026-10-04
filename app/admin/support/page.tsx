@@ -15,8 +15,16 @@ export default function AdminSupportPage(){
     if(!user){setAllowed(false);return}
     const {data:p}=await supabase.from("profiles").select("role").eq("id",user.id).single();
     const ok=p?.role==="direction"||p?.role==="admin";setAllowed(ok);if(!ok)return;
-    const {data,error}=await supabase.from("support_cases").select("*,profiles:created_by(full_name,phone)").order("created_at",{ascending:false});
-    if(error)setMessage(error.message);else setRows(data||[]);
+    const {data,error}=await supabase.from("support_cases").select("*").order("created_at",{ascending:false});
+    if(error){setMessage(error.message);return}
+    const raw=data||[];
+    const ids=[...new Set(raw.map((x:any)=>x.created_by).filter(Boolean))];
+    const profiles:Record<string,any>={};
+    if(ids.length){
+      const {data:ps}=await supabase.from("profiles").select("id,full_name,phone").in("id",ids);
+      (ps||[]).forEach((x:any)=>profiles[x.id]=x);
+    }
+    setRows(raw.map((x:any)=>({...x,profiles:profiles[x.created_by]||null})));
   }
   useEffect(()=>{load()},[]);
 
