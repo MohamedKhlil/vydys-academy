@@ -20,11 +20,16 @@ export function Footer() {
         </div>
         <div>
           <strong>AI & Labs</strong>
+          <Link href="/practice">Practice Hub</Link>
           <Link href="/skill-engine">Skill Engine</Link>
           <Link href="/ai-tutor">Vydys AI Tutor</Link>
           <Link href="/ai-lab">AI Lab</Link>
           <Link href="/ai-lab/knowledge">Knowledge Base</Link>
           <Link href="/ai-lab/code">Code Lab</Link>
+          <Link href="/practice/sql">SQL Lab</Link>
+          <Link href="/practice/api">API Lab</Link>
+          <Link href="/practice/data">Data Lab</Link>
+          <Link href="/practice/prompt">Prompt Lab</Link>
         </div>
         <div>
           <strong>{t({fr:"Informations",ar:"المعلومات",en:"Information"})}</strong>
