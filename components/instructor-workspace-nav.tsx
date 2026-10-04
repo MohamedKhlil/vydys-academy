@@ -19,7 +19,7 @@ export default function InstructorWorkspaceNav(){
   const pathname=usePathname();
   const {lang,t}=useLanguage();
   return <div className="workspace-nav-shell instructor-workspace-nav"><div className="container workspace-nav-wrap">
-    <div className="workspace-nav-brand"><span>V</span><div><strong>Vydys Studio</strong><small>{t({fr:"Espace Formateur",ar:"مساحة المدرب",en:"Instructor Workspace"})}</small></div></div>
+    <div className="workspace-nav-brand"><img src="/vydys-icon.svg" alt="" className="workspace-brand-icon"/><div><strong>Vydys Studio</strong><small>{t({fr:"Espace Formateur",ar:"مساحة المدرب",en:"Instructor Workspace"})}</small></div></div>
     <nav className="workspace-nav-links" aria-label="Instructor navigation">
       {items.map(item=>{
         const active=item.href==="/formateur"?pathname==="/formateur":pathname.startsWith(item.href);
