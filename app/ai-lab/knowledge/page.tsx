@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useLanguage } from "../../../components/language-provider";
+import { AILabNav } from "../../../components/ai-lab-nav";
 import { supabase } from "../../../lib/supabase";
 
 export default function KnowledgePage(){
@@ -85,6 +86,7 @@ export default function KnowledgePage(){
   if(!allowed)return <section className="dashboard-shell"><div className="container"><article className="panel"><h1>{t({fr:"Accès étudiant requis",ar:"يلزم دخول الطالب",en:"Student access required"})}</h1></article></div></section>;
 
   return <section className="knowledge-page"><div className="container">
+    <AILabNav/>
     <div className="dash-header"><div><span className="eyebrow">Vydys AI Lab 2 · RAG</span><h1>{t({fr:"Ma base de connaissances",ar:"قاعدة معرفتي",en:"My knowledge base"})}</h1><p>{t({fr:"Ajoutez vos documents. Vydys extrait le texte, le découpe, crée des embeddings et permet à vos agents de retrouver les passages pertinents.",ar:"أضف مستنداتك. تستخرج Vydys النص وتقسمه وتنشئ التضمينات لتمكين وكلائك من استرجاع المقاطع المناسبة.",en:"Add your documents. Vydys extracts text, chunks it, creates embeddings, and lets your agents retrieve relevant passages."})}</p></div><div className="dash-actions"><Link className="btn btn-ghost" href="/ai-lab">{t({fr:"← AI Lab",ar:"← مختبر AI",en:"← AI Lab"})}</Link><Link className="btn" href="/ai-lab/code">Code Lab</Link></div></div>
     {notice&&<p className="manual-note">{notice}</p>}
 
