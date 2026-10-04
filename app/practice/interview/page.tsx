@@ -36,11 +36,11 @@ export default function InterviewSimulator(){
     setBusy(false);if(e||data?.error){setError(data?.detail||data?.error||e?.message||"Interview error");return}
     setSessionId(data.session_id);setMessages([{role:"assistant",content:data.message}]);
   }
-  async function send(e?:FormEvent){
-    e?.preventDefault();if(!answer.trim()||busy||!sessionId)return;
+  async function send(event?:FormEvent){
+    event?.preventDefault();if(!answer.trim()||busy||!sessionId)return;
     const a=answer.trim();setAnswer("");setMessages(v=>[...v,{role:"user",content:a}]);setBusy(true);setError("");
-    const {data,error:e}=await supabase.functions.invoke("vydys-interview",{body:{action:"answer",session_id:sessionId,answer:a}});
-    setBusy(false);if(e||data?.error){setError(data?.detail||data?.error||e?.message||"Interview error");return}
+    const {data,error:invokeError}=await supabase.functions.invoke("vydys-interview",{body:{action:"answer",session_id:sessionId,answer:a}});
+    setBusy(false);if(invokeError||data?.error){setError(data?.detail||data?.error||invokeError?.message||"Interview error");return}
     setMessages(v=>[...v,{role:"assistant",content:data.message}]);
   }
   async function finish(){
