@@ -233,3 +233,9 @@
 .vydys-mission{text-align:center;background:linear-gradient(135deg,#f4f3ff,#fff)}.vydys-mission .container{max-width:950px}.vydys-mission h2{font-size:38px;line-height:1.25;margin:15px auto 26px}
 @media(max-width:900px){.track-grid{grid-template-columns:1fr 1fr}.dual-audience{grid-template-columns:1fr}}
 @media(max-width:620px){.track-grid{grid-template-columns:1fr}.audience-card{padding:24px}.audience-card h2{font-size:27px}.vydys-mission h2{font-size:29px}}
+
+.project-review-form{margin-top:16px;padding-top:15px;border-top:1px solid var(--line);display:grid;gap:10px}
+.project-review-form label{display:grid;gap:7px}.project-review-form label>span{font-size:12px;font-weight:800;color:var(--muted)}
+.project-review-form textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;resize:vertical;outline:none}
+.project-review-form textarea:focus{border-color:var(--accent)}
+.project-review-form button:disabled{opacity:.6;cursor:not-allowed}
