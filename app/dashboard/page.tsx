@@ -67,6 +67,7 @@ export default function DashboardPage(){
     </div>
 
     <div className="vydys-tools-grid">
+      <Link className="panel vydys-tool-card practice-tool-card-main" href="/practice"><span className="tool-icon">▶</span><div><strong>Practice Hub</strong><p>{t({fr:"Code, SQL, API, Data, Prompt, RAG et challenges pratiques.",ar:"Code وSQL وAPI وData وPrompt وRAG وتحديات عملية.",en:"Code, SQL, API, Data, Prompt, RAG and hands-on challenges."})}</p></div></Link>
       <Link className="panel vydys-tool-card skill-engine-tool-card" href="/skill-engine"><span className="tool-icon">◎</span><div><strong>Skill Engine</strong><p>{t({fr:"Choisissez un objectif métier et suivez votre readiness vérifiée.",ar:"اختر هدفاً مهنياً وتابع جاهزيتك الموثقة.",en:"Choose a career goal and track your verified readiness."})}</p></div></Link>
       <Link className="panel vydys-tool-card ai" href="/ai-tutor"><span className="tool-icon">AI</span><div><strong>{t({fr:"AI Tutor",ar:"المدرس الذكي",en:"AI Tutor"})}</strong><p>{t({fr:"Comprendre, pratiquer et réviser avec votre tuteur IA.",ar:"افهم وطبّق وراجع مع مدرسك الذكي.",en:"Learn, practice and revise with your AI tutor."})}</p></div></Link>
       <Link className="panel vydys-tool-card ai-lab-card" href="/ai-lab"><span className="tool-icon">✦</span><div><strong>AI Lab</strong><p>{t({fr:"Créez vos agents IA avec votre propre modèle et vos outils.",ar:"أنشئ وكلاء الذكاء الاصطناعي بنموذجك وأدواتك.",en:"Build AI agents with your own model and tools."})}</p></div></Link>
