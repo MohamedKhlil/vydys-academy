@@ -8,6 +8,7 @@ const items=[
   {href:"/admin",icon:"▦",fr:"Vue d’ensemble",ar:"نظرة عامة",en:"Overview"},
   {href:"/admin/formateurs",icon:"◎",fr:"Formateurs",ar:"المدربون",en:"Instructors"},
   {href:"/admin/formations",icon:"▤",fr:"Formations",ar:"الدورات",en:"Courses"},
+  {href:"/admin/classrooms",icon:"LIVE",fr:"Classrooms",ar:"الفصول المباشرة",en:"Classrooms"},
   {href:"/admin/abonnements",icon:"◇",fr:"Abonnements",ar:"الاشتراكات",en:"Subscriptions"},
   {href:"/admin/analytics",icon:"↗",fr:"Analytics",ar:"التحليلات",en:"Analytics"},
   {href:"/admin/support",icon:"?",fr:"Support",ar:"الدعم",en:"Support"},
