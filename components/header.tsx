@@ -37,7 +37,22 @@ export function Header() {
       <Link href="/formateurs">{t({fr:"Formateurs",ar:"المدربون",en:"Instructors"})}</Link>
       <Link href="/classroom">{t({fr:"Classroom",ar:"الفصل المباشر",en:"Classroom"})}</Link>
       {signedIn&&!isManagement&&(isInstructor?<Link href="/formateur/copilote">Vydys AI</Link>:<>
-        <Link href="/practice">Practice</Link>
+        <details className="nav-dropdown practice-dropdown">
+          <summary>Practice <span>⌄</span></summary>
+          <div className="nav-dropdown-menu practice-menu">
+            <Link href="/practice"><b>▶ Practice Hub</b><small>{t({fr:"Tous les labs & challenges",ar:"كل المختبرات والتحديات",en:"All labs & challenges"})}</small></Link>
+            <Link href="/ai-lab/code"><b>&lt;/&gt; Code Lab</b><small>Python · JavaScript</small></Link>
+            <Link href="/practice/sql"><b>▦ SQL Lab</b><small>SQLite · Queries · Data</small></Link>
+            <Link href="/practice/api"><b>API · API Lab</b><small>HTTP · JSON · Status codes</small></Link>
+            <Link href="/practice/data"><b>CSV · Data Lab</b><small>Profile · Explore · Clean</small></Link>
+            <Link href="/practice/prompt"><b>A/B · Prompt Lab</b><small>BYOK · Compare · Tokens</small></Link>
+            <Link href="/practice/git"><b>GIT · Git Lab</b><small>Branches · Commits · Diff</small></Link>
+            <Link href="/practice/automation"><b>WF · Automation Lab</b><small>Triggers · Filters · AI</small></Link>
+            <Link href="/practice/cloud"><b>☁ · Cloud Lab</b><small>Architecture · Security · Deploy</small></Link>
+            <Link href="/practice/interview"><b>🎤 Interview Simulator</b><small>{t({fr:"Préparation carrière",ar:"تحضير مهني",en:"Career practice"})}</small></Link>
+            <Link href="/practice/peer-review"><b>↔ Peer Review</b><small>{t({fr:"Feedback communauté",ar:"ملاحظات المجتمع",en:"Community feedback"})}</small></Link>
+          </div>
+        </details>
         <Link href="/skill-engine">Skill Engine</Link>
         <Link href="/ai-tutor">Vydys AI</Link>
         <details className="nav-dropdown">
