@@ -20,7 +20,7 @@ export default function CloudLab(){
     ["AI","Quota, logs, provider errors"],["Observability","Errors, latency, alerts"],["Backups","Database recovery plan"],["Deploy","Production env + smoke tests"]
   ].filter(([k])=>k!=="AI"||ai).filter(([k])=>k!=="Storage"||storage);
   async function save(){
-    const {error}=await supabase.from("cloud_lab_blueprints").insert({user_id:userId,title,app_type:"web",runtime,database_type:database,has_ai:ai,has_storage:storage,has_background_jobs:jobs,architecture:{parts},checklist:checklist.map(([name,detail])=>({name,detail,done:false})),status:"ready"});setNotice(error?error.message:t({fr:"Blueprint sauvegardé.",ar:"تم حفظ المخطط.",en:"Blueprint saved."}))
+    const {error}=await supabase.from("cloud_lab_blueprints").insert({user_id:userId,title,app_type:"web",runtime,database_type:database,has_ai:ai,has_storage:storage,has_background_jobs:jobs,architecture:{parts:arch},checklist:checklist.map(([name,detail])=>({name,detail,done:false})),status:"ready"});setNotice(error?error.message:t({fr:"Blueprint sauvegardé.",ar:"تم حفظ المخطط.",en:"Blueprint saved."}))
   }
   if(allowed===null)return <section className="practice-page"><div className="container"><div className="skill-engine-loading">Cloud Lab...</div></div></section>;
   return <section className="practice-page"><div className="container">
