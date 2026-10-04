@@ -52,6 +52,8 @@ export function Header() {
             <Link href="/practice/interview"><b>🎤 Interview Simulator</b><small>{t({fr:"Préparation carrière",ar:"تحضير مهني",en:"Career practice"})}</small></Link>
             <Link href="/practice/peer-review"><b>↔ Peer Review</b><small>{t({fr:"Feedback communauté",ar:"ملاحظات المجتمع",en:"Community feedback"})}</small></Link>
             <Link href="/practice/runner"><b>RUN · Secure Runner</b><small>Firecracker · Python · Node</small></Link>
+            <Link href="/practice/toolkit"><b>{} · Developer Toolkit</b><small>JSON · Regex · Encode · Hash</small></Link>
+            <Link href="/practice/safety"><b>🛡 AI Safety Lab</b><small>Injection · Secrets · Guardrails</small></Link>
           </div>
         </details>
         <Link href="/skill-engine">Skill Engine</Link>
