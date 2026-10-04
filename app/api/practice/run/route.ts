@@ -60,7 +60,7 @@ export async function POST(req:NextRequest){
     try{
       command=await sandbox.runCommand({
         cmd:language==="python"?"python3":"node",
-        args:["-c",code],
+        args:[language==="python"?"-c":"-e",code],
         signal:controller.signal
       });
     }finally{
