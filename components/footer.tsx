@@ -35,6 +35,7 @@ export function Footer() {
           <Link href="/practice/cloud">Cloud Lab</Link>
           <Link href="/practice/interview">Interview Simulator</Link>
           <Link href="/practice/peer-review">Peer Review</Link>
+          <Link href="/practice/runner">Secure Runner</Link>
         </div>
         <div>
           <strong>{t({fr:"Informations",ar:"المعلومات",en:"Information"})}</strong>
