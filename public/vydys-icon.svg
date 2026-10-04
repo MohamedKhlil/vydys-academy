@@ -1,0 +1,14 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title">
+<title id="title">Vydys</title>
+<defs>
+  <linearGradient id="g" x1="48" y1="42" x2="204" y2="210" gradientUnits="userSpaceOnUse">
+    <stop stop-color="#07111F"/>
+    <stop offset=".48" stop-color="#0E4FE8"/>
+    <stop offset="1" stop-color="#2D7BFF"/>
+  </linearGradient>
+</defs>
+<rect x="16" y="16" width="224" height="224" rx="62" fill="#05070C"/>
+<path d="M57 70L108 181C113.5 193 130.5 193 136 181L199 70H164L124.5 149L91 70H57Z" fill="url(#g)"/>
+<path d="M158 70H200L144 177C138.8 187 124.5 188.5 117.2 180L109 170.5L125.5 136L158 70Z" fill="#2D7BFF" fill-opacity=".78"/>
+<circle cx="199" cy="63" r="11" fill="#4A8BFF"/>
+</svg>
