@@ -44,7 +44,7 @@ export default function GitLab(){
       out(...Object.entries(files).filter(([,s])=>s==="modified").map(([f])=>"diff --git a/"+f+" b/"+f+"\n+ simulated change in "+f),...(Object.keys(files).length?[]:["No diff."]));
     }else if(c==="git restore ."){
       setFiles({});out("Restored working tree.");
-    }else out("Supported commands: git status · git add . · git add <file> · git commit -m "..." · git branch <name> · git switch <name> · git log --oneline · git diff · git restore .");
+    }else out('Supported commands: git status · git add . · git add <file> · git commit -m "message" · git branch <name> · git switch <name> · git log --oneline · git diff · git restore .');
   }
 
   if(allowed===null)return <section className="practice-page"><div className="container"><div className="skill-engine-loading">Git Lab...</div></div></section>;
