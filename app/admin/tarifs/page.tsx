@@ -16,6 +16,10 @@ export default function AdminTarifsPage(){
   const [launchAmount,setLaunchAmount]=useState("1");
   const [launchCurrency,setLaunchCurrency]=useState("USD");
   const [launchLocalMru,setLaunchLocalMru]=useState("0");
+  const [classroomLaunchEnabled,setClassroomLaunchEnabled]=useState(true);
+  const [classroomLaunchAmount,setClassroomLaunchAmount]=useState("3");
+  const [classroomLaunchCurrency,setClassroomLaunchCurrency]=useState("USD");
+  const [classroomLaunchLocalMru,setClassroomLaunchLocalMru]=useState("0");
   const [grace,setGrace]=useState("0");
   const [requireApproval,setRequireApproval]=useState(true);
   const [platformProviders,setPlatformProviders]=useState<any[]>([]);
@@ -47,6 +51,10 @@ export default function AdminTarifsPage(){
       setLaunchAmount(String(s.course_launch_fee_amount??1));
       setLaunchCurrency(s.course_launch_fee_currency||"USD");
       setLaunchLocalMru(String(s.course_launch_fee_local_mru??0));
+      setClassroomLaunchEnabled(Boolean(s.classroom_launch_fee_enabled));
+      setClassroomLaunchAmount(String(s.classroom_launch_fee_amount??3));
+      setClassroomLaunchCurrency(s.classroom_launch_fee_currency||"USD");
+      setClassroomLaunchLocalMru(String(s.classroom_launch_fee_local_mru??0));
       setGrace(String(s.grace_period_days||0));
       setRequireApproval(Boolean(s.require_course_approval));
     }
@@ -83,6 +91,10 @@ export default function AdminTarifsPage(){
       course_launch_fee_amount:Number(launchAmount)||0,
       course_launch_fee_currency:launchCurrency,
       course_launch_fee_local_mru:Number(launchLocalMru)||0,
+      classroom_launch_fee_enabled:classroomLaunchEnabled,
+      classroom_launch_fee_amount:Number(classroomLaunchAmount)||0,
+      classroom_launch_fee_currency:classroomLaunchCurrency,
+      classroom_launch_fee_local_mru:Number(classroomLaunchLocalMru)||0,
       platform_commission_percent:0,
       grace_period_days:Number(grace)||0,
       require_course_approval:requireApproval,
@@ -123,6 +135,16 @@ export default function AdminTarifsPage(){
           <label className="form-field full-row"><span>{t({fr:"Équivalent manuel MRU pour Bankily / Masrvi / Sedad / Click",ar:"المعادل اليدوي بالأوقية لـ Bankily / Masrvi / Sedad / Click",en:"Manual MRU equivalent for Bankily / Masrvi / Sedad / Click"})}</span><input type="number" min="0" step="0.01" value={launchLocalMru} onChange={e=>setLaunchLocalMru(e.target.value)}/><small>{t({fr:"À définir par l’Admin. Aucun taux de change n’est inventé automatiquement.",ar:"يحدده المسؤول. لا يتم افتراض سعر صرف تلقائياً.",en:"Set by Admin. Vydys does not invent an exchange rate."})}</small></label>
         </div>
         <div className="launch-fee-preview"><span>{t({fr:"Référence internationale",ar:"المرجع الدولي",en:"International reference"})}</span><strong>{Number(launchAmount||0).toLocaleString()} {launchCurrency}</strong><small>{launchEnabled?t({fr:"Après approbation du cours",ar:"بعد اعتماد الدورة",en:"After course approval"}):t({fr:"Désactivé",ar:"معطل",en:"Disabled"})}</small></div>
+      </article>
+
+      <article className="panel trainer-form classroom-fee-admin"><span className="eyebrow">{t({fr:"Frais Classroom",ar:"رسوم الفصل المباشر",en:"Classroom launch fee"})}</span><h2>{t({fr:"Prix de publication d’une nouvelle Classroom",ar:"سعر نشر فصل مباشر جديد",en:"New Classroom publication fee"})}</h2>
+        <label className="checkbox-line"><input type="checkbox" checked={classroomLaunchEnabled} onChange={e=>setClassroomLaunchEnabled(e.target.checked)}/>{t({fr:"Activer le frais Classroom",ar:"تفعيل رسوم الفصل",en:"Enable Classroom fee"})}</label>
+        <div className="form-grid">
+          <label className="form-field"><span>{t({fr:"Montant international",ar:"المبلغ الدولي",en:"International amount"})}</span><input type="number" min="0" step="0.01" value={classroomLaunchAmount} onChange={e=>setClassroomLaunchAmount(e.target.value)}/></label>
+          <label className="form-field"><span>{t({fr:"Devise",ar:"العملة",en:"Currency"})}</span><select value={classroomLaunchCurrency} onChange={e=>setClassroomLaunchCurrency(e.target.value)}>{currencies.map(x=><option value={x.code} key={x.code}>{x.code}</option>)}</select></label>
+          <label className="form-field full-row"><span>{t({fr:"Équivalent manuel MRU",ar:"المعادل اليدوي بالأوقية",en:"Manual MRU equivalent"})}</span><input type="number" min="0" step="0.01" value={classroomLaunchLocalMru} onChange={e=>setClassroomLaunchLocalMru(e.target.value)}/><small>{t({fr:"Utilisé pour Click / Bankily / Masrvi / Sedad. Modifiable à tout moment par l’Admin.",ar:"يستخدم لـ Click / Bankily / Masrvi / Sedad ويمكن للإدارة تغييره.",en:"Used for Click / Bankily / Masrvi / Sedad. Admin can change it anytime."})}</small></label>
+        </div>
+        <div className="launch-fee-preview"><span>Vydys Classroom</span><strong>{Number(classroomLaunchAmount||0).toLocaleString()} {classroomLaunchCurrency}</strong><small>{classroomLaunchEnabled?t({fr:"Après validation Admin",ar:"بعد اعتماد الإدارة",en:"After Admin approval"}):t({fr:"Désactivé",ar:"معطل",en:"Disabled"})}</small></div>
       </article>
     </div>
 
