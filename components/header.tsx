@@ -32,7 +32,7 @@ export function Header() {
   const isInstructor=role==="instructor";
 
   return <header className="site-header"><div className="container nav-wrap">
-    <Link className="brand" href="/"><span className="brand-mark">V</span><span>Vydys <strong>Academy</strong></span></Link>
+    <Link className="brand brand-logo-link" href="/" aria-label="Vydys Academy"><img src="/vydys-logo.svg" alt="Vydys Academy" className="brand-logo"/></Link>
     <nav className="main-nav" aria-label={t({fr:"Navigation principale",ar:"التنقل الرئيسي",en:"Main navigation"})}>
       <Link href="/formations">{t({fr:"Formations",ar:"الدورات",en:"Courses"})}</Link>
       <Link href="/formateurs">{t({fr:"Formateurs",ar:"المدربون",en:"Instructors"})}</Link>
