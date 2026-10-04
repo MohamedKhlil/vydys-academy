@@ -20,6 +20,7 @@ export function Footer() {
         </div>
         <div>
           <strong>AI & Labs</strong>
+          <Link href="/skill-engine">Skill Engine</Link>
           <Link href="/ai-tutor">Vydys AI Tutor</Link>
           <Link href="/ai-lab">AI Lab</Link>
           <Link href="/ai-lab/knowledge">Knowledge Base</Link>
