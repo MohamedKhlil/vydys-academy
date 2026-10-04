@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useLanguage } from "../../../components/language-provider";
+import { AILabNav } from "../../../components/ai-lab-nav";
 import { supabase } from "../../../lib/supabase";
 
 const pythonStarter=`# Vydys Python Lab
@@ -123,6 +124,7 @@ export default function CodeLabPage(){
   if(!allowed)return <section className="dashboard-shell"><div className="container"><article className="panel"><h1>{t({fr:"Accès étudiant requis",ar:"يلزم دخول الطالب",en:"Student access required"})}</h1></article></div></section>;
 
   return <section className="code-lab-page"><div className="container">
+    <AILabNav/>
     <div className="dash-header"><div><span className="eyebrow">Vydys AI Lab 2 · Code</span><h1>{t({fr:"Code Lab",ar:"مختبر البرمجة",en:"Code Lab"})}</h1><p>{t({fr:"Expérimentez Python et JavaScript directement dans Vydys. Le code s’exécute dans un bac à sable côté navigateur, jamais sur le serveur Vydys.",ar:"جرّب Python وJavaScript داخل Vydys. يتم تشغيل الكود في بيئة معزولة داخل المتصفح وليس على خادم Vydys.",en:"Experiment with Python and JavaScript directly in Vydys. Code runs in a browser sandbox, never on the Vydys server."})}</p></div><div className="dash-actions"><Link className="btn btn-ghost" href="/ai-lab">{t({fr:"← AI Lab",ar:"← مختبر AI",en:"← AI Lab"})}</Link><Link className="btn" href="/ai-lab/knowledge">Knowledge Base</Link></div></div>
 
     <div className="code-toolbar panel">
