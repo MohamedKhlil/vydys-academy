@@ -34,8 +34,8 @@ export default function NewClassroomPage(){
   const [startTime,setStartTime]=useState("19:00");
   const [duration,setDuration]=useState("90");
   const [capacity,setCapacity]=useState("25");
-  const [price,setPrice]=useState("2500");
-  const [currency,setCurrency]=useState("MRU");
+  const [price,setPrice]=useState("60");
+  const [currency,setCurrency]=useState("USD");
   const [certificate,setCertificate]=useState(true);
   const [recording,setRecording]=useState(false);
   const [replay,setReplay]=useState(false);
