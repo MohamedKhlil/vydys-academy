@@ -37,6 +37,7 @@ export function Header() {
       <Link href="/formateurs">{t({fr:"Formateurs",ar:"المدربون",en:"Instructors"})}</Link>
       <Link href="/classroom">{t({fr:"Classroom",ar:"الفصل المباشر",en:"Classroom"})}</Link>
       {signedIn&&!isManagement&&(isInstructor?<Link href="/formateur/copilote">Vydys AI</Link>:<>
+        <Link href="/practice">Practice</Link>
         <Link href="/skill-engine">Skill Engine</Link>
         <Link href="/ai-tutor">Vydys AI</Link>
         <details className="nav-dropdown">
