@@ -154,7 +154,7 @@
 @media(max-width:700px){.audit-row{grid-template-columns:1fr 1fr}.audit-row span:nth-child(3),.audit-row span:nth-child(4){display:none}}
 
 /* Vydys 2.0 — AI, Projects, Portfolio & Skills */
-.vydys-tools-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:20px 0}
+.vydys-tools-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin:20px 0}
 .vydys-tool-card{margin:0!important;display:flex;gap:13px;align-items:flex-start;transition:.2s ease}
 .vydys-tool-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
 .vydys-tool-card.ai{background:linear-gradient(135deg,#161a35,#3436a8);color:#fff;border-color:transparent}
@@ -255,3 +255,6 @@
 .lab-empty{margin:0!important;grid-column:1/-1;text-align:center;display:grid;justify-items:center;padding:35px}.lab-empty h3{margin:14px 0 5px}.lab-empty p{color:var(--muted);max-width:420px}.agent-chat-section{scroll-margin-top:90px}.agent-chat-layout{min-height:560px}
 @media(max-width:1000px){.agent-builder-layout{grid-template-columns:1fr}.provider-grid{grid-template-columns:1fr}.connect-key-form{grid-template-columns:1fr}.agent-list{grid-template-columns:1fr 1fr}}
 @media(max-width:680px){.ai-lab-page{padding:22px 0 50px}.ai-lab-hero h1{font-size:34px}.agent-list{grid-template-columns:1fr}.provider-card{grid-template-columns:auto 1fr}.provider-card>button{grid-column:1/-1;justify-self:start}}
+
+.ai-lab-card{background:linear-gradient(135deg,#f5f4ff,#ffffff);border-color:#c9c6ff!important}
+.ai-lab-card .tool-icon{background:#171b3b;color:#fff}
