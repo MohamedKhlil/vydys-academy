@@ -7,6 +7,7 @@ import { useLanguage } from "./language-provider";
 const items=[
   {href:"/formateur",icon:"▦",fr:"Dashboard",ar:"لوحة التحكم",en:"Dashboard"},
   {href:"/formateur/nouvelle-formation",icon:"+",fr:"Créer",ar:"إنشاء",en:"Create"},
+  {href:"/formateur/classrooms",icon:"LIVE",fr:"Classrooms",ar:"الفصول",en:"Classrooms"},
   {href:"/formateur/projets",icon:"◆",fr:"Projets",ar:"المشاريع",en:"Projects"},
   {href:"/formateur/copilote",icon:"AI",fr:"Copilote",ar:"المساعد",en:"Copilot"},
   {href:"/formateur/marketing",icon:"↗",fr:"Marketing",ar:"التسويق",en:"Marketing"},
