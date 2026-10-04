@@ -10,6 +10,7 @@ export default function FormateurPage(){
   const [allowed,setAllowed]=useState<boolean|null>(null);
   const [activeSub,setActiveSub]=useState(false);
   const [courses,setCourses]=useState<any[]>([]);
+  const [classrooms,setClassrooms]=useState<any[]>([]);
   const [methods,setMethods]=useState<any[]>([]);
   const [sales,setSales]=useState<any[]>([]);
   const [ratings,setRatings]=useState<Record<string,any>>({});
@@ -21,9 +22,10 @@ export default function FormateurPage(){
     const {data:p}=await supabase.from("profiles").select("role").eq("id",user.id).single();
     const ok=p?.role==="instructor";setAllowed(ok);if(!ok)return;
 
-    const [{data:subs},{data:c},{data:m},{data:legacy},{data:orders},{data:r}]=await Promise.all([
+    const [{data:subs},{data:c},{data:rooms},{data:m},{data:legacy},{data:orders},{data:r}]=await Promise.all([
       supabase.from("trainer_subscriptions").select("id,status,ends_at").eq("instructor_id",user.id).eq("status","active"),
       supabase.from("courses").select("id,slug,title_fr,status,base_price_mru,base_price_amount,base_currency,launch_fee_status,created_at").eq("instructor_id",user.id).order("created_at",{ascending:false}),
+      supabase.from("classrooms").select("id,slug,title_fr,status,start_date,session_count,capacity,base_price_amount,base_currency").eq("instructor_id",user.id).order("created_at",{ascending:false}),
       supabase.from("instructor_payment_methods").select("*").eq("instructor_id",user.id).eq("is_active",true),
       supabase.from("instructor_sales_view").select("*").eq("instructor_id",user.id).order("created_at",{ascending:false}),
       supabase.from("course_orders").select("id,user_id,course_id,payment_mode,provider_code,amount,currency,status,transaction_reference,proof_path,created_at,paid_at,courses:course_id(title_fr)").eq("instructor_id",user.id).order("created_at",{ascending:false}),
@@ -31,7 +33,7 @@ export default function FormateurPage(){
     ]);
 
     setActiveSub((subs||[]).some((x:any)=>!x.ends_at||new Date(x.ends_at)>=new Date()));
-    setCourses(c||[]);setMethods(m||[]);
+    setCourses(c||[]);setClassrooms(rooms||[]);setMethods(m||[]);
 
     const newOrders=orders||[];
     const userIds=[...new Set(newOrders.map((x:any)=>x.user_id).filter(Boolean))];
@@ -88,11 +90,12 @@ export default function FormateurPage(){
   if(!allowed)return <section className="dashboard-shell"><div className="container"><article className="panel"><h1>{t({fr:"Espace formateur",ar:"مساحة المدرب",en:"Instructor area"})}</h1><p>{t({fr:"Votre profil n'est pas encore validé comme formateur.",ar:"ملفك لم يُعتمد بعد كمدرب.",en:"Your profile is not yet approved as an instructor."})}</p><Link className="btn" href="/devenir-formateur">{t({fr:"Devenir formateur",ar:"كن مدرباً",en:"Become an instructor"})}</Link></article></div></section>;
 
   return <section className="dashboard-shell"><div className="container">
-    <div className="dash-header"><div><span className="eyebrow">Vydys Studio</span><h1>{t({fr:"Pilotez votre activité internationale",ar:"أدر نشاطك الدولي",en:"Run your international teaching business"})}</h1><p>{t({fr:"Ventes directes, méthodes de paiement, formations et revenus multi-devises.",ar:"مبيعات مباشرة وطرق دفع ودورات وإيرادات متعددة العملات.",en:"Direct sales, payment methods, courses and multi-currency revenue."})}</p></div><Link className="btn" href="/formateur/nouvelle-formation">{t({fr:"+ Nouvelle formation",ar:"+ دورة جديدة",en:"+ New course"})}</Link></div>
+    <div className="dash-header"><div><span className="eyebrow">Vydys Studio</span><h1>{t({fr:"Pilotez votre activité internationale",ar:"أدر نشاطك الدولي",en:"Run your international teaching business"})}</h1><p>{t({fr:"Ventes directes, formations, Classrooms live et revenus multi-devises.",ar:"مبيعات مباشرة ودورات وفصول مباشرة وإيرادات متعددة العملات.",en:"Direct sales, courses, live Classrooms and multi-currency revenue."})}</p></div><div className="builder-head-actions"><Link className="btn btn-ghost" href="/formateur/classrooms/new">+ Classroom</Link><Link className="btn" href="/formateur/nouvelle-formation">{t({fr:"+ Nouvelle formation",ar:"+ دورة جديدة",en:"+ New course"})}</Link></div></div>
 
     <div className="stat-grid">
       <article className="panel stat"><span>{t({fr:"Abonnement Vydys",ar:"اشتراك Vydys",en:"Vydys subscription"})}</span><strong>{activeSub?t({fr:"Actif",ar:"نشط",en:"Active"}):t({fr:"Inactif",ar:"غير نشط",en:"Inactive"})}</strong></article>
       <article className="panel stat"><span>{t({fr:"Mes formations",ar:"دوراتي",en:"My courses"})}</span><strong>{courses.length}</strong></article>
+      <article className="panel stat"><span>Classrooms Live</span><strong>{classrooms.length}</strong><small>{classrooms.filter(r=>r.status==="published").length} {t({fr:"publiées",ar:"منشورة",en:"published"})}</small></article>
       <article className="panel stat"><span>{t({fr:"Paiements manuels à valider",ar:"دفعات يدوية للمراجعة",en:"Manual payments to review"})}</span><strong>{pending.length}</strong></article>
       <article className="panel stat"><span>{t({fr:"Revenus reçus",ar:"الإيرادات المستلمة",en:"Received revenue"})}</span><strong className="multi-currency-stat">{revenueText}</strong><small>0% Vydys commission</small></article>
     </div>
@@ -117,7 +120,7 @@ export default function FormateurPage(){
       <article className="panel dash-main"><h2>{t({fr:"Mes formations",ar:"دوراتي",en:"My courses"})}</h2>
         <div className="table">{courses.length===0?<p>{t({fr:"Aucune formation créée.",ar:"لم تنشئ أي دورة بعد.",en:"No courses created yet."})}</p>:courses.map(c=>{const rs=ratings[c.id];const amount=Number(c.base_price_amount??c.base_price_mru);const cur=c.base_currency||"MRU";return <div className="tr trainer-course-row" key={c.id}><span><Link className="text-link" href={"/formateur/formation/"+c.id+"/builder"}>{c.title_fr}</Link><small className="course-rating-mini">★ {Number(rs?.average_rating||0).toFixed(1)} ({rs?.review_count||0})</small></span><span>{amount.toLocaleString("fr-FR")} {cur}</span><span className={c.status==="published"?"status":"status pending"}>{c.status}{c.status==="approved_pending_fee"&&<Link className="launch-fee-link" href={"/formateur/formation/"+c.id+"/launch"}>{t({fr:"Payer lancement",ar:"دفع الإطلاق",en:"Pay launch fee"})}</Link>}</span></div>})}</div>
       </article>
-      <aside className="dash-side"><article className="panel"><h3>{t({fr:"Configuration",ar:"الإعدادات",en:"Setup"})}</h3><div className="quick-actions"><Link href="/formateur/copilote">✨ {t({fr:"Copilote IA",ar:"المساعد الذكي",en:"AI Copilot"})}</Link><Link href="/formateur/projets">⌘ {t({fr:"Projets étudiants",ar:"مشاريع الطلاب",en:"Student projects"})}</Link><Link href="/formateur/paiements">💳 {t({fr:"Mes moyens de paiement",ar:"وسائل الدفع",en:"Payment methods"})}</Link><Link href="/formateur/marketing">{t({fr:"Coupons & annonces",ar:"القسائم والإعلانات",en:"Coupons & announcements"})}</Link><Link href="/messages">{t({fr:"Messages étudiants",ar:"رسائل الطلاب",en:"Student messages"})}</Link><Link href="/formateur/abonnement">{t({fr:"Mon abonnement",ar:"اشتراكي",en:"My subscription"})}</Link><Link href="/devenir-formateur">{t({fr:"Mon profil public",ar:"ملفي العام",en:"Public profile"})}</Link></div></article></aside>
+      <aside className="dash-side"><article className="panel"><h3>{t({fr:"Configuration",ar:"الإعدادات",en:"Setup"})}</h3><div className="quick-actions"><Link href="/formateur/copilote">✨ {t({fr:"Copilote IA",ar:"المساعد الذكي",en:"AI Copilot"})}</Link><Link href="/formateur/classrooms">◉ {t({fr:"Mes Classrooms",ar:"فصولي",en:"My Classrooms"})}</Link><Link href="/formateur/projets">⌘ {t({fr:"Projets étudiants",ar:"مشاريع الطلاب",en:"Student projects"})}</Link><Link href="/formateur/paiements">💳 {t({fr:"Mes moyens de paiement",ar:"وسائل الدفع",en:"Payment methods"})}</Link><Link href="/formateur/marketing">{t({fr:"Coupons & annonces",ar:"القسائم والإعلانات",en:"Coupons & announcements"})}</Link><Link href="/messages">{t({fr:"Messages étudiants",ar:"رسائل الطلاب",en:"Student messages"})}</Link><Link href="/formateur/abonnement">{t({fr:"Mon abonnement",ar:"اشتراكي",en:"My subscription"})}</Link><Link href="/devenir-formateur">{t({fr:"Mon profil public",ar:"ملفي العام",en:"Public profile"})}</Link></div></article></aside>
     </div>
 
     <article className="panel sales-history"><h2>{t({fr:"Historique des ventes",ar:"سجل المبيعات",en:"Sales history"})}</h2>
