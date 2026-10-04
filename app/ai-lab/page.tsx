@@ -5,7 +5,7 @@ import { useLanguage } from "../../components/language-provider";
 import { supabase } from "../../lib/supabase";
 
 const providerLabels:Record<string,string>={openai:"OpenAI",anthropic:"Claude",google:"Gemini"};
-const defaults:Record<string,string>={openai:"gpt-6-astra",anthropic:"claude-opus-5-5",google:"gemini-3.8-flash"};
+const defaults:Record<string,string>={openai:"gpt-6-luna",anthropic:"claude-sonnet-4-5",google:"gemini-2.5-flash"};
 
 export default function AILabPage(){
   const {t}=useLanguage();
@@ -14,6 +14,8 @@ export default function AILabPage(){
   const [credentials,setCredentials]=useState<any[]>([]);
   const [agents,setAgents]=useState<any[]>([]);
   const [courses,setCourses]=useState<any[]>([]);
+  const [knowledgeDocs,setKnowledgeDocs]=useState<any[]>([]);
+  const [selectedDocIds,setSelectedDocIds]=useState<string[]>([]);
   const [provider,setProvider]=useState("openai");
   const [apiKey,setApiKey]=useState("");
   const [savingKey,setSavingKey]=useState(false);
@@ -40,13 +42,15 @@ export default function AILabPage(){
     const {data:p}=await supabase.from("profiles").select("role").eq("id",user.id).single();
     const ok=p?.role==="student";setAllowed(ok);if(!ok)return;
 
-    const [{data:keys},{data:a},{data:e}]=await Promise.all([
+    const [{data:keys},{data:a},{data:e},{data:kdocs}]=await Promise.all([
       supabase.from("user_ai_credentials").select("id,provider,key_hint,status,last_tested_at,last_error,created_at,updated_at").eq("user_id",user.id),
       supabase.from("ai_agents").select("*").eq("user_id",user.id).eq("status","active").order("updated_at",{ascending:false}),
-      supabase.from("enrollments").select("course_id,courses:course_id(id,title_fr,title_ar,title_en)").eq("user_id",user.id).in("status",["active","completed"])
+      supabase.from("enrollments").select("course_id,courses:course_id(id,title_fr,title_ar,title_en)").eq("user_id",user.id).in("status",["active","completed"]),
+      supabase.from("ai_knowledge_documents").select("id,title,file_name,status,chunk_count").eq("user_id",user.id).eq("status","ready").order("created_at",{ascending:false})
     ]);
     setCredentials(keys||[]);setAgents(a||[]);
     setCourses((e||[]).map((x:any)=>x.courses).filter(Boolean));
+    setKnowledgeDocs(kdocs||[]);
   }
 
   useEffect(()=>{load()},[]);
@@ -83,12 +87,22 @@ export default function AILabPage(){
       user_id:userId,name,description:description||null,provider,model,
       system_prompt:systemPrompt,
       knowledge_mode:knowledgeMode,
-      course_id:knowledgeMode==="course"?courseId:null
+      course_id:knowledgeMode==="course"?courseId:null,
+      knowledge_base_enabled:selectedDocIds.length>0
     }).select("*").single();
     if(error){setNotice(error.message);return}
-    setName("");setDescription("");setSystemPrompt("");setKnowledgeMode("none");setCourseId("");
+    if(data&&selectedDocIds.length){
+      const {error:mapError}=await supabase.from("ai_agent_knowledge").insert(
+        selectedDocIds.map(document_id=>({agent_id:data.id,document_id}))
+      );
+      if(mapError){
+        await supabase.from("ai_agents").delete().eq("id",data.id);
+        setNotice(mapError.message);return;
+      }
+    }
+    setName("");setDescription("");setSystemPrompt("");setKnowledgeMode("none");setCourseId("");setSelectedDocIds([]);
     setNotice(t({fr:"Agent créé. Vous pouvez maintenant discuter avec lui.",ar:"تم إنشاء الوكيل ويمكنك التحدث معه الآن.",en:"Agent created. You can chat with it now."}));
-    await load();if(data)openAgent(data);
+    await load();if(data)openAgent({...data,knowledge_base_enabled:selectedDocIds.length>0});
   }
 
   async function openAgent(agent:any){
@@ -138,6 +152,12 @@ export default function AILabPage(){
     <div className="dash-header ai-lab-hero"><div><span className="eyebrow">Vydys AI Lab · BYOK</span><h1>{t({fr:"Construisez votre propre agent IA.",ar:"ابنِ وكيل الذكاء الاصطناعي الخاص بك.",en:"Build your own AI agent."})}</h1><p>{t({fr:"Connectez votre propre fournisseur IA, choisissez un modèle, donnez des instructions à votre agent et utilisez éventuellement le contenu de vos formations Vydys comme contexte.",ar:"اربط مزود الذكاء الاصطناعي الخاص بك واختر النموذج والتعليمات ويمكنك استخدام محتوى دورات Vydys كسياق.",en:"Connect your own AI provider, choose a model, define your agent instructions, and optionally use your Vydys course content as context."})}</p></div><a className="btn btn-ghost" href="/ai-tutor">{t({fr:"Utiliser Vydys AI",ar:"استخدام Vydys AI",en:"Use Vydys AI"})}</a></div>
     {notice&&<p className="manual-note">{notice}</p>}
 
+    <div className="lab2-launch-grid">
+      <a className="panel lab2-launch-card rag" href="/ai-lab/knowledge"><span>RAG</span><div><strong>{t({fr:"Knowledge Base",ar:"قاعدة المعرفة",en:"Knowledge Base"})}</strong><p>{t({fr:"PDF, DOCX, notes et recherche sémantique pour vos agents.",ar:"PDF وDOCX والملاحظات والبحث الدلالي لوكلائك.",en:"PDF, DOCX, notes and semantic retrieval for your agents."})}</p></div></a>
+      <a className="panel lab2-launch-card code" href="/ai-lab/code"><span>&lt;/&gt;</span><div><strong>Code Lab</strong><p>{t({fr:"Exécutez Python et JavaScript dans un bac à sable.",ar:"شغّل Python وJavaScript في بيئة معزولة.",en:"Run Python and JavaScript in a sandbox."})}</p></div></a>
+      <a className="panel lab2-launch-card tutor" href="/ai-tutor"><span>AI</span><div><strong>Vydys AI Tutor</strong><p>{t({fr:"Revenez au tuteur intégré avec quota Vydys.",ar:"ارجع إلى المدرس المدمج بحصة Vydys.",en:"Use the built-in tutor with your Vydys quota."})}</p></div></a>
+    </div>
+
     <section className="lab-section">
       <div className="section-head compact"><div><span className="eyebrow">1 · BYOK</span><h2>{t({fr:"Mes fournisseurs IA",ar:"مزودو الذكاء الاصطناعي",en:"My AI providers"})}</h2></div><p>{t({fr:"Votre clé est testée côté serveur puis chiffrée dans Supabase Vault. Vydys n’affiche jamais la clé complète après l’enregistrement.",ar:"يتم اختبار مفتاحك على الخادم ثم تشفيره في Supabase Vault ولا تعرض Vydys المفتاح كاملاً بعد الحفظ.",en:"Your key is tested server-side and encrypted in Supabase Vault. Vydys never displays the full key after saving."})}</p></div>
       <div className="provider-grid">
@@ -165,11 +185,15 @@ export default function AILabPage(){
           <label className="form-field"><span>{t({fr:"Instructions de l’agent",ar:"تعليمات الوكيل",en:"Agent instructions"})}</span><textarea rows={7} value={systemPrompt} onChange={e=>setSystemPrompt(e.target.value)} placeholder={t({fr:"Ex. Tu es un mentor spécialisé en RAG. Explique, questionne et propose des exercices...",ar:"مثال: أنت مرشد متخصص في RAG. اشرح واطرح أسئلة واقترح تمارين...",en:"Example: You are a RAG mentor. Explain concepts, ask questions and propose exercises..."})} required/></label>
           <label className="form-field"><span>{t({fr:"Connaissances",ar:"المعرفة",en:"Knowledge"})}</span><select value={knowledgeMode} onChange={e=>setKnowledgeMode(e.target.value)}><option value="none">{t({fr:"Aucun contexte Vydys",ar:"بدون سياق Vydys",en:"No Vydys context"})}</option><option value="course">{t({fr:"Utiliser une de mes formations",ar:"استخدام إحدى دوراتي",en:"Use one of my courses"})}</option></select></label>
           {knowledgeMode==="course"&&<label className="form-field"><span>{t({fr:"Formation",ar:"الدورة",en:"Course"})}</span><select value={courseId} onChange={e=>setCourseId(e.target.value)} required><option value="">{t({fr:"Choisir...",ar:"اختر...",en:"Choose..."})}</option>{courses.map(c=><option value={c.id} key={c.id}>{c.title_fr}</option>)}</select></label>}
+          <div className="agent-knowledge-picker">
+            <div className="agent-knowledge-head"><div><strong>{t({fr:"Knowledge Base personnelle",ar:"قاعدة المعرفة الشخصية",en:"Personal Knowledge Base"})}</strong><small>{t({fr:"RAG : l’agent retrouvera les passages pertinents avant de répondre.",ar:"RAG: سيسترجع الوكيل المقاطع المناسبة قبل الإجابة.",en:"RAG: the agent retrieves relevant passages before answering."})}</small></div><a href="/ai-lab/knowledge">{t({fr:"Gérer mes sources",ar:"إدارة مصادري",en:"Manage sources"})} ↗</a></div>
+            {knowledgeDocs.length===0?<p className="knowledge-picker-empty">{t({fr:"Aucune source prête. Ajoutez d’abord un document ou une note.",ar:"لا توجد مصادر جاهزة. أضف مستنداً أو ملاحظة أولاً.",en:"No ready sources. Add a document or note first."})}</p>:<div className="knowledge-picker-list">{knowledgeDocs.map(d=><label key={d.id}><input type="checkbox" checked={selectedDocIds.includes(d.id)} onChange={e=>setSelectedDocIds(v=>e.target.checked?[...v,d.id]:v.filter(x=>x!==d.id))}/><span><strong>{d.title}</strong><small>{d.file_name} · {d.chunk_count} chunks</small></span></label>)}</div>}
+          </div>
           <button className="btn">{t({fr:"Créer mon agent",ar:"إنشاء وكيلي",en:"Create my agent"})}</button>
         </form>
 
         <div className="agent-list">
-          {agents.length===0?<article className="panel lab-empty"><div className="ai-orb">AI</div><h3>{t({fr:"Votre premier agent commence ici.",ar:"وكيلك الأول يبدأ هنا.",en:"Your first agent starts here."})}</h3><p>{t({fr:"Connectez une clé, décrivez son rôle puis commencez à expérimenter.",ar:"اربط مفتاحاً وحدد دور الوكيل ثم ابدأ التجربة.",en:"Connect a key, define its role, then start experimenting."})}</p></article>:agents.map(a=><article className={activeAgent?.id===a.id?"panel agent-card active":"panel agent-card"} key={a.id}><div className="agent-card-top"><span className="agent-provider">{providerLabels[a.provider]}</span><small>{a.model}</small></div><h3>{a.name}</h3><p>{a.description||a.system_prompt.slice(0,130)}</p>{a.knowledge_mode==="course"&&<span className="tag">{t({fr:"Contexte formation",ar:"سياق دورة",en:"Course context"})}</span>}<div className="agent-card-actions"><button className="btn btn-small" onClick={()=>openAgent(a)}>{t({fr:"Ouvrir",ar:"فتح",en:"Open"})}</button><button className="btn-ghost btn-small" onClick={()=>deleteAgent(a.id)}>{t({fr:"Supprimer",ar:"حذف",en:"Delete"})}</button></div></article>)}
+          {agents.length===0?<article className="panel lab-empty"><div className="ai-orb">AI</div><h3>{t({fr:"Votre premier agent commence ici.",ar:"وكيلك الأول يبدأ هنا.",en:"Your first agent starts here."})}</h3><p>{t({fr:"Connectez une clé, décrivez son rôle puis commencez à expérimenter.",ar:"اربط مفتاحاً وحدد دور الوكيل ثم ابدأ التجربة.",en:"Connect a key, define its role, then start experimenting."})}</p></article>:agents.map(a=><article className={activeAgent?.id===a.id?"panel agent-card active":"panel agent-card"} key={a.id}><div className="agent-card-top"><span className="agent-provider">{providerLabels[a.provider]}</span><small>{a.model}</small></div><h3>{a.name}</h3><p>{a.description||a.system_prompt.slice(0,130)}</p><div className="agent-tags">{a.knowledge_mode==="course"&&<span className="tag">{t({fr:"Contexte formation",ar:"سياق دورة",en:"Course context"})}</span>}{a.knowledge_base_enabled&&<span className="tag">RAG Knowledge Base</span>}</div><div className="agent-card-actions"><button className="btn btn-small" onClick={()=>openAgent(a)}>{t({fr:"Ouvrir",ar:"فتح",en:"Open"})}</button><button className="btn-ghost btn-small" onClick={()=>deleteAgent(a.id)}>{t({fr:"Supprimer",ar:"حذف",en:"Delete"})}</button></div></article>)}
         </div>
       </div>
     </section>
