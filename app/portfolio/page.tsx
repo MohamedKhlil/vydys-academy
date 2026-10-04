@@ -24,7 +24,7 @@ export default function PortfolioSettingsPage(){
     await supabase.rpc("ensure_my_student_profile");
     const [{data:p},{count:sCount},{count:pCount}]=await Promise.all([
       supabase.from("student_profiles").select("*").eq("user_id",user.id).single(),
-      supabase.from("user_skills").select("skill_id",{count:"exact",head:true}).eq("user_id",user.id),
+      supabase.from("user_skills").select("skill_id",{count:"exact",head:true}).eq("user_id",user.id).eq("verification_status","verified"),
       supabase.from("student_projects").select("id",{count:"exact",head:true}).eq("user_id",user.id).eq("status","approved")
     ]);
     if(p){setProfile(p);setDisplayName(p.display_name||"");setHeadline(p.headline||"");setBio(p.bio||"");setGithub(p.github_url||"");setLinkedin(p.linkedin_url||"");setWebsite(p.website_url||"");setIsPublic(Boolean(p.is_public))}
