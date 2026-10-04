@@ -11,9 +11,14 @@ export const metadata: Metadata = {
   },
   description: "International AI & technology learning platform with courses, live Classrooms, practical labs, verified skills and career tools.",
   icons: {
-    icon: "/vydys-icon.svg",
-    shortcut: "/vydys-icon.svg",
-    apple: "/vydys-icon.svg",
+    icon: [
+      { url: "/favicon.ico?v=4", type: "image/x-icon" },
+      { url: "/vydys-icon.svg?v=4", type: "image/svg+xml" }
+    ],
+    shortcut: "/favicon.ico?v=4",
+    apple: [
+      { url: "/apple-touch-icon.png?v=4", sizes: "180x180", type: "image/png" }
+    ],
   },
   manifest: "/manifest.webmanifest",
   themeColor: "#05070C",
