@@ -120,7 +120,8 @@ export default function CourseBuilderPage(){
   async function addQuestion(e:FormEvent){
     e.preventDefault();
     if(options.some(x=>!x.trim())){setMessage(t({fr:"Remplissez les 4 réponses.",ar:"أدخل الإجابات الأربع.",en:"Fill all 4 answers."}));return}
-    const {data:q,error}=await supabase.from("quiz_questions").insert({quiz_id:questionQuiz,question_fr:questionText,question_ar:questionText,question_en:questionText,position:1}).select("id").single();
+    const {count:questionCount}=await supabase.from("quiz_questions").select("id",{count:"exact",head:true}).eq("quiz_id",questionQuiz);
+    const {data:q,error}=await supabase.from("quiz_questions").insert({quiz_id:questionQuiz,question_fr:questionText,question_ar:questionText,question_en:questionText,position:(questionCount||0)+1}).select("id").single();
     if(error||!q){setMessage(error?.message||"Erreur");return}
     const rows=options.map((opt,i)=>({question_id:q.id,option_fr:opt,option_ar:opt,option_en:opt,is_correct:i===correctIndex,position:i+1}));
     const res=await supabase.from("quiz_options").insert(rows);
