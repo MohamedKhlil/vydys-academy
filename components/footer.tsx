@@ -19,6 +19,13 @@ export function Footer() {
           <Link href="/support">{t({fr:"Aide & litiges",ar:"المساعدة والنزاعات",en:"Help & disputes"})}</Link>
         </div>
         <div>
+          <strong>AI & Labs</strong>
+          <Link href="/ai-tutor">Vydys AI Tutor</Link>
+          <Link href="/ai-lab">AI Lab</Link>
+          <Link href="/ai-lab/knowledge">Knowledge Base</Link>
+          <Link href="/ai-lab/code">Code Lab</Link>
+        </div>
+        <div>
           <strong>{t({fr:"Informations",ar:"المعلومات",en:"Information"})}</strong>
           <Link href="/conditions">{t({fr:"Conditions d’utilisation",ar:"شروط الاستخدام",en:"Terms of Use"})}</Link>
           <Link href="/confidentialite">{t({fr:"Confidentialité",ar:"الخصوصية",en:"Privacy"})}</Link>
