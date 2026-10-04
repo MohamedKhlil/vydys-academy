@@ -9,7 +9,7 @@ export function Footer() {
     <footer className="footer">
       <div className="container footer-grid">
         <div>
-          <div className="brand"><span className="brand-mark">V</span><span>Vydys <strong>Academy</strong></span></div>
+          <div className="brand footer-brand"><img src="/vydys-logo.svg" alt="Vydys Academy" className="brand-logo"/></div>
           <p>{t({fr:"Des compétences digitales utiles, accessibles et orientées pratique.",ar:"مهارات رقمية عملية ومفيدة ومتاحة للجميع.",en:"Practical, useful and accessible digital skills."})}</p>
         </div>
         <div>
