@@ -628,3 +628,254 @@ input,textarea,select{min-height:44px}.form-field textarea{min-height:110px}
 .live-side-column{display:grid;grid-template-rows:minmax(420px,1fr) auto auto;gap:10px;max-height:calc(100vh - 86px);position:sticky;top:76px}.live-chat-panel{background:#111727;border:1px solid #252e46;border-radius:17px;display:grid;grid-template-rows:auto 1fr auto;overflow:hidden;min-height:500px}.live-side-head{display:flex;justify-content:space-between;align-items:center;padding:11px;border-bottom:1px solid #252e46}.live-side-head>div{display:grid}.live-side-head strong{font-size:9px}.live-side-head small{font-size:7px;color:#8691b0}.live-side-head>span{font-size:6px;background:#ff5268;color:#fff;border-radius:999px;padding:5px 7px}.live-chat-messages{overflow:auto;padding:10px;display:flex;flex-direction:column;gap:9px}.live-chat-messages>div{display:grid;grid-template-columns:auto 1fr;gap:7px}.live-chat-messages>div>span{width:27px;height:27px;border-radius:8px;background:#282f4c;display:grid;place-items:center;font-size:7px;font-weight:900}.live-chat-messages>div>div{background:#171e31;border-radius:10px;padding:7px}.live-chat-messages>div.mine>div{background:#272d62}.live-chat-messages strong{font-size:7px}.live-chat-messages p{font-size:8px;margin:3px 0;line-height:1.4}.live-chat-messages small{font-size:6px;color:#7e89a6}.live-chat-form{display:grid;grid-template-columns:1fr 34px;gap:6px;padding:9px;border-top:1px solid #252e46}.live-chat-form input{min-height:38px;background:#0b1020;border:1px solid #28334e;color:#fff;border-radius:9px;padding:8px;font-size:8px}.live-chat-form button{border:0;background:#6264dd;color:#fff;border-radius:9px}.live-attendance-panel,.live-ai-panel{margin:0!important;background:#111727!important;border-color:#252e46!important;color:#e9efff}.attendance-live-list{display:grid;gap:7px;margin-top:9px}.attendance-live-list>div{display:grid;grid-template-columns:auto 1fr;gap:7px;align-items:center}.attendance-live-list>div>span{width:28px;height:28px;border-radius:8px;background:#29314e;display:grid;place-items:center;font-size:7px}.attendance-live-list>div>div{display:grid}.attendance-live-list strong{font-size:8px}.attendance-live-list small{font-size:6px;color:#8792af}.live-ai-panel p{font-size:7px;line-height:1.5;color:#8f9ab8}
 @media(max-width:1200px){.classroom-studio-grid,.classroom-market-grid{grid-template-columns:repeat(2,1fr)}.classroom-builder-layout{grid-template-columns:1fr}.classroom-builder-side{position:static}.classroom-manage-grid{grid-template-columns:1fr}.classroom-admin-table>.panel{grid-template-columns:1fr 70px 70px auto}.classroom-admin-table>.panel>div:nth-child(4){display:none}.live-classroom-layout{grid-template-columns:1fr}.live-side-column{position:static;max-height:none;grid-template-columns:1fr 1fr;grid-template-rows:auto}.live-chat-panel{grid-row:1/3;min-height:520px}.classroom-detail-layout{grid-template-columns:1fr}.classroom-enroll-card{position:static}}
 @media(max-width:760px){.classroom-studio-stats,.classroom-manage-kpis{grid-template-columns:1fr 1fr}.classroom-studio-grid,.classroom-market-grid,.classroom-content-grid,.classroom-info-grid,.live-learning-tools{grid-template-columns:1fr}.classroom-toggle-grid{grid-template-columns:1fr}.classroom-session-edit{grid-template-columns:34px 1fr}.classroom-session-edit>input,.classroom-session-attendance,.classroom-session-edit>button,.classroom-session-edit>a{grid-column:2}.classroom-admin-table>.panel{grid-template-columns:1fr auto}.classroom-admin-table>.panel>div:nth-child(2),.classroom-admin-table>.panel>div:nth-child(3){display:none}.classroom-market-filters{grid-template-columns:1fr}.classroom-detail-hero h1{font-size:36px}.live-classroom-topbar>div:last-child{display:none}.live-classroom-layout{padding:5px}.vydys-live-video-shell,.vydys-live-waiting{min-height:430px;height:60vh}.live-side-column{display:grid;grid-template-columns:1fr}.live-chat-panel{grid-row:auto;min-height:460px}.public-session-list article{grid-template-columns:36px 1fr}.public-session-list article>a{grid-column:2}.classroom-weekdays{display:grid;grid-template-columns:repeat(4,1fr)}}
+
+/* ========================================================================== */
+/* VYDYS 2026 — Classic Black + Blue Tech Brand System                       */
+/* ========================================================================== */
+:root{
+  --ink:#0a1020;
+  --muted:#667085;
+  --line:#dfe5ef;
+  --bg:#f4f7fb;
+  --card:#ffffff;
+  --accent:#1264ff;
+  --accent2:#0b45c8;
+  --lime:#7cf0c5;
+  --navy:#05070c;
+  --radius:18px;
+  --shadow:0 20px 55px rgba(7,17,38,.08);
+  --vydys-black:#05070c;
+  --vydys-black-2:#0a0f19;
+  --vydys-blue:#1264ff;
+  --vydys-blue-2:#2f7cff;
+  --vydys-ice:#eef5ff;
+}
+html{background:var(--vydys-black)}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-feature-settings:"ss01" 1,"cv01" 1;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:#1264ff;color:#fff}
+.container{width:min(1220px,calc(100% - 42px))}
+main{min-height:70vh}
+a,button{transition:background-color .18s ease,border-color .18s ease,color .18s ease,transform .18s ease,box-shadow .18s ease}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(18,100,255,.22);outline-offset:2px}
+
+/* Header + logo */
+.site-header{
+  background:rgba(5,7,12,.94);
+  border-bottom:1px solid rgba(94,136,220,.18);
+  box-shadow:0 12px 35px rgba(0,0,0,.16);
+  backdrop-filter:blur(22px);
+}
+.nav-wrap{height:76px}
+.brand-logo-link{min-width:148px}
+.brand-logo{display:block;width:154px;height:auto;max-height:46px;object-fit:contain}
+.main-nav{gap:18px}
+.main-nav>a,.main-nav summary{
+  color:#c9d2e3!important;
+  font-size:12px;
+  font-weight:760;
+  letter-spacing:.01em;
+}
+.main-nav>a:hover,.main-nav summary:hover{color:#fff!important}
+.nav-dropdown-menu{
+  background:#0b101a!important;
+  border:1px solid #1e2a42!important;
+  box-shadow:0 24px 70px rgba(0,0,0,.38)!important;
+}
+.nav-dropdown-menu a{color:#e6ecf7!important}
+.nav-dropdown-menu small{color:#8190a9!important}
+.language-switcher{background:#0d121c;border-color:#27324a}
+.language-switcher button{color:#8190a7}
+.language-switcher button.active{background:#1264ff;color:#fff;box-shadow:0 4px 18px rgba(18,100,255,.28)}
+.mobile-nav-toggle span{background:#eef4ff!important}
+.mobile-nav-panel{background:#070a11!important;border-top:1px solid #1b2539!important}
+.mobile-nav-links a{color:#e8edf7!important;border-color:#202b3f!important}
+.mobile-nav-footer{border-color:#202b3f!important}
+
+/* Brand primitives */
+.btn{
+  background:linear-gradient(135deg,#1264ff,#0b49cf);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.04);
+  border-radius:11px;
+  box-shadow:0 9px 24px rgba(18,100,255,.18);
+  font-weight:780;
+}
+.btn:hover{transform:translateY(-1px);box-shadow:0 13px 30px rgba(18,100,255,.25)}
+.btn-ghost{background:#fff;color:#111827;border:1px solid #d9e1ec;box-shadow:none}
+.btn-ghost:hover{border-color:#aabbd4;background:#f9fbfe}
+.btn-light{background:#fff;color:#0a1020;box-shadow:none}
+.text-link,.trainer-link{color:#0e5cea}
+.eyebrow{color:#0e5cea;font-weight:900;letter-spacing:.16em}
+.tag{background:#edf4ff;color:#0d59de}
+.panel,.feature,.market-card,.classroom-market-card{
+  border-color:#e0e6ef!important;
+  box-shadow:0 10px 35px rgba(11,24,49,.045);
+}
+.panel{border-radius:16px}
+input,select,textarea{
+  border-color:#dce3ee!important;
+  background:#fff;
+  color:#0b1220;
+}
+input:focus,select:focus,textarea:focus{border-color:#1264ff!important;box-shadow:0 0 0 3px rgba(18,100,255,.08)}
+
+/* Home: premium black / blue */
+.hero.vydys2-hero{
+  background:
+    radial-gradient(circle at 78% 18%,rgba(18,100,255,.30),transparent 28%),
+    radial-gradient(circle at 16% 5%,rgba(49,93,185,.13),transparent 26%),
+    linear-gradient(150deg,#05070c 0%,#070b12 52%,#0a1120 100%);
+  color:#f7f9fd;
+  border-bottom:1px solid #18233a;
+}
+.hero.vydys2-hero .eyebrow{color:#6fa5ff}
+.hero.vydys2-hero h1{font-weight:760;letter-spacing:-.065em}
+.hero.vydys2-hero h1 span{
+  background:linear-gradient(90deg,#ffffff 0%,#74a7ff 55%,#2d78ff 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero.vydys2-hero .hero-copy{color:#aab5c9}
+.hero.vydys2-hero .btn-ghost{background:transparent;color:#e9f1ff;border-color:#34415b}
+.hero.vydys2-hero .hero-stats span{color:#8491a8}
+.hero.vydys2-hero .hero-stats strong{color:#fff}
+.hero-card.vydys2-demo{
+  background:#090e18;
+  border:1px solid #1b2b49;
+  box-shadow:0 35px 100px rgba(0,0,0,.42),0 0 0 1px rgba(18,100,255,.05);
+}
+.ai-demo-card,.skill-demo,.project-demo{border-color:#dfe6f1!important}
+.vydys-pillar{border-radius:16px;background:linear-gradient(180deg,#fff,#fbfcff)}
+.pillar-icon{background:#07101f!important;color:#63a0ff!important}
+.track-card{background:#fff;border-color:#e0e6ef!important}
+.track-card:hover{border-color:#8db5ff!important;box-shadow:0 15px 35px rgba(18,100,255,.08)}
+.audience-card{border-radius:22px!important}
+.audience-card.student{background:linear-gradient(145deg,#07101e,#0c1c37)!important;color:#fff}
+.audience-card.student p{color:#aab7cc!important}
+.audience-card.instructor{background:linear-gradient(145deg,#eef5ff,#fff)!important;border:1px solid #dce8fa}
+.vydys-mission{background:linear-gradient(145deg,#05070c,#0a1428)!important;color:#fff}
+.vydys-mission .eyebrow{color:#70a7ff!important}
+
+/* General public pages */
+.page-top{background:linear-gradient(180deg,#f8faff 0,#f4f7fb 220px)}
+.page-hero h1,.dash-header h1,.section-head h2{color:#090f1d}
+.page-hero h1{font-weight:750;letter-spacing:-.055em}
+.market-filter-panel,.classroom-market-filters{background:#fff;border:1px solid #e0e6ef;border-radius:16px;padding:9px}
+.course-cover{background:linear-gradient(135deg,#05070c,#0f408f)}
+.market-card:hover,.classroom-market-card:hover{transform:translateY(-3px);box-shadow:0 20px 48px rgba(8,25,55,.10)}
+.course-checkout,.classroom-enroll-card{border-top:3px solid #1264ff!important}
+.amount-box{background:#eef5ff!important;border-color:#d6e6ff!important}
+.checkout-method.selected{border-color:#1264ff!important;background:#f3f7ff!important}
+.progress span{background:linear-gradient(90deg,#0d5ff2,#3c87ff)}
+
+/* Student / instructor / admin dashboards */
+.dashboard-shell{background:linear-gradient(180deg,#eef3f9 0,#f7f9fc 220px)}
+.dash-header{padding:22px 0 8px}
+.dash-header .eyebrow{color:#0b57dc}
+.stat,.admin-op-stat{background:linear-gradient(180deg,#fff,#fbfcfe)!important}
+.stat>strong,.admin-op-stat strong{color:#080d17!important}
+.status{border-radius:999px!important}
+.quick-actions a,.admin-nav-card{border-color:#dce4ef!important}
+.quick-actions a:hover,.admin-nav-card:hover{border-color:#99baf2!important;background:#f8fbff!important}
+.workspace-nav-shell{
+  background:#070a11!important;
+  border-bottom:1px solid #1c2940!important;
+  color:#eef4ff;
+}
+.workspace-nav-wrap{min-height:80px}
+.workspace-nav-brand{border-right-color:#23304a!important}
+.workspace-nav-brand>span{background:#1264ff!important}
+.workspace-brand-icon{width:38px;height:38px;border-radius:11px;display:block;box-shadow:0 7px 20px rgba(18,100,255,.18)}
+.workspace-nav-brand strong{color:#fff!important}
+.workspace-nav-brand small{color:#8190a8!important}
+.workspace-nav-links a{color:#98a6ba!important;border-color:transparent!important}
+.workspace-nav-links a:hover{color:#eef4ff!important;background:#101827!important}
+.workspace-nav-links a.active{background:#0e56df!important;color:#fff!important;box-shadow:0 8px 22px rgba(14,86,223,.23)}
+.workspace-nav-links a span{background:rgba(255,255,255,.06)!important;color:#88b4ff!important}
+.workspace-nav-links a.active span{background:rgba(255,255,255,.14)!important;color:#fff!important}
+.admin-workspace-nav,.instructor-workspace-nav{box-shadow:0 12px 34px rgba(0,0,0,.12)}
+.admin-payments,.sales-history,.admin-course-stage .panel{border-color:#dce5f0!important}
+
+/* Classroom public / studio */
+.classroom-market-cover{
+  background:
+    radial-gradient(circle at 78% 15%,rgba(45,123,255,.48),transparent 30%),
+    linear-gradient(135deg,#05070c,#0c1b34)!important;
+}
+.live-orb{background:#1264ff!important;box-shadow:0 8px 24px rgba(18,100,255,.35)!important}
+.classroom-builder-summary,.launch-fee-summary{
+  background:
+    radial-gradient(circle at 85% 10%,rgba(18,100,255,.36),transparent 30%),
+    linear-gradient(145deg,#05070c,#0b1730)!important;
+}
+.classroom-weekdays button.active{background:#0a111f!important;border-color:#0a111f!important}
+.session-number,.public-session-list article.next>span{background:#09101d!important}
+.classroom-live-badge{background:#08101d!important}
+.classroom-live-badge span{background:#2d7bff!important;box-shadow:0 0 0 5px rgba(45,123,255,.14)!important}
+.vydys-live-video-shell,.live-classroom-page{background:#05070c!important}
+.vydys-live-video-top,.live-chat-panel,.live-attendance-panel,.live-ai-panel,.live-learning-tools>.panel{background:#0a101b!important;border-color:#1a2944!important}
+.live-classroom-topbar{background:#070b12!important;border-color:#1a2944!important}
+.live-brand{background:#1264ff!important}
+.video-loading>span,.waiting-orb{background:#1264ff!important}
+.live-chat-form button,.live-assignment button{background:#1264ff!important}
+
+/* Finance / payment */
+.finance-zero-commission,.launch-fee-summary{
+  background:linear-gradient(135deg,#05070c,#0d2245)!important;
+}
+.provider-logo{background:linear-gradient(145deg,#05070c,#1264ff)!important}
+.international-pay-btn{background:linear-gradient(135deg,#075de9,#1748aa)!important}
+.payment-return-card{border-top:4px solid #1264ff!important}
+.payment-return-icon.checking{background:#edf4ff!important;color:#1264ff!important}
+
+/* Footer */
+.footer{
+  background:#05070c;
+  color:#edf3ff;
+  border-top:1px solid #19243a;
+  padding:64px 0;
+}
+.footer-grid{grid-template-columns:1.6fr repeat(4,1fr)}
+.footer p,.footer a{color:#8997ad}
+.footer a:hover{color:#fff}
+.footer strong{color:#f5f8ff}
+.footer-brand .brand-logo{width:170px}
+
+/* Utility refinements */
+.proof-thumb{background:#edf3fb;color:#53647e}
+.notification-item,.conversation-card,.review-card{border-color:#e0e6ef!important}
+.notification-item.unread,.conversation-card.unread{background:#f1f6ff!important;border-color:#b9d1ff!important}
+.favorite-btn.active,.favorite-inline.active{color:#1264ff!important}
+.coupon-box button{background:#eaf2ff!important;color:#0f5be5!important}
+.trainer-rank-card{border-color:#e1e7f0!important}
+.rank-number{color:#1264ff!important}
+.certificate-page{background:#eef3f9!important}
+.certificate-sheet{border-color:#ced9e8!important}
+.certificate-sheet:before{border-color:#cbdcff!important}
+.certificate-sheet h2{color:#105de7!important}
+
+/* RTL keeps the same premium geometry */
+[dir="rtl"] .workspace-nav-brand{border-right:0!important;border-left:1px solid #23304a}
+[dir="rtl"] .brand-logo{object-position:right center}
+
+/* Responsive */
+@media(max-width:1000px){
+  .brand-logo{width:136px}
+  .footer-grid{grid-template-columns:1.5fr 1fr 1fr}
+}
+@media(max-width:900px){
+  .site-header .nav-wrap{height:68px}
+  .brand-logo-link{min-width:auto}
+  .workspace-nav-wrap{min-height:70px}
+}
+@media(max-width:620px){
+  .container{width:min(100% - 26px,1220px)}
+  .brand-logo{width:128px}
+  .hero.vydys2-hero{padding-top:56px}
+  .footer-grid{grid-template-columns:1fr}
+  .workspace-brand-icon{width:34px;height:34px}
+}
