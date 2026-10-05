@@ -82,6 +82,7 @@ export function Header() {
 
         {signedIn&&<Link className="nav-icon-link" href="/messages" aria-label={t({fr:"Messages",ar:"الرسائل",en:"Messages"})}>◌</Link>}
         {signedIn&&<Link className="nav-icon-link" href="/notifications" aria-label={t({fr:"Notifications",ar:"الإشعارات",en:"Notifications"})}>●</Link>}
+        {signedIn&&<Link className="nav-icon-link" href="/parametres" aria-label={t({fr:"Paramètres",ar:"الإعدادات",en:"Settings"})}>⚙</Link>}
 
         {isStudent&&<Link className="nav-account-link" href="/dashboard">{t({fr:"Mon espace",ar:"حسابي",en:"My space"})}</Link>}
         {isInstructor&&<Link className="nav-account-link" href="/formateur">Studio</Link>}
@@ -141,6 +142,7 @@ export function Header() {
           <Link href="/admin/classrooms"><strong>Classrooms</strong></Link>
           <Link href="/admin/tarifs"><strong>{t({fr:"Finance & tarifs",ar:"المالية والأسعار",en:"Finance & pricing"})}</strong></Link>
           <Link href="/admin/marketplace"><strong>Marketplace</strong></Link>
+          <Link href="/admin/marketplace/vendeurs"><strong>{t({fr:"Vendeurs vérifiés",ar:"البائعون الموثقون",en:"Verified sellers"})}</strong></Link>
           <Link href="/parametres"><strong>{t({fr:"Paramètres",ar:"الإعدادات",en:"Settings"})}</strong></Link>
         </div>}
 
