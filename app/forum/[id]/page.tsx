@@ -16,7 +16,7 @@ export default function ForumThreadPage(){
     ]);
     setThread(th);setPosts(ps||[]);setUserId(user?.id||"");
     const ids=[th?.author_id,...(ps||[]).map((p:any)=>p.author_id)].filter(Boolean);
-    if(ids.length){const {data:p}=await supabase.from("profiles").select("id,full_name,username,avatar_url,role").in("id",[...new Set(ids)]);const m:Record<string,any>={};(p||[]).forEach((x:any)=>m[x.id]=x);setProfiles(m)}
+    if(ids.length){const {data:p}=await supabase.from("public_profiles").select("user_id,full_name,username,avatar_url,role").in("user_id",[...new Set(ids)]);const m:Record<string,any>={};(p||[]).forEach((x:any)=>m[x.user_id]=x);setProfiles(m)}
   }
   useEffect(()=>{load()},[params.id]);
   async function reply(e:FormEvent){e.preventDefault();if(!userId){window.location.href="/connexion";return}const {error}=await supabase.from("forum_posts").insert({thread_id:params.id,author_id:userId,body});if(!error){setBody("");await load()}}
