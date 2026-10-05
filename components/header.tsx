@@ -80,7 +80,7 @@ export function Header() {
           {(["fr","ar","en"] as const).map(code=><button key={code} className={lang===code?"active":""} onClick={()=>setLang(code)}>{code.toUpperCase()}</button>)}
         </div>
 
-        {signedIn&&<Link className="nav-icon-link" href="/messages" aria-label={t({fr:"Messages",ar:"الرسائل",en:"Messages"})}>◌</Link>}
+        <Link className="nav-icon-link" href="/recherche" aria-label={t({fr:"Rechercher",ar:"بحث",en:"Search"})}>⌕</Link>\n        {signedIn&&<Link className="nav-icon-link" href="/messages" aria-label={t({fr:"Messages",ar:"الرسائل",en:"Messages"})}>◌</Link>}
         {signedIn&&<Link className="nav-icon-link" href="/notifications" aria-label={t({fr:"Notifications",ar:"الإشعارات",en:"Notifications"})}>●</Link>}
         {signedIn&&<Link className="nav-icon-link" href="/parametres" aria-label={t({fr:"Paramètres",ar:"الإعدادات",en:"Settings"})}>⚙</Link>}
 
@@ -103,7 +103,7 @@ export function Header() {
 
         <div className="mobile-menu-section">
           <small>{t({fr:"Découvrir",ar:"اكتشف",en:"Discover"})}</small>
-          <Link href="/hub"><span>00</span><div><strong>Vydys Hub</strong><small>{t({fr:"Tout l’écosystème Vydys",ar:"منظومة Vydys كاملة",en:"The complete Vydys ecosystem"})}</small></div><b>→</b></Link>
+          <Link href="/recherche"><span>⌕</span><div><strong>{t({fr:"Rechercher",ar:"بحث",en:"Search"})}</strong><small>{t({fr:"Formations, Classrooms, formateurs et produits",ar:"الدورات والفصول والمدربون والمنتجات",en:"Courses, Classrooms, instructors and products"})}</small></div><b>→</b></Link>\n          <Link href="/hub"><span>00</span><div><strong>Vydys Hub</strong><small>{t({fr:"Tout l’écosystème Vydys",ar:"منظومة Vydys كاملة",en:"The complete Vydys ecosystem"})}</small></div><b>→</b></Link>
           <Link href="/formations"><span>01</span><div><strong>{t({fr:"Formations",ar:"الدورات",en:"Courses"})}</strong><small>{t({fr:"Apprendre avec des experts",ar:"تعلم مع الخبراء",en:"Learn with experts"})}</small></div><b>→</b></Link>
           <Link href="/classroom"><span>02</span><div><strong>Vydys Classroom</strong><small>{t({fr:"Cohortes live",ar:"فصول مباشرة",en:"Live cohorts"})}</small></div><b>→</b></Link>
           <Link href="/practice"><span>03</span><div><strong>Practice Hub</strong><small>Code · SQL · API · Data · Cloud</small></div><b>→</b></Link>
