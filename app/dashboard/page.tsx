@@ -13,7 +13,8 @@ export default function DashboardPage(){
   const [progress,setProgress]=useState<any[]>([]);
   const [lessons,setLessons]=useState<any[]>([]);
   const [certificates,setCertificates]=useState<any[]>([]);
-  const [pending,setPending]=useState<any[]>([]);\n  const [onboardingDone,setOnboardingDone]=useState(false);
+  const [pending,setPending]=useState<any[]>([]);
+  const [onboardingDone,setOnboardingDone]=useState(false);
 
   useEffect(()=>{(async()=>{
     const {data:{user}}=await supabase.auth.getUser();
@@ -21,7 +22,8 @@ export default function DashboardPage(){
     const {data:p}=await supabase.from("profiles").select("role,full_name,onboarding_completed_at").eq("id",user.id).single();
     if(p?.role==="direction"||p?.role==="admin"){window.location.href="/admin";return}
     if(p?.role==="instructor"){window.location.href="/formateur";return}
-    setName(p?.full_name||"");\n    setOnboardingDone(Boolean(p?.onboarding_completed_at));
+    setName(p?.full_name||"");
+    setOnboardingDone(Boolean(p?.onboarding_completed_at));
 
     const [{data:e},{data:pr},{data:cert},{data:pay}]=await Promise.all([
       supabase.from("enrollments").select("id,status,activated_at,course_id,courses:course_id(id,slug,title_fr,title_ar,title_en,description_fr,description_ar,description_en)").eq("user_id",user.id).order("activated_at",{ascending:false}),
@@ -46,7 +48,9 @@ export default function DashboardPage(){
     return {total,completed,certs};
   },[enrollments,certificates]);
 
-  const nextEnrollment=useMemo(()=>enrollments.find(e=>e.status!=="completed")||enrollments[0]||null,[enrollments]);\n\n  function title(c:any){return lang==="ar"?(c?.title_ar||c?.title_fr):lang==="en"?(c?.title_en||c?.title_fr):c?.title_fr}
+  const nextEnrollment=useMemo(()=>enrollments.find(e=>e.status!=="completed")||enrollments[0]||null,[enrollments]);
+
+  function title(c:any){return lang==="ar"?(c?.title_ar||c?.title_fr):lang==="en"?(c?.title_en||c?.title_fr):c?.title_fr}
   function desc(c:any){return lang==="ar"?(c?.description_ar||c?.description_fr):lang==="en"?(c?.description_en||c?.description_fr):c?.description_fr}
   function pct(courseId:string){
     const total=lessons.filter(l=>l.course_id===courseId).length;
