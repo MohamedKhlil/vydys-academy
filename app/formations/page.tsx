@@ -11,14 +11,17 @@ type Course={
   base_price_mru:number;base_price_amount:number;base_currency:string;category:string|null;instructor_id:string|null;cover_url:string|null;
 };
 type Rating={course_id:string;average_rating:number|string;review_count:number};
-type Instructor={user_id:string;public_slug:string;display_name:string;headline:string|null};\ntype CoursePrice={course_id:string;currency:string;amount:number|string};
+type Instructor={user_id:string;public_slug:string;display_name:string;headline:string|null};
+type CoursePrice={course_id:string;currency:string;amount:number|string};
 
 export default function FormationsPage(){
   const {lang,t}=useLanguage();
   const [courses,setCourses]=useState<Course[]>([]);
   const [ratings,setRatings]=useState<Record<string,Rating>>({});
   const [instructors,setInstructors]=useState<Record<string,Instructor>>({});
-  const [favorites,setFavorites]=useState<Set<string>>(new Set());\n  const [priceRows,setPriceRows]=useState<CoursePrice[]>([]);\n  const [displayCurrency,setDisplayCurrency]=useState("USD");
+  const [favorites,setFavorites]=useState<Set<string>>(new Set());
+  const [priceRows,setPriceRows]=useState<CoursePrice[]>([]);
+  const [displayCurrency,setDisplayCurrency]=useState("USD");
   const [userId,setUserId]=useState<string|null>(null);
   const [search,setSearch]=useState("");
   const [category,setCategory]=useState("all");
