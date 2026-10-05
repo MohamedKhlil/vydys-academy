@@ -33,17 +33,15 @@ export default function AdminMarketplacePage(){
   async function approve(product:any){
     const fee=fees.find(x=>x.product_id===product.id);
     if(!fee){setNotice(t({fr:"Aucune commande de frais trouvée.",ar:"لا توجد رسوم مرتبطة.",en:"No listing fee order found."}));return}
-    const now=new Date().toISOString();
-    const [{error:e1},{error:e2}]=await Promise.all([
-      supabase.from("marketplace_listing_fee_orders").update({status:Number(fee.amount)>0?"paid":"waived",paid_at:now}).eq("id",fee.id),
-      supabase.from("marketplace_products").update({status:"published",listing_fee_status:Number(fee.amount)>0?"paid":"waived",published_at:now,updated_at:now}).eq("id",product.id)
-    ]);
-    setNotice(e1?.message||e2?.message||t({fr:"Produit publié.",ar:"تم نشر المنتج.",en:"Product published."}));await load();
+    const {error}=await supabase.rpc("approve_marketplace_listing_fee",{p_order_id:fee.id});
+    setNotice(error?error.message:t({fr:"Frais validé et produit publié.",ar:"تم اعتماد الرسوم ونشر المنتج.",en:"Fee approved and product published."}));await load();
   }
 
   async function reject(product:any){
-    const {error}=await supabase.from("marketplace_products").update({status:"rejected",updated_at:new Date().toISOString()}).eq("id",product.id);
-    setNotice(error?error.message:t({fr:"Produit refusé.",ar:"تم رفض المنتج.",en:"Product rejected."}));await load();
+    const fee=fees.find(x=>x.product_id===product.id);
+    if(!fee){setNotice(t({fr:"Aucune commande de frais trouvée.",ar:"لا توجد رسوم مرتبطة.",en:"No listing fee order found."}));return}
+    const {error}=await supabase.rpc("reject_marketplace_listing_fee",{p_order_id:fee.id});
+    setNotice(error?error.message:t({fr:"Frais refusé. Le vendeur peut renvoyer une preuve.",ar:"تم رفض الرسوم ويمكن للبائع إعادة إرسال الإثبات.",en:"Fee rejected. The seller can resubmit proof."}));await load();
   }
 
   if(loading)return <section className="dashboard-shell"><div className="container">...</div></section>;
