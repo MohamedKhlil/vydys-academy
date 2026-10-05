@@ -5,12 +5,13 @@ import { useLanguage } from "../../../components/language-provider";
 import { supabase } from "../../../lib/supabase";
 
 type Plan="monthly"|"quarterly"|"annual";
-type Method="click"|"bankily"|"sedad"|"masrvi";
+type Method="click"|"bankily"|"sedad"|"masrvi"|"payoneer";
 
 export default function AbonnementPage(){
   const {t}=useLanguage();
   const [settings,setSettings]=useState<any>(null);
   const [autoMethods,setAutoMethods]=useState<any[]>([]);
+  const [payoneer,setPayoneer]=useState<any>(null);
   const [plan,setPlan]=useState<Plan>("monthly");
   const [method,setMethod]=useState<Method>("bankily");
   const [proof,setProof]=useState<File|null>(null);
@@ -19,11 +20,12 @@ export default function AbonnementPage(){
   const [message,setMessage]=useState("");
 
   async function load(){
-    const [{data:s},{data:m}]=await Promise.all([
+    const [{data:s},{data:m},{data:p}]=await Promise.all([
       supabase.from("platform_settings").select("*").eq("id",1).single(),
-      supabase.from("platform_payment_methods").select("*").eq("payment_mode","automatic").eq("is_active",true)
+      supabase.from("platform_payment_methods").select("*").eq("payment_mode","automatic").eq("is_active",true),
+      supabase.from("platform_payment_methods").select("*").eq("provider_code","payoneer").eq("payment_mode","manual").eq("is_active",true).maybeSingle()
     ]);
-    setSettings(s);setAutoMethods(m||[]);
+    setSettings(s);setAutoMethods(m||[]);setPayoneer(p||null);
   }
   useEffect(()=>{load()},[]);
 
@@ -40,7 +42,8 @@ export default function AbonnementPage(){
 
   async function submitManual(e:FormEvent){
     e.preventDefault();setMessage("");
-    if(currency!=="MRU"){setMessage(t({fr:"Le paiement manuel Mauritanie nécessite un tarif d’abonnement en MRU.",ar:"الدفع اليدوي في موريتانيا يتطلب تسعيراً بالأوقية.",en:"Mauritania manual payment requires the subscription price to be in MRU."}));return}
+    if(method!=="payoneer"&&currency!=="MRU"){setMessage(t({fr:"Le paiement manuel Mauritanie nécessite un tarif d’abonnement en MRU.",ar:"الدفع اليدوي في موريتانيا يتطلب تسعيراً بالأوقية.",en:"Mauritania manual payment requires the subscription price to be in MRU."}));return}
+    if(method==="payoneer"&&(!payoneer||String(payoneer.currency).toUpperCase()!==currency)){setMessage(t({fr:"Payoneer n’est pas configuré dans la devise de cet abonnement.",ar:"Payoneer غير مضبوط بعملة هذا الاشتراك.",en:"Payoneer is not configured in this subscription currency."}));return}
     if(!proof){setMessage(t({fr:"Ajoutez une preuve de paiement.",ar:"أضف إثبات الدفع.",en:"Add payment proof."}));return}
     const {data:{user}}=await supabase.auth.getUser();if(!user){window.location.href="/connexion";return}
     setBusy(true);
@@ -85,11 +88,25 @@ export default function AbonnementPage(){
         </>}
       </form>
 
+      {payoneer&&<form className="panel trainer-form payoneer-payment-card" onSubmit={e=>{setMethod("payoneer");submitManual(e)}}>
+        <span className="eyebrow">International · Payoneer</span>
+        <h2>Payoneer</h2>
+        <p>{t({fr:"Payez directement le compte Payoneer de Vydys, puis envoyez la preuve pour validation.",ar:"ادفع مباشرة إلى حساب Payoneer الخاص بـ Vydys ثم أرسل الإثبات للمراجعة.",en:"Pay the Vydys Payoneer account directly, then upload proof for approval."})}</p>
+        <div className="pay-number"><span>PAYONEER</span><strong>{payoneer.account_number}</strong></div>
+        {payoneer.instructions&&<p className="payment-instructor-instructions">{payoneer.instructions}</p>}
+        <div className="amount-box"><span>{t({fr:"Montant",ar:"المبلغ",en:"Amount"})}</span><strong>{format(amount)}</strong></div>
+        {String(payoneer.currency).toUpperCase()!==currency?<p className="manual-note">{t({fr:"La devise Payoneer configurée ne correspond pas au tarif actuel.",ar:"عملة Payoneer لا تطابق السعر الحالي.",en:"Configured Payoneer currency does not match the current price."})}</p>:<>
+          <label className="upload-zone"><input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>setProof(e.target.files?.[0]||null)}/><span>↑</span><strong>{proof?.name||t({fr:"Ajouter la preuve Payoneer",ar:"أضف إثبات Payoneer",en:"Add Payoneer proof"})}</strong></label>
+          <label className="form-field"><span>{t({fr:"Référence transaction",ar:"مرجع العملية",en:"Transaction reference"})}</span><input value={reference} onChange={e=>setReference(e.target.value)}/></label>
+          <button className="btn" disabled={busy}>{busy?"...":t({fr:"Envoyer Payoneer",ar:"إرسال Payoneer",en:"Submit Payoneer"})}</button>
+        </>}
+      </form>}
+
       <aside className="panel automatic-billing-card">
         <span className="eyebrow">{t({fr:"International · Automatique",ar:"دولي · تلقائي",en:"International · Automatic"})}</span>
         <h2>{t({fr:"Activation immédiate",ar:"تفعيل فوري",en:"Instant activation"})}</h2>
         <p>{t({fr:"Le checkout est encaissé par le compte marchand Vydys. Une fois le paiement confirmé côté serveur, votre abonnement est activé automatiquement.",ar:"يتم الدفع إلى حساب Vydys التجاري. بعد التأكيد على الخادم يتم تفعيل اشتراكك تلقائياً.",en:"Checkout is collected by the Vydys merchant account. Once server-confirmed, your subscription activates automatically."})}</p>
-        <div className="auto-billing-options">{autoMethods.length===0?<p className="manual-note">{t({fr:"Aucun provider international Vydys n’est encore connecté.",ar:"لا يوجد مزود دولي متصل بـ Vydys بعد.",en:"No Vydys international provider is connected yet."})}</p>:autoMethods.map(m=><button className="auto-billing-provider" key={m.id} onClick={()=>payAutomatic(m.provider_code)} disabled={busy}><span>{m.provider_code==="stripe"?"S":"P"}</span><div><strong>{m.provider_code==="stripe"?"Stripe":"PayPal"}</strong><small>{format(amount)}</small></div><b>→</b></button>)}</div>
+        <div className="auto-billing-options">{autoMethods.length===0?<p className="manual-note">{t({fr:"Aucun provider international Vydys n’est encore connecté.",ar:"لا يوجد مزود دولي متصل بـ Vydys بعد.",en:"No Vydys international provider is connected yet."})}</p>:autoMethods.map(m=><button className="auto-billing-provider" key={m.id} onClick={()=>payAutomatic(m.provider_code)} disabled={busy}><span>{m.provider_code==="stripe"?"S":m.provider_code==="paypal"?"P":"PD"}</span><div><strong>{m.provider_code==="stripe"?"Stripe":m.provider_code==="paypal"?"PayPal":"Paddle"}</strong><small>{format(amount)}</small></div><b>→</b></button>)}</div>
         <small className="billing-note">{t({fr:"Aucune commission sur vos ventes de cours : cet encaissement concerne uniquement votre abonnement Vydys.",ar:"لا توجد عمولة على مبيعات دوراتك: هذا الدفع يخص اشتراك Vydys فقط.",en:"No commission on your course sales: this charge is only for your Vydys subscription."})}</small>
       </aside>
     </div>
