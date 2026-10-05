@@ -35,6 +35,7 @@ export default function NewClassroomPage(){
   const [duration,setDuration]=useState("90");
   const [capacity,setCapacity]=useState("25");
   const [price,setPrice]=useState("60");
+  const [isFree,setIsFree]=useState(false);
   const [currency,setCurrency]=useState("USD");
   const [certificate,setCertificate]=useState(true);
   const [recording,setRecording]=useState(false);
@@ -81,7 +82,7 @@ export default function NewClassroomPage(){
       p_visibility:visibility,p_language:language,p_level:level,p_timezone:timezone,
       p_start_date:startDate,p_session_count:Number(sessionCount),p_weekly_days:days,
       p_start_time:startTime,p_duration_minutes:Number(duration),p_capacity:Number(capacity),
-      p_price:Number(price),p_currency:currency,p_certificate:certificate,p_recording:recording,p_replay:replay,
+      p_price:isFree?0:Number(price),p_currency:currency,p_certificate:certificate,p_recording:recording,p_replay:replay,
       p_prerequisites:prerequisites,p_program:program
     });
     setBusy(false);
@@ -127,7 +128,8 @@ export default function NewClassroomPage(){
         <article className="panel trainer-form"><span className="eyebrow">03 · {t({fr:"Commerce & expérience",ar:"التجارة والتجربة",en:"Commerce & experience"})}</span><h2>{t({fr:"Places, prix et options pédagogiques",ar:"المقاعد والسعر وخيارات التعلم",en:"Seats, pricing and learning options"})}</h2>
           <div className="form-grid">
             <label className="form-field"><span>{t({fr:"Capacité maximale",ar:"السعة القصوى",en:"Maximum seats"})}</span><input type="number" min="1" max="5000" value={capacity} onChange={e=>setCapacity(e.target.value)}/></label>
-            <label className="form-field"><span>{t({fr:"Prix étudiant",ar:"سعر الطالب",en:"Student price"})}</span><input type="number" min="0" step="0.01" value={price} onChange={e=>setPrice(e.target.value)}/></label>
+            <label className="form-field"><span>{t({fr:"Prix étudiant",ar:"سعر الطالب",en:"Student price"})}</span><input type="number" min="0" step="0.01" value={isFree?"0":price} onChange={e=>setPrice(e.target.value)} disabled={isFree}/></label>
+            <label className="form-field checkbox-field"><input type="checkbox" checked={isFree} onChange={e=>{setIsFree(e.target.checked);if(e.target.checked)setPrice("0")}}/><span>{t({fr:"Classroom gratuite pour les étudiants",ar:"فصل مجاني للطلاب",en:"Free Classroom for learners"})}</span></label>
             <label className="form-field"><span>{t({fr:"Devise",ar:"العملة",en:"Currency"})}</span><select value={currency} onChange={e=>setCurrency(e.target.value)}>{currencies.map(c=><option key={c.code} value={c.code}>{c.code} · {c.name}</option>)}</select></label>
             <label className="form-field full-row"><span>{t({fr:"Prérequis",ar:"المتطلبات",en:"Prerequisites"})}</span><textarea rows={3} value={prerequisites} onChange={e=>setPrerequisites(e.target.value)}/></label>
             <label className="form-field full-row"><span>{t({fr:"Programme",ar:"البرنامج",en:"Program"})}</span><textarea rows={6} value={program} onChange={e=>setProgram(e.target.value)} placeholder={t({fr:"Session 1 — ...\nSession 2 — ...",ar:"الحصة 1 — ...\nالحصة 2 — ...",en:"Session 1 — ...\nSession 2 — ..."})}/></label>
@@ -141,7 +143,7 @@ export default function NewClassroomPage(){
       </div>
 
       <aside className="classroom-builder-side">
-        <article className="panel classroom-builder-summary"><span>LIVE</span><h2>{titleFr||t({fr:"Votre Classroom",ar:"فصلك المباشر",en:"Your Classroom"})}</h2><p>{sessionCount} {t({fr:"séances",ar:"حصة",en:"sessions"})} · {duration} min · {capacity} {t({fr:"places",ar:"مقعد",en:"seats"})}</p><strong>{Number(price||0).toLocaleString("fr-FR")} {currency}</strong><small>{t({fr:"Création gratuite. Après validation Admin, le frais de lancement Classroom sera demandé selon le tarif configuré par la Direction.",ar:"الإنشاء مجاني. بعد اعتماد الإدارة ستُطلب رسوم إطلاق الفصل حسب السعر الذي تحدده الإدارة.",en:"Creation is free. After Admin approval, the Classroom launch fee configured by Management will be requested."})}</small><button className="btn full" disabled={busy}>{busy?"...":t({fr:"Créer le brouillon",ar:"إنشاء المسودة",en:"Create draft"})}</button></article>
+        <article className="panel classroom-builder-summary"><span>LIVE</span><h2>{titleFr||t({fr:"Votre Classroom",ar:"فصلك المباشر",en:"Your Classroom"})}</h2><p>{sessionCount} {t({fr:"séances",ar:"حصة",en:"sessions"})} · {duration} min · {capacity} {t({fr:"places",ar:"مقعد",en:"seats"})}</p><strong>{isFree?t({fr:"GRATUIT",ar:"مجاني",en:"FREE"}):Number(price||0).toLocaleString("fr-FR")+" "+currency}</strong><small>{t({fr:"Création gratuite. Après validation Admin, le frais de lancement Classroom sera demandé selon le tarif configuré par la Direction.",ar:"الإنشاء مجاني. بعد اعتماد الإدارة ستُطلب رسوم إطلاق الفصل حسب السعر الذي تحدده الإدارة.",en:"Creation is free. After Admin approval, the Classroom launch fee configured by Management will be requested."})}</small><button className="btn full" disabled={busy}>{busy?"...":t({fr:"Créer le brouillon",ar:"إنشاء المسودة",en:"Create draft"})}</button></article>
       </aside>
     </form>
   </div></section>
