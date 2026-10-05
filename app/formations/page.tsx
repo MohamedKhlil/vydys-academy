@@ -11,14 +11,14 @@ type Course={
   base_price_mru:number;base_price_amount:number;base_currency:string;category:string|null;instructor_id:string|null;cover_url:string|null;
 };
 type Rating={course_id:string;average_rating:number|string;review_count:number};
-type Instructor={user_id:string;public_slug:string;display_name:string;headline:string|null};
+type Instructor={user_id:string;public_slug:string;display_name:string;headline:string|null};\ntype CoursePrice={course_id:string;currency:string;amount:number|string};
 
 export default function FormationsPage(){
   const {lang,t}=useLanguage();
   const [courses,setCourses]=useState<Course[]>([]);
   const [ratings,setRatings]=useState<Record<string,Rating>>({});
   const [instructors,setInstructors]=useState<Record<string,Instructor>>({});
-  const [favorites,setFavorites]=useState<Set<string>>(new Set());
+  const [favorites,setFavorites]=useState<Set<string>>(new Set());\n  const [priceRows,setPriceRows]=useState<CoursePrice[]>([]);\n  const [displayCurrency,setDisplayCurrency]=useState("USD");
   const [userId,setUserId]=useState<string|null>(null);
   const [search,setSearch]=useState("");
   const [category,setCategory]=useState("all");
@@ -27,13 +27,13 @@ export default function FormationsPage(){
   const [sort,setSort]=useState("top");
 
   async function load(){
-    const [{data:c},{data:r},{data:i},{data:{user}}]=await Promise.all([
+    const [{data:c},{data:r},{data:i},{data:pr},{data:{user}}]=await Promise.all([
       supabase.from("courses").select("id,slug,title_fr,title_ar,title_en,description_fr,description_ar,description_en,base_price_mru,base_price_amount,base_currency,category,instructor_id,cover_url").eq("status","published"),
       supabase.from("course_rating_summary").select("course_id,average_rating,review_count"),
       supabase.from("instructor_profiles").select("user_id,public_slug,display_name,headline").eq("is_public",true),
       supabase.auth.getUser()
     ]);
-    setCourses((c||[]) as Course[]);
+    setCourses((c||[]) as Course[]);setPriceRows((pr||[]) as CoursePrice[]);
     const rm:Record<string,Rating>={};(r||[]).forEach((x:any)=>rm[x.course_id]=x);setRatings(rm);
     const im:Record<string,Instructor>={};(i||[]).forEach((x:any)=>im[x.user_id]=x);setInstructors(im);
     setUserId(user?.id||null);
@@ -53,6 +53,19 @@ export default function FormationsPage(){
   const categories=useMemo(()=>Array.from(new Set(courses.map(c=>c.category).filter(Boolean) as string[])),[courses]);
   const currencies=useMemo(()=>Array.from(new Set(courses.map(c=>String(c.base_currency||"MRU").toUpperCase()))).sort(),[courses]);
   const formatMoney=(amount:number,cur:string)=>new Intl.NumberFormat(lang==="ar"?"ar-MR":lang==="en"?"en-US":"fr-FR",{style:"currency",currency:cur,maximumFractionDigits:2}).format(amount);
+  function exactPrice(c:Course,cur:string){
+    const code=String(cur||"").toUpperCase();
+    const base=String(c.base_currency||"MRU").toUpperCase();
+    if(priceMap[c.id]?.[code]!=null)return priceMap[c.id][code];
+    if(base===code)return Number(c.base_price_amount??c.base_price_mru);
+    return null;
+  }
+  function displayPrice(c:Course){
+    const preferred=exactPrice(c,displayCurrency);
+    if(preferred!=null)return {amount:preferred,currency:displayCurrency,isLocalFallback:false};
+    const base=String(c.base_currency||"MRU").toUpperCase();
+    return {amount:Number(c.base_price_amount??c.base_price_mru),currency:base,isLocalFallback:base!==displayCurrency};
+  }
 
   const shown=useMemo(()=>{
     const q=search.trim().toLowerCase();const minR=Number(minRating||0);
@@ -62,7 +75,7 @@ export default function FormationsPage(){
       const instructor=c.instructor_id?instructors[c.instructor_id]:null;
       const rating=Number(ratings[c.id]?.average_rating||0);
       return (category==="all"||c.category===category)
-        && (currency==="all"||String(c.base_currency||"MRU").toUpperCase()===currency)
+        && (currency==="all"||exactPrice(c,currency)!=null)
         && (!q||title.toLowerCase().includes(q)||(desc||"").toLowerCase().includes(q)||(instructor?.display_name||"").toLowerCase().includes(q))
         && rating>=minR;
     });
@@ -76,7 +89,7 @@ export default function FormationsPage(){
       if(rb!==ra)return rb-ra;
       return (ratings[b.id]?.review_count||0)-(ratings[a.id]?.review_count||0);
     });
-  },[courses,ratings,instructors,search,category,currency,minRating,sort,lang]);
+  },[courses,ratings,instructors,search,category,currency,minRating,sort,lang,priceMap]);
 
   async function toggleFavorite(courseId:string){
     if(!userId){window.location.href="/connexion";return}
@@ -91,6 +104,7 @@ export default function FormationsPage(){
       <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t({fr:"Formation ou formateur...",ar:"دورة أو مدرب...",en:"Course or instructor..."})}/>
       <select value={category} onChange={e=>setCategory(e.target.value)}><option value="all">{t({fr:"Toutes les catégories",ar:"كل الفئات",en:"All categories"})}</option>{categories.map(c=><option key={c} value={c}>{c}</option>)}</select>
       <select value={currency} onChange={e=>setCurrency(e.target.value)}><option value="all">{t({fr:"Toutes les devises",ar:"كل العملات",en:"All currencies"})}</option>{currencies.map(c=><option key={c} value={c}>{c}</option>)}</select>
+      <select value={displayCurrency} onChange={e=>setDisplayCurrency(e.target.value)} aria-label={t({fr:"Devise d'affichage",ar:"عملة العرض",en:"Display currency"})}>{currencies.map(c=><option key={c} value={c}>{t({fr:"Afficher en",ar:"عرض بـ",en:"Show in"})} {c}</option>)}</select>
       <select value={minRating} onChange={e=>setMinRating(e.target.value)}><option value="0">{t({fr:"Toutes les notes",ar:"كل التقييمات",en:"All ratings"})}</option><option value="4">4★+</option><option value="4.5">4.5★+</option></select>
       <select value={sort} onChange={e=>setSort(e.target.value)}><option value="top">{t({fr:"Mieux notées",ar:"الأعلى تقييماً",en:"Top rated"})}</option><option value="reviews">{t({fr:"Plus d'avis",ar:"الأكثر تقييماً",en:"Most reviewed"})}</option><option value="price_low" disabled={currency==="all"}>{t({fr:"Prix croissant",ar:"السعر تصاعدي",en:"Price low to high"})}</option><option value="price_high" disabled={currency==="all"}>{t({fr:"Prix décroissant",ar:"السعر تنازلي",en:"Price high to low"})}</option></select>
     </div></div>
@@ -100,14 +114,14 @@ export default function FormationsPage(){
         const title=lang==="ar"?c.title_ar:lang==="en"?c.title_en:c.title_fr;
         const desc=lang==="ar"?c.description_ar:lang==="en"?c.description_en:c.description_fr;
         const rating=Number(ratings[c.id]?.average_rating||0);const reviews=ratings[c.id]?.review_count||0;
-        const instructor=c.instructor_id?instructors[c.instructor_id]:null;const cur=String(c.base_currency||"MRU").toUpperCase();const amount=Number(c.base_price_amount??c.base_price_mru);
+        const instructor=c.instructor_id?instructors[c.instructor_id]:null;const shownPrice=displayPrice(c);const cur=shownPrice.currency;const amount=shownPrice.amount;
         return <article className="market-card" key={c.id}>
           <div className="course-cover">{c.cover_url?<img src={c.cover_url} alt="" />:<span>V</span>}{index<3&&rating>0?<b>{t({fr:"Top formation",ar:"من الأفضل",en:"Top course"})}</b>:null}<button className={favorites.has(c.id)?"favorite-btn active":"favorite-btn"} onClick={()=>toggleFavorite(c.id)} aria-label="favorite">♥</button></div>
           <div className="market-card-body">
             <div className="rating-line"><span className="stars">★★★★★</span><strong>{rating?rating.toFixed(1):"—"}</strong><small>({reviews})</small></div>
             <h2>{title}</h2><p>{desc}</p>
             {instructor?<Link className="trainer-link" href={"/formateur/"+instructor.public_slug}>{instructor.display_name}{instructor.headline?" · "+instructor.headline:""}</Link>:<span className="trainer-link">Vydys Academy</span>}
-            <div className="course-card-footer"><strong>{formatMoney(amount,cur)}</strong><Link className="btn btn-small" href={"/formation/"+c.slug}>{t({fr:"Voir",ar:"عرض",en:"View"})}</Link></div>
+            <div className="course-card-footer"><div><strong>{formatMoney(amount,cur)}</strong>{shownPrice.isLocalFallback&&<small style={{display:"block"}}>{t({fr:"Prix local · aucun taux de change inventé",ar:"سعر محلي · بدون تحويل عملة افتراضي",en:"Local price · no invented FX rate"})}</small>}</div><Link className="btn btn-small" href={"/formation/"+c.slug}>{t({fr:"Voir",ar:"عرض",en:"View"})}</Link></div>
           </div>
         </article>
       })}
