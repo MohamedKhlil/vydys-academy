@@ -23,11 +23,16 @@ export default function AdminTarifsPage(){
   const [grace,setGrace]=useState("0");
   const [requireApproval,setRequireApproval]=useState(true);
   const [platformProviders,setPlatformProviders]=useState<any[]>([]);
-  const [provider,setProvider]=useState<"stripe"|"paypal">("stripe");
+  const [provider,setProvider]=useState<"stripe"|"paypal"|"paddle">("stripe");
   const [providerEnvironment,setProviderEnvironment]=useState<"live"|"sandbox">("live");
   const [stripeKey,setStripeKey]=useState("");
   const [paypalClientId,setPaypalClientId]=useState("");
   const [paypalSecret,setPaypalSecret]=useState("");
+  const [paddleApiKey,setPaddleApiKey]=useState("");
+  const [payoneerAccount,setPayoneerAccount]=useState("");
+  const [payoneerCurrency,setPayoneerCurrency]=useState("USD");
+  const [payoneerInstructions,setPayoneerInstructions]=useState("");
+  const [payoneerActive,setPayoneerActive]=useState(false);
   const [providerBusy,setProviderBusy]=useState(false);
   const [message,setMessage]=useState("");
 
@@ -36,12 +41,14 @@ export default function AdminTarifsPage(){
     if(!user){setAllowed(false);return}
     const {data:p}=await supabase.from("profiles").select("role").eq("id",user.id).single();
     const ok=p?.role==="direction"||p?.role==="admin";setAllowed(ok);if(!ok)return;
-    const [{data:s},{data:c},{data:providers}]=await Promise.all([
+    const [{data:s},{data:c},{data:providers},{data:manualMethods}]=await Promise.all([
       supabase.from("platform_settings").select("*").eq("id",1).single(),
       supabase.from("currency_catalog").select("code,name,symbol").eq("enabled",true).order("code"),
-      supabase.from("platform_payment_credentials").select("provider,key_hint,environment,status,provider_account_id,provider_account_label,last_tested_at,last_error").order("provider")
+      supabase.from("platform_payment_credentials").select("provider,key_hint,environment,status,provider_account_id,provider_account_label,last_tested_at,last_error").order("provider"),
+      supabase.from("platform_payment_methods").select("*").eq("provider_code","payoneer").eq("payment_mode","manual").maybeSingle()
     ]);
     setCurrencies(c||[]);setPlatformProviders(providers||[]);
+    if(manualMethods){setPayoneerAccount(manualMethods.account_number||"");setPayoneerCurrency(manualMethods.currency||"USD");setPayoneerInstructions(manualMethods.instructions||"");setPayoneerActive(Boolean(manualMethods.is_active));}
     if(s){
       setMonthly(String(s.trainer_monthly_price??s.trainer_monthly_price_mru??0));
       setQuarterly(String(s.trainer_quarterly_price??s.trainer_quarterly_price_mru??0));
@@ -65,11 +72,12 @@ export default function AdminTarifsPage(){
     setProviderBusy(true);setMessage("");
     const body:any={action:"connect_provider",provider,environment:providerEnvironment};
     if(provider==="stripe")body.secret_key=stripeKey.trim();
-    else{body.client_id=paypalClientId.trim();body.client_secret=paypalSecret.trim()}
+    else if(provider==="paypal"){body.client_id=paypalClientId.trim();body.client_secret=paypalSecret.trim()}
+    else body.api_key=paddleApiKey.trim();
     const {data,error}=await supabase.functions.invoke("vydys-platform-billing",{body});
     setProviderBusy(false);
     if(error||data?.error){setMessage(data?.detail||data?.error||error?.message||"Connection failed");return}
-    setStripeKey("");setPaypalClientId("");setPaypalSecret("");
+    setStripeKey("");setPaypalClientId("");setPaypalSecret("");setPaddleApiKey("");
     setMessage(t({fr:"Provider Vydys connecté et vérifié.",ar:"تم ربط مزود Vydys والتحقق منه.",en:"Vydys provider connected and verified."}));
     window.location.reload();
   }
@@ -78,6 +86,15 @@ export default function AdminTarifsPage(){
     if(!window.confirm(t({fr:"Déconnecter ce provider Vydys ?",ar:"قطع اتصال مزود Vydys؟",en:"Disconnect this Vydys provider?"})))return;
     const {data,error}=await supabase.functions.invoke("vydys-platform-billing",{body:{action:"disconnect_provider",provider:code}});
     if(error||data?.error)setMessage(data?.detail||data?.error||error?.message||"Error");else window.location.reload();
+  }
+
+  async function savePayoneer(){
+    setMessage("");
+    const {error}=await supabase.rpc("set_platform_manual_payment_method",{
+      p_provider:"payoneer",p_account_number:payoneerAccount,p_currency:payoneerCurrency,
+      p_instructions:payoneerInstructions,p_active:payoneerActive
+    });
+    setMessage(error?error.message:t({fr:"Payoneer enregistré.",ar:"تم حفظ Payoneer.",en:"Payoneer saved."}));
   }
 
   async function save(){
@@ -152,18 +169,27 @@ export default function AdminTarifsPage(){
     <article className="panel platform-provider-admin"><div className="admin-section-head"><div><span className="eyebrow">{t({fr:"Encaissement international Vydys",ar:"تحصيل Vydys الدولي",en:"Vydys international billing"})}</span><h2>{t({fr:"Connecter le compte marchand de Vydys",ar:"ربط حساب Vydys التجاري",en:"Connect Vydys merchant account"})}</h2></div><p>{t({fr:"Utilisé uniquement pour les abonnements formateurs et frais de lancement — jamais pour les ventes des formateurs.",ar:"يُستخدم فقط لاشتراكات المدربين ورسوم الإطلاق — وليس لمبيعات المدربين.",en:"Used only for instructor subscriptions and launch fees — never for instructor course sales."})}</p></div>
       <div className="platform-provider-grid">
         <div className="trainer-form">
-          <label className="form-field"><span>Provider</span><select value={provider} onChange={e=>setProvider(e.target.value as "stripe"|"paypal")}><option value="stripe">Stripe</option><option value="paypal">PayPal</option></select></label>
+          <label className="form-field"><span>Provider</span><select value={provider} onChange={e=>setProvider(e.target.value as "stripe"|"paypal"|"paddle")}><option value="stripe">Stripe</option><option value="paypal">PayPal</option><option value="paddle">Paddle</option></select></label>
           <label className="form-field"><span>{t({fr:"Environnement",ar:"البيئة",en:"Environment"})}</span><select value={providerEnvironment} onChange={e=>setProviderEnvironment(e.target.value as "live"|"sandbox")}><option value="live">Live</option><option value="sandbox">Sandbox/Test</option></select></label>
-          {provider==="stripe"?<label className="form-field"><span>Stripe Secret Key</span><input type="password" autoComplete="off" value={stripeKey} onChange={e=>setStripeKey(e.target.value)} placeholder={providerEnvironment==="live"?"sk_live_...":"sk_test_..."}/></label>:<>
+          {provider==="stripe"?<label className="form-field"><span>Stripe Secret Key</span><input type="password" autoComplete="off" value={stripeKey} onChange={e=>setStripeKey(e.target.value)} placeholder={providerEnvironment==="live"?"sk_live_...":"sk_test_..."}/></label>:provider==="paypal"?<>
             <label className="form-field"><span>PayPal Client ID</span><input type="password" autoComplete="off" value={paypalClientId} onChange={e=>setPaypalClientId(e.target.value)}/></label>
             <label className="form-field"><span>PayPal Client Secret</span><input type="password" autoComplete="off" value={paypalSecret} onChange={e=>setPaypalSecret(e.target.value)}/></label>
-          </>}
+          </>:<label className="form-field"><span>Paddle API Key</span><input type="password" autoComplete="off" value={paddleApiKey} onChange={e=>setPaddleApiKey(e.target.value)} placeholder={providerEnvironment==="live"?"pdl_live_apikey_...":"pdl_sdbx_apikey_..."}/></label>}
           <button className="btn" onClick={connectPlatformProvider} disabled={providerBusy}>{providerBusy?"...":t({fr:"Tester & connecter Vydys",ar:"اختبار وربط Vydys",en:"Test & connect Vydys"})}</button>
         </div>
-        <div className="provider-list">{platformProviders.length===0?<p>{t({fr:"Aucun provider automatique Vydys connecté.",ar:"لا يوجد مزود تلقائي لـ Vydys.",en:"No automatic Vydys provider connected."})}</p>:platformProviders.map(p=><article className="provider-connected-card" key={p.provider}><div className="provider-logo">{p.provider==="stripe"?"S":"P"}</div><div><strong>{p.provider==="stripe"?"Stripe":"PayPal"}</strong><span>{p.provider_account_label||p.provider_account_id||p.key_hint}</span><small>{p.environment} · {p.status} · {p.key_hint}</small></div><button onClick={()=>disconnectPlatformProvider(p.provider)}>{t({fr:"Déconnecter",ar:"قطع الاتصال",en:"Disconnect"})}</button></article>)}</div>
+        <div className="provider-list">{platformProviders.length===0?<p>{t({fr:"Aucun provider automatique Vydys connecté.",ar:"لا يوجد مزود تلقائي لـ Vydys.",en:"No automatic Vydys provider connected."})}</p>:platformProviders.map(p=><article className="provider-connected-card" key={p.provider}><div className="provider-logo">{p.provider==="stripe"?"S":p.provider==="paypal"?"P":"PD"}</div><div><strong>{p.provider==="stripe"?"Stripe":p.provider==="paypal"?"PayPal":"Paddle"}</strong><span>{p.provider_account_label||p.provider_account_id||p.key_hint}</span><small>{p.environment} · {p.status} · {p.key_hint}</small></div><button onClick={()=>disconnectPlatformProvider(p.provider)}>{t({fr:"Déconnecter",ar:"قطع الاتصال",en:"Disconnect"})}</button></article>)}</div>
       </div>
       <p className="provider-security-note">🔐 {t({fr:"Les identifiants Vydys sont chiffrés dans Supabase Vault et ne sont jamais renvoyés au navigateur.",ar:"يتم تشفير بيانات Vydys داخل Supabase Vault ولا تُعاد إلى المتصفح.",en:"Vydys credentials are encrypted in Supabase Vault and are never returned to the browser."})}</p>
       <article className="provider-webhook-note"><strong>{t({fr:"Webhook de réconciliation",ar:"Webhook للمطابقة",en:"Reconciliation webhook"})}</strong><code>https://ruzwqmtqyvtpgccqonqi.supabase.co/functions/v1/vydys-payment-webhook</code><small>Stripe: checkout.session.completed · PayPal: CHECKOUT.ORDER.APPROVED</small><p>{t({fr:"À configurer dans le dashboard du provider. Même si la page de retour est fermée, Vydys pourra confirmer le paiement côté serveur.",ar:"قم بإعداده في لوحة المزود. حتى لو أُغلقت صفحة العودة يمكن لـ Vydys تأكيد الدفع على الخادم.",en:"Configure it in the provider dashboard. Even if the return page is closed, Vydys can confirm the payment server-side."})}</p></article>
+    </article>
+
+    <article className="panel trainer-form payoneer-admin-card"><span className="eyebrow">Payoneer</span><h2>{t({fr:"Paiement international manuel vers Vydys",ar:"دفع دولي يدوي إلى Vydys",en:"Manual international payment to Vydys"})}</h2><p>{t({fr:"Le formateur paie Vydys via Payoneer puis envoie sa preuve. La Direction valide ensuite l’abonnement ou le frais.",ar:"يدفع المدرب إلى Vydys عبر Payoneer ثم يرسل الإثبات وتقوم الإدارة بالمراجعة.",en:"The instructor pays Vydys through Payoneer, uploads proof, then Management approves the subscription or fee."})}</p>
+      <label className="checkbox-line"><input type="checkbox" checked={payoneerActive} onChange={e=>setPayoneerActive(e.target.checked)}/>{t({fr:"Activer Payoneer",ar:"تفعيل Payoneer",en:"Enable Payoneer"})}</label>
+      <div className="form-grid">
+        <label className="form-field"><span>{t({fr:"Compte / email destinataire",ar:"الحساب / البريد المستلم",en:"Recipient account / email"})}</span><input value={payoneerAccount} onChange={e=>setPayoneerAccount(e.target.value)} placeholder="Payoneer account"/></label>
+        <label className="form-field"><span>{t({fr:"Devise",ar:"العملة",en:"Currency"})}</span><select value={payoneerCurrency} onChange={e=>setPayoneerCurrency(e.target.value)}>{currencies.map(x=><option key={x.code} value={x.code}>{x.code}</option>)}</select></label>
+        <label className="form-field full-row"><span>{t({fr:"Instructions",ar:"التعليمات",en:"Instructions"})}</span><textarea rows={3} value={payoneerInstructions} onChange={e=>setPayoneerInstructions(e.target.value)} placeholder={t({fr:"Instructions de paiement Payoneer visibles par le formateur.",ar:"تعليمات Payoneer التي يراها المدرب.",en:"Payoneer payment instructions shown to instructors."})}/></label>
+      </div><button className="btn" onClick={savePayoneer}>{t({fr:"Enregistrer Payoneer",ar:"حفظ Payoneer",en:"Save Payoneer"})}</button>
     </article>
 
     <article className="panel trainer-form admin-policy-card"><h2>{t({fr:"Règles plateforme",ar:"قواعد المنصة",en:"Platform rules"})}</h2><div className="form-grid">
