@@ -13,15 +13,15 @@ export default function DashboardPage(){
   const [progress,setProgress]=useState<any[]>([]);
   const [lessons,setLessons]=useState<any[]>([]);
   const [certificates,setCertificates]=useState<any[]>([]);
-  const [pending,setPending]=useState<any[]>([]);
+  const [pending,setPending]=useState<any[]>([]);\n  const [onboardingDone,setOnboardingDone]=useState(false);
 
   useEffect(()=>{(async()=>{
     const {data:{user}}=await supabase.auth.getUser();
     if(!user){window.location.href="/connexion";return}
-    const {data:p}=await supabase.from("profiles").select("role,full_name").eq("id",user.id).single();
+    const {data:p}=await supabase.from("profiles").select("role,full_name,onboarding_completed_at").eq("id",user.id).single();
     if(p?.role==="direction"||p?.role==="admin"){window.location.href="/admin";return}
     if(p?.role==="instructor"){window.location.href="/formateur";return}
-    setName(p?.full_name||"");
+    setName(p?.full_name||"");\n    setOnboardingDone(Boolean(p?.onboarding_completed_at));
 
     const [{data:e},{data:pr},{data:cert},{data:pay}]=await Promise.all([
       supabase.from("enrollments").select("id,status,activated_at,course_id,courses:course_id(id,slug,title_fr,title_ar,title_en,description_fr,description_ar,description_en)").eq("user_id",user.id).order("activated_at",{ascending:false}),
@@ -46,7 +46,7 @@ export default function DashboardPage(){
     return {total,completed,certs};
   },[enrollments,certificates]);
 
-  function title(c:any){return lang==="ar"?(c?.title_ar||c?.title_fr):lang==="en"?(c?.title_en||c?.title_fr):c?.title_fr}
+  const nextEnrollment=useMemo(()=>enrollments.find(e=>e.status!=="completed")||enrollments[0]||null,[enrollments]);\n\n  function title(c:any){return lang==="ar"?(c?.title_ar||c?.title_fr):lang==="en"?(c?.title_en||c?.title_fr):c?.title_fr}
   function desc(c:any){return lang==="ar"?(c?.description_ar||c?.description_fr):lang==="en"?(c?.description_en||c?.description_fr):c?.description_fr}
   function pct(courseId:string){
     const total=lessons.filter(l=>l.course_id===courseId).length;
@@ -58,6 +58,27 @@ export default function DashboardPage(){
 
   return <section className="dashboard-shell"><div className="container">
     <div className="dash-header"><div><span className="eyebrow">{t({fr:"Espace étudiant",ar:"مساحة الطالب",en:"Student area"})}</span><h1>{t({fr:"Bonjour",ar:"مرحباً",en:"Hello"})}{name?" "+name:""} 👋</h1><p>{t({fr:"Retrouvez vos formations, votre progression et vos certificats.",ar:"تابع دوراتك وتقدمك وشهاداتك.",en:"Track your courses, progress and certificates."})}</p></div></div>
+
+    <article className="panel" style={{marginBottom:20}}>
+      <span className="eyebrow">{t({fr:"À faire maintenant",ar:"ما يجب فعله الآن",en:"Do next"})}</span>
+      {!onboardingDone ? <>
+        <h2>{t({fr:"Personnalisez votre parcours",ar:"خصص مسارك",en:"Personalize your learning path"})}</h2>
+        <p>{t({fr:"3 étapes rapides pour prioriser les contenus qui vous correspondent.",ar:"3 خطوات سريعة لترتيب المحتوى المناسب لك.",en:"Three quick steps to prioritize the right content for you."})}</p>
+        <Link className="btn" href="/onboarding">{t({fr:"Commencer",ar:"ابدأ",en:"Start onboarding"})}</Link>
+      </> : pending.length>0 ? <>
+        <h2>{t({fr:"Suivez vos paiements en attente",ar:"تابع دفعاتك المعلقة",en:"Track your pending payments"})}</h2>
+        <p>{t({fr:"Une validation est encore en cours. Vous pouvez continuer à explorer Vydys pendant ce temps.",ar:"لا تزال عملية التحقق جارية. يمكنك متابعة استكشاف Vydys.",en:"A payment review is still in progress. You can keep exploring Vydys meanwhile."})}</p>
+        <Link className="btn" href="/paiements">{t({fr:"Voir mes paiements",ar:"عرض دفعاتي",en:"View payments"})}</Link>
+      </> : nextEnrollment ? <>
+        <h2>{t({fr:"Continuez votre prochaine leçon",ar:"تابع درسك التالي",en:"Continue your next lesson"})}</h2>
+        <p><strong>{title(nextEnrollment.courses)}</strong> · {pct(nextEnrollment.course_id)}% {t({fr:"terminé",ar:"مكتمل",en:"complete"})}</p>
+        <Link className="btn" href={"/apprendre/"+nextEnrollment.courses.slug}>{t({fr:"Continuer",ar:"متابعة",en:"Continue learning"})}</Link>
+      </> : <>
+        <h2>{t({fr:"Choisissez votre première compétence",ar:"اختر مهارتك الأولى",en:"Choose your first skill"})}</h2>
+        <p>{t({fr:"Commencez par une formation ou un challenge pratique.",ar:"ابدأ بدورة أو تحدٍ عملي.",en:"Start with a course or a hands-on challenge."})}</p>
+        <div style={{display:"flex",gap:10,flexWrap:"wrap"}}><Link className="btn" href="/formations">{t({fr:"Explorer les formations",ar:"استكشف الدورات",en:"Browse courses"})}</Link><Link className="btn btn-ghost" href="/practice">Practice Hub</Link></div>
+      </>}
+    </article>
 
     <div className="stat-grid">
       <article className="panel stat"><span>{t({fr:"Mes formations",ar:"دوراتي",en:"My courses"})}</span><strong>{stats.total}</strong></article>
