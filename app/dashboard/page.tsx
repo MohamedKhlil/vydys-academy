@@ -68,7 +68,7 @@ export default function DashboardPage(){
       </> : pending.length>0 ? <>
         <h2>{t({fr:"Suivez vos paiements en attente",ar:"تابع دفعاتك المعلقة",en:"Track your pending payments"})}</h2>
         <p>{t({fr:"Une validation est encore en cours. Vous pouvez continuer à explorer Vydys pendant ce temps.",ar:"لا تزال عملية التحقق جارية. يمكنك متابعة استكشاف Vydys.",en:"A payment review is still in progress. You can keep exploring Vydys meanwhile."})}</p>
-        <Link className="btn" href="/paiements">{t({fr:"Voir mes paiements",ar:"عرض دفعاتي",en:"View payments"})}</Link>
+        <Link className="btn" href="/paiement">{t({fr:"Voir mes paiements",ar:"عرض دفعاتي",en:"View payments"})}</Link>
       </> : nextEnrollment ? <>
         <h2>{t({fr:"Continuez votre prochaine leçon",ar:"تابع درسك التالي",en:"Continue your next lesson"})}</h2>
         <p><strong>{title(nextEnrollment.courses)}</strong> · {pct(nextEnrollment.course_id)}% {t({fr:"terminé",ar:"مكتمل",en:"complete"})}</p>
