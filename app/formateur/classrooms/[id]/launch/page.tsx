@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import { useLanguage } from "../../../../../components/language-provider";
 import { supabase } from "../../../../../lib/supabase";
 
-type Method="click"|"bankily"|"sedad"|"masrvi";
+type Method="click"|"bankily"|"sedad"|"masrvi"|"payoneer";
 
 export default function ClassroomLaunchPage(){
   const {id}=useParams<{id:string}>();
@@ -15,6 +15,7 @@ export default function ClassroomLaunchPage(){
   const [settings,setSettings]=useState<any>(null);
   const [order,setOrder]=useState<any>(null);
   const [autoMethods,setAutoMethods]=useState<any[]>([]);
+  const [payoneer,setPayoneer]=useState<any>(null);
   const [method,setMethod]=useState<Method>("bankily");
   const [reference,setReference]=useState("");
   const [proof,setProof]=useState<File|null>(null);
@@ -23,13 +24,14 @@ export default function ClassroomLaunchPage(){
 
   async function load(){
     const {data:{user}}=await supabase.auth.getUser();if(!user){window.location.href="/connexion";return}
-    const [{data:r},{data:s},{data:o},{data:auto}]=await Promise.all([
+    const [{data:r},{data:s},{data:o},{data:auto},{data:p}]=await Promise.all([
       supabase.from("classrooms").select("id,title_fr,status,launch_fee_status").eq("id",id).eq("instructor_id",user.id).maybeSingle(),
       supabase.from("platform_settings").select("classroom_launch_fee_enabled,classroom_launch_fee_amount,classroom_launch_fee_currency,classroom_launch_fee_local_mru,platform_payment_number").eq("id",1).single(),
       supabase.from("classroom_launch_fee_orders").select("*").eq("classroom_id",id).maybeSingle(),
-      supabase.from("platform_payment_methods").select("*").eq("payment_mode","automatic").eq("is_active",true)
+      supabase.from("platform_payment_methods").select("*").eq("payment_mode","automatic").eq("is_active",true),
+      supabase.from("platform_payment_methods").select("*").eq("provider_code","payoneer").eq("payment_mode","manual").eq("is_active",true).maybeSingle()
     ]);
-    setRoom(r||false);setSettings(s);setOrder(o||null);setAutoMethods(auto||[]);
+    setRoom(r||false);setSettings(s);setOrder(o||null);setAutoMethods(auto||[]);setPayoneer(p||null);
   }
   useEffect(()=>{load()},[id]);
 
@@ -85,7 +87,20 @@ export default function ClassroomLaunchPage(){
         </>}
       </form>
 
-      <aside className="panel automatic-billing-card launch-auto-card"><span className="eyebrow">{t({fr:"International · Automatique",ar:"دولي · تلقائي",en:"International · Automatic"})}</span><h2>{intlAmount.toLocaleString("fr-FR")} {intlCurrency}</h2><p>{t({fr:"Payez automatiquement via le compte marchand Vydys. Après confirmation serveur, la Classroom est publiée immédiatement.",ar:"ادفع تلقائياً عبر حساب Vydys التجاري وبعد تأكيد الخادم ينشر الفصل فوراً.",en:"Pay through the Vydys merchant account. After server confirmation, the Classroom publishes immediately."})}</p><div className="auto-billing-options">{autoMethods.length===0?<p className="manual-note">{t({fr:"Aucun provider international Vydys connecté.",ar:"لا يوجد مزود دولي متصل.",en:"No Vydys international provider connected."})}</p>:autoMethods.map(m=><button className="auto-billing-provider" key={m.id} onClick={()=>payAutomatic(m.provider_code)} disabled={busy}><span>{m.provider_code==="stripe"?"S":"P"}</span><div><strong>{m.provider_code==="stripe"?"Stripe":"PayPal"}</strong><small>{intlAmount.toLocaleString("fr-FR")} {intlCurrency}</small></div><b>→</b></button>)}</div></aside>
+      {payoneer&&<form className="panel trainer-form payoneer-payment-card" onSubmit={e=>{setMethod("payoneer");submitManual(e)}}>
+        <span className="eyebrow">International · Payoneer</span><h2>Payoneer</h2>
+        <p>{t({fr:"Payez Vydys via Payoneer puis envoyez la preuve pour validation par la Direction.",ar:"ادفع لـ Vydys عبر Payoneer ثم أرسل الإثبات لمراجعة الإدارة.",en:"Pay Vydys through Payoneer, then upload proof for Management approval."})}</p>
+        <div className="pay-number"><span>PAYONEER</span><strong>{payoneer.account_number}</strong></div>
+        {payoneer.instructions&&<p className="payment-instructor-instructions">{payoneer.instructions}</p>}
+        <div className="amount-box"><span>{t({fr:"Montant",ar:"المبلغ",en:"Amount"})}</span><strong>{intlAmount.toLocaleString("fr-FR")} {intlCurrency}</strong></div>
+        {String(payoneer.currency).toUpperCase()!==String(intlCurrency).toUpperCase()?<p className="manual-note">{t({fr:"La devise Payoneer configurée ne correspond pas au frais Classroom.",ar:"عملة Payoneer لا تطابق رسوم الفصل.",en:"Configured Payoneer currency does not match the Classroom fee."})}</p>:<>
+          <label className="upload-zone"><input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>setProof(e.target.files?.[0]||null)}/><span>↑</span><strong>{proof?.name||t({fr:"Ajouter la preuve Payoneer",ar:"أضف إثبات Payoneer",en:"Add Payoneer proof"})}</strong></label>
+          <label className="form-field"><span>{t({fr:"Référence transaction",ar:"مرجع العملية",en:"Transaction reference"})}</span><input value={reference} onChange={e=>setReference(e.target.value)}/></label>
+          <button className="btn" disabled={busy}>{busy?"...":t({fr:"Envoyer Payoneer",ar:"إرسال Payoneer",en:"Submit Payoneer"})}</button>
+        </>}
+      </form>}
+
+      <aside className="panel automatic-billing-card launch-auto-card"><span className="eyebrow">{t({fr:"International · Automatique",ar:"دولي · تلقائي",en:"International · Automatic"})}</span><h2>{intlAmount.toLocaleString("fr-FR")} {intlCurrency}</h2><p>{t({fr:"Payez automatiquement via le compte marchand Vydys. Après confirmation serveur, la Classroom est publiée immédiatement.",ar:"ادفع تلقائياً عبر حساب Vydys التجاري وبعد تأكيد الخادم ينشر الفصل فوراً.",en:"Pay through the Vydys merchant account. After server confirmation, the Classroom publishes immediately."})}</p><div className="auto-billing-options">{autoMethods.length===0?<p className="manual-note">{t({fr:"Aucun provider international Vydys connecté.",ar:"لا يوجد مزود دولي متصل.",en:"No Vydys international provider connected."})}</p>:autoMethods.map(m=><button className="auto-billing-provider" key={m.id} onClick={()=>payAutomatic(m.provider_code)} disabled={busy}><span>{m.provider_code==="stripe"?"S":m.provider_code==="paypal"?"P":"PD"}</span><div><strong>{m.provider_code==="stripe"?"Stripe":m.provider_code==="paypal"?"PayPal":"Paddle"}</strong><small>{intlAmount.toLocaleString("fr-FR")} {intlCurrency}</small></div><b>→</b></button>)}</div></aside>
     </div>}
   </div></section>
 }
