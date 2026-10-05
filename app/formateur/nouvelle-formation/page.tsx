@@ -16,6 +16,7 @@ export default function NouvelleFormationPage(){
   const [descriptionEn,setDescriptionEn]=useState("");
   const [category,setCategory]=useState("");
   const [price,setPrice]=useState("25");
+  const [isFree,setIsFree]=useState(false);
   const [currency,setCurrency]=useState("USD");
   const [message,setMessage]=useState("");
 
@@ -34,13 +35,13 @@ export default function NouvelleFormationPage(){
   async function submit(e:FormEvent){
     e.preventDefault();setMessage("");
     if(!userId){window.location.href="/connexion";return}
-    const amount=Number(price);
-    if(!Number.isFinite(amount)||amount<=0){setMessage(t({fr:"Prix invalide.",ar:"السعر غير صالح.",en:"Invalid price."}));return}
+    const amount=isFree?0:Number(price);
+    if(!Number.isFinite(amount)||amount<0){setMessage(t({fr:"Prix invalide.",ar:"السعر غير صالح.",en:"Invalid price."}));return}
     const slug=(titleFr||titleEn||"formation").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")+"-"+Date.now().toString().slice(-6);
     const {data,error}=await supabase.from("courses").insert({
       instructor_id:userId,slug,title_fr:titleFr,title_ar:titleAr||titleFr,title_en:titleEn||titleFr,
       description_fr:descriptionFr,description_ar:descriptionAr||descriptionFr,description_en:descriptionEn||descriptionFr,
-      base_price_mru:currency==="MRU"?Math.max(1,Math.round(amount)):1,
+      base_price_mru:currency==="MRU"?Math.max(0,Math.round(amount)):0,
       base_price_amount:amount,base_currency:currency,category,status:"draft",is_published:false
     }).select("id").single();
     if(error||!data){setMessage(error?.message||"Error");return}
@@ -56,13 +57,14 @@ export default function NouvelleFormationPage(){
         <label className="form-field"><span>العنوان AR</span><input value={titleAr} onChange={e=>setTitleAr(e.target.value)}/></label>
         <label className="form-field"><span>Title EN</span><input value={titleEn} onChange={e=>setTitleEn(e.target.value)}/></label>
         <label className="form-field"><span>{t({fr:"Catégorie",ar:"الفئة",en:"Category"})}</span><input value={category} onChange={e=>setCategory(e.target.value)} required/></label>
-        <label className="form-field"><span>{t({fr:"Prix",ar:"السعر",en:"Price"})}</span><input type="number" min="0.01" step="0.01" value={price} onChange={e=>setPrice(e.target.value)} required/></label>
+        <label className="form-field"><span>{t({fr:"Prix",ar:"السعر",en:"Price"})}</span><input type="number" min="0" step="0.01" value={isFree?"0":price} onChange={e=>setPrice(e.target.value)} disabled={isFree} required/></label>
+        <label className="form-field checkbox-field"><input type="checkbox" checked={isFree} onChange={e=>{setIsFree(e.target.checked);if(e.target.checked)setPrice("0")}}/><span>{t({fr:"Formation gratuite pour les étudiants",ar:"دورة مجانية للطلاب",en:"Free course for learners"})}</span></label>
         <label className="form-field"><span>{t({fr:"Devise",ar:"العملة",en:"Currency"})}</span><select value={currency} onChange={e=>setCurrency(e.target.value)}>{currencies.map(c=><option value={c.code} key={c.code}>{c.code} · {c.name}</option>)}</select></label>
         <label className="form-field full-row"><span>Description FR</span><textarea rows={5} value={descriptionFr} onChange={e=>setDescriptionFr(e.target.value)} required/></label>
         <label className="form-field full-row"><span>الوصف AR</span><textarea rows={5} value={descriptionAr} onChange={e=>setDescriptionAr(e.target.value)}/></label>
         <label className="form-field full-row"><span>Description EN</span><textarea rows={5} value={descriptionEn} onChange={e=>setDescriptionEn(e.target.value)}/></label>
       </div>
-      <article className="international-price-note">🌍 {t({fr:"Le prix principal est enregistré dans sa vraie devise. Les paiements internationaux automatiques utilisent ce montant, sans conversion inventée par Vydys.",ar:"يُحفظ السعر الأساسي بعملته الحقيقية. تستخدم المدفوعات الدولية التلقائية هذا المبلغ دون سعر صرف مخترع من Vydys.",en:"The base price is stored in its real currency. Automatic international payments use that amount without an invented Vydys exchange rate."})}</article>
+      <article className="international-price-note">🌍 {isFree?t({fr:"Cette formation sera gratuite : les étudiants pourront s’inscrire instantanément sans paiement.",ar:"ستكون هذه الدورة مجانية ويمكن للطلاب التسجيل فوراً دون دفع.",en:"This course will be free: learners can enroll instantly without payment."}):t({fr:"Le prix principal est enregistré dans sa vraie devise. Les paiements internationaux automatiques utilisent ce montant, sans conversion inventée par Vydys.",ar:"يُحفظ السعر الأساسي بعملته الحقيقية. تستخدم المدفوعات الدولية التلقائية هذا المبلغ دون سعر صرف مخترع من Vydys.",en:"The base price is stored in its real currency. Automatic international payments use that amount without an invented Vydys exchange rate."})}</article>
       <button className="btn" type="submit">{t({fr:"Créer et construire la formation →",ar:"إنشاء وبناء الدورة ←",en:"Create & build course →"})}</button>
       {message&&<p className="manual-note">{message}</p>}
     </form>
