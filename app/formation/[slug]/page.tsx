@@ -89,6 +89,17 @@ export default function FormationDetailPage(){
     if(!data?.valid)setMessage(t({fr:"Coupon invalide ou expiré.",ar:"القسيمة غير صالحة أو منتهية.",en:"Invalid or expired coupon."}));
   }
 
+  async function enrollFree(){
+    setMessage("");setBusy(true);
+    const {data:{user}}=await supabase.auth.getUser();
+    if(!user){window.location.href="/connexion";return}
+    const {error}=await supabase.rpc("enroll_free_course",{p_course_id:course.id});
+    setBusy(false);
+    if(error){setMessage(error.message);return}
+    setEnrolled(true);
+    setMessage(t({fr:"Inscription gratuite activée.",ar:"تم تفعيل التسجيل المجاني.",en:"Free enrollment activated."}));
+  }
+
   async function buy(e:FormEvent){
     e.preventDefault();setMessage("");
     const {data:{user}}=await supabase.auth.getUser();
@@ -149,8 +160,8 @@ export default function FormationDetailPage(){
       </section>
     </div>
 
-    <aside className="panel course-checkout"><div className="international-course-price"><small>{t({fr:"Prix principal",ar:"السعر الأساسي",en:"Base price"})}</small><h2>{formatMoney(baseAmount,baseCurrency)}</h2>{prices.length>1&&<span>{prices.length} {t({fr:"devises configurées",ar:"عملات مهيأة",en:"currencies configured"})}</span>}</div>
-      {enrolled?<><p className="status">{t({fr:"Vous êtes inscrit à cette formation.",ar:"أنت مسجل في هذه الدورة.",en:"You are enrolled in this course."})}</p><Link className="btn full" href={"/apprendre/"+course.slug}>{t({fr:"Accéder à ma formation",ar:"الدخول إلى الدورة",en:"Go to my course"})}</Link></>:!course.instructor_id?<><p>{t({fr:"Formation officielle Vydys Academy.",ar:"دورة رسمية من Vydys Academy.",en:"Official Vydys Academy course."})}</p><Link className="btn full" href="/paiement">{t({fr:"S'inscrire",ar:"سجّل",en:"Enroll"})}</Link></>:<>
+    <aside className="panel course-checkout"><div className="international-course-price"><small>{t({fr:"Prix principal",ar:"السعر الأساسي",en:"Base price"})}</small><h2>{baseAmount===0?t({fr:"GRATUIT",ar:"مجاني",en:"FREE"}):formatMoney(baseAmount,baseCurrency)}</h2>{prices.length>1&&<span>{prices.length} {t({fr:"devises configurées",ar:"عملات مهيأة",en:"currencies configured"})}</span>}</div>
+      {enrolled?<><p className="status">{t({fr:"Vous êtes inscrit à cette formation.",ar:"أنت مسجل في هذه الدورة.",en:"You are enrolled in this course."})}</p><Link className="btn full" href={"/apprendre/"+course.slug}>{t({fr:"Accéder à ma formation",ar:"الدخول إلى الدورة",en:"Go to my course"})}</Link></>:baseAmount===0?<><p>{t({fr:"Cette formation est gratuite. Aucun moyen de paiement n’est nécessaire.",ar:"هذه الدورة مجانية ولا تحتاج إلى وسيلة دفع.",en:"This course is free. No payment method is required."})}</p><button className="btn full" onClick={enrollFree} disabled={busy}>{busy?"...":t({fr:"S’inscrire gratuitement",ar:"التسجيل مجاناً",en:"Enroll for free"})}</button></>:!course.instructor_id?<><p>{t({fr:"Formation officielle Vydys Academy.",ar:"دورة رسمية من Vydys Academy.",en:"Official Vydys Academy course."})}</p><Link className="btn full" href="/paiement">{t({fr:"S'inscrire",ar:"سجّل",en:"Enroll"})}</Link></>:<>
         <p>{t({fr:"Votre paiement va directement au formateur. Les méthodes mauritaniennes sont validées manuellement ; les providers internationaux sont confirmés automatiquement.",ar:"يذهب الدفع مباشرة إلى المدرب. الطرق الموريتانية تُراجع يدوياً والمزودون الدوليون يؤكدون الدفع تلقائياً.",en:"Your payment goes directly to the instructor. Mauritanian methods are reviewed manually; international providers confirm automatically."})}</p>
         {methods.length===0?<p className="manual-note">{t({fr:"Le formateur n'a pas encore configuré de moyen de paiement.",ar:"لم يضف المدرب وسيلة دفع بعد.",en:"The instructor has not configured a payment method yet."})}</p>:<form onSubmit={buy}>
           <div className="checkout-methods">{methods.map(m=>{
