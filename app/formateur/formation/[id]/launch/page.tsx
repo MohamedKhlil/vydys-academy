@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import { useLanguage } from "../../../../../components/language-provider";
 import { supabase } from "../../../../../lib/supabase";
 
-type Method="click"|"bankily"|"sedad"|"masrvi";
+type Method="click"|"bankily"|"sedad"|"masrvi"|"payoneer";
 
 export default function CourseLaunchFeePage(){
   const {id}=useParams<{id:string}>();
@@ -15,6 +15,7 @@ export default function CourseLaunchFeePage(){
   const [settings,setSettings]=useState<any>(null);
   const [order,setOrder]=useState<any>(null);
   const [autoMethods,setAutoMethods]=useState<any[]>([]);
+  const [payoneer,setPayoneer]=useState<any>(null);
   const [method,setMethod]=useState<Method>("bankily");
   const [reference,setReference]=useState("");
   const [proof,setProof]=useState<File|null>(null);
@@ -23,13 +24,14 @@ export default function CourseLaunchFeePage(){
 
   async function load(){
     const {data:{user}}=await supabase.auth.getUser();if(!user){window.location.href="/connexion";return}
-    const [{data:c},{data:s},{data:o},{data:auto}]=await Promise.all([
+    const [{data:c},{data:s},{data:o},{data:auto},{data:p}]=await Promise.all([
       supabase.from("courses").select("id,title_fr,status,launch_fee_status").eq("id",id).eq("instructor_id",user.id).maybeSingle(),
       supabase.from("platform_settings").select("course_launch_fee_enabled,course_launch_fee_amount,course_launch_fee_currency,course_launch_fee_local_mru,platform_payment_number").eq("id",1).single(),
       supabase.from("course_launch_fee_orders").select("*").eq("course_id",id).maybeSingle(),
-      supabase.from("platform_payment_methods").select("*").eq("payment_mode","automatic").eq("is_active",true)
+      supabase.from("platform_payment_methods").select("*").eq("payment_mode","automatic").eq("is_active",true),
+      supabase.from("platform_payment_methods").select("*").eq("provider_code","payoneer").eq("payment_mode","manual").eq("is_active",true).maybeSingle()
     ]);
-    setCourse(c||false);setSettings(s);setOrder(o||null);setAutoMethods(auto||[]);
+    setCourse(c||false);setSettings(s);setOrder(o||null);setAutoMethods(auto||[]);setPayoneer(p||null);
   }
   useEffect(()=>{load()},[id]);
 
@@ -82,7 +84,20 @@ export default function CourseLaunchFeePage(){
         </>}
       </form>
 
-      <aside className="panel automatic-billing-card launch-auto-card"><span className="eyebrow">{t({fr:"Paiement international automatique",ar:"دفع دولي تلقائي",en:"Automatic international payment"})}</span><h2>{internationalAmount.toLocaleString("fr-FR")} {internationalCurrency}</h2><p>{t({fr:"Si Vydys a connecté un provider international, vous pouvez payer ce frais automatiquement. Une confirmation serveur publiera immédiatement la formation.",ar:"إذا ربطت Vydys مزوداً دولياً يمكنك دفع الرسوم تلقائياً وسيؤدي التأكيد على الخادم إلى نشر الدورة فوراً.",en:"If Vydys has connected an international provider, you can pay this fee automatically. Server confirmation will publish the course immediately."})}</p><div className="auto-billing-options">{autoMethods.length===0?<p className="manual-note">{t({fr:"Aucun provider international Vydys disponible.",ar:"لا يوجد مزود دولي متاح لـ Vydys.",en:"No Vydys international provider is available."})}</p>:autoMethods.map(m=><button className="auto-billing-provider" key={m.id} onClick={()=>payAutomatic(m.provider_code)} disabled={busy}><span>{m.provider_code==="stripe"?"S":"P"}</span><div><strong>{m.provider_code==="stripe"?"Stripe":"PayPal"}</strong><small>{internationalAmount.toLocaleString("fr-FR")} {internationalCurrency}</small></div><b>→</b></button>)}</div><small className="billing-note">0% {t({fr:"commission sur vos ventes après lancement.",ar:"عمولة على مبيعاتك بعد الإطلاق.",en:"commission on your sales after launch."})}</small></aside>
+      {payoneer&&<form className="panel trainer-form payoneer-payment-card" onSubmit={e=>{setMethod("payoneer");submit(e)}}>
+        <span className="eyebrow">International · Payoneer</span><h2>Payoneer</h2>
+        <p>{t({fr:"Payez Vydys via Payoneer puis envoyez la preuve pour validation par la Direction.",ar:"ادفع لـ Vydys عبر Payoneer ثم أرسل الإثبات لمراجعة الإدارة.",en:"Pay Vydys through Payoneer, then upload proof for Management approval."})}</p>
+        <div className="pay-number"><span>PAYONEER</span><strong>{payoneer.account_number}</strong></div>
+        {payoneer.instructions&&<p className="payment-instructor-instructions">{payoneer.instructions}</p>}
+        <div className="amount-box"><span>{t({fr:"Montant",ar:"المبلغ",en:"Amount"})}</span><strong>{internationalAmount.toLocaleString("fr-FR")} {internationalCurrency}</strong></div>
+        {String(payoneer.currency).toUpperCase()!==String(internationalCurrency).toUpperCase()?<p className="manual-note">{t({fr:"La devise Payoneer configurée ne correspond pas au frais de lancement.",ar:"عملة Payoneer لا تطابق رسوم الإطلاق.",en:"Configured Payoneer currency does not match the launch fee."})}</p>:<>
+          <label className="upload-zone"><input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>setProof(e.target.files?.[0]||null)}/><span>↑</span><strong>{proof?.name||t({fr:"Ajouter la preuve Payoneer",ar:"أضف إثبات Payoneer",en:"Add Payoneer proof"})}</strong></label>
+          <label className="form-field"><span>{t({fr:"Référence transaction",ar:"مرجع العملية",en:"Transaction reference"})}</span><input value={reference} onChange={e=>setReference(e.target.value)}/></label>
+          <button className="btn" disabled={busy}>{busy?"...":t({fr:"Envoyer Payoneer",ar:"إرسال Payoneer",en:"Submit Payoneer"})}</button>
+        </>}
+      </form>}
+
+      <aside className="panel automatic-billing-card launch-auto-card"><span className="eyebrow">{t({fr:"Paiement international automatique",ar:"دفع دولي تلقائي",en:"Automatic international payment"})}</span><h2>{internationalAmount.toLocaleString("fr-FR")} {internationalCurrency}</h2><p>{t({fr:"Si Vydys a connecté un provider international, vous pouvez payer ce frais automatiquement. Une confirmation serveur publiera immédiatement la formation.",ar:"إذا ربطت Vydys مزوداً دولياً يمكنك دفع الرسوم تلقائياً وسيؤدي التأكيد على الخادم إلى نشر الدورة فوراً.",en:"If Vydys has connected an international provider, you can pay this fee automatically. Server confirmation will publish the course immediately."})}</p><div className="auto-billing-options">{autoMethods.length===0?<p className="manual-note">{t({fr:"Aucun provider international Vydys disponible.",ar:"لا يوجد مزود دولي متاح لـ Vydys.",en:"No Vydys international provider is available."})}</p>:autoMethods.map(m=><button className="auto-billing-provider" key={m.id} onClick={()=>payAutomatic(m.provider_code)} disabled={busy}><span>{m.provider_code==="stripe"?"S":m.provider_code==="paypal"?"P":"PD"}</span><div><strong>{m.provider_code==="stripe"?"Stripe":m.provider_code==="paypal"?"PayPal":"Paddle"}</strong><small>{internationalAmount.toLocaleString("fr-FR")} {internationalCurrency}</small></div><b>→</b></button>)}</div><small className="billing-note">0% {t({fr:"commission sur vos ventes après lancement.",ar:"عمولة على مبيعاتك بعد الإطلاق.",en:"commission on your sales after launch."})}</small></aside>
     </div>}
   </div></section>
 }
