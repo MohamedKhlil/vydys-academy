@@ -1,0 +1,14 @@
+"use client";
+
+import { useEffect,useState } from "react";
+import Link from "next/link";
+import { useLanguage } from "../../../components/language-provider";
+import { supabase } from "../../../lib/supabase";
+
+export default function MySalesPage(){
+  const {t}=useLanguage();const [rows,setRows]=useState<any[]>([]);const [products,setProducts]=useState<Record<string,any>>({});const [notice,setNotice]=useState("");
+  async function load(){const {data:{user}}=await supabase.auth.getUser();if(!user){window.location.href="/connexion";return}const {data:o}=await supabase.from("marketplace_orders").select("*").eq("seller_id",user.id).order("created_at",{ascending:false});setRows(o||[]);const ids=[...new Set((o||[]).map((x:any)=>x.product_id))];if(ids.length){const {data:p}=await supabase.from("marketplace_products").select("id,title,slug").in("id",ids);const m:Record<string,any>={};(p||[]).forEach((x:any)=>m[x.id]=x);setProducts(m)}}
+  useEffect(()=>{load()},[]);
+  async function action(id:string,kind:"confirm"|"fulfill"|"reject"){const note=kind==="reject"?window.prompt(t({fr:"Motif du refus",ar:"سبب الرفض",en:"Reason"})):"";if(kind==="reject"&&note===null)return;const {error}=await supabase.rpc("seller_update_marketplace_order",{p_order_id:id,p_action:kind,p_note:note||""});setNotice(error?error.message:t({fr:"Commande mise à jour.",ar:"تم تحديث الطلب.",en:"Order updated."}));await load()}
+  return <section className="dashboard-shell"><div className="container"><div className="dash-header"><div><span className="eyebrow">Vydys Marketplace</span><h1>{t({fr:"Mes ventes",ar:"مبيعاتي",en:"My sales"})}</h1></div><Link className="btn btn-ghost" href="/marketplace/mes-produits">{t({fr:"Mes produits",ar:"منتجاتي",en:"My products"})}</Link></div>{notice&&<p className="manual-note">{notice}</p>}<div className="admin-marketplace-list">{rows.map(o=><article className="panel" key={o.id}><div><span className="tag">{o.status}</span><h2>{products[o.product_id]?.title||t({fr:"Produit",ar:"منتج",en:"Product"})}</h2><p>{o.amount} {o.currency}{o.transaction_reference?" · Ref: "+o.transaction_reference:""}</p><small>{new Date(o.created_at).toLocaleString()}</small></div><div>{["awaiting_payment","proof_submitted"].includes(o.status)&&<><button className="btn btn-small" onClick={()=>action(o.id,"confirm")}>{t({fr:"Confirmer paiement",ar:"تأكيد الدفع",en:"Confirm payment"})}</button><button className="btn btn-small btn-ghost" onClick={()=>action(o.id,"reject")}>{t({fr:"Refuser",ar:"رفض",en:"Reject"})}</button></>}{o.status==="confirmed"&&<button className="btn btn-small" onClick={()=>action(o.id,"fulfill")}>{t({fr:"Marquer livré",ar:"تم التسليم",en:"Mark fulfilled"})}</button>}</div></article>)}</div>{rows.length===0&&<article className="panel"><p>{t({fr:"Aucune vente pour le moment.",ar:"لا توجد مبيعات حالياً.",en:"No sales yet."})}</p></article>}</div></section>
+}
