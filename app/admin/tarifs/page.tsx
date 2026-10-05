@@ -29,6 +29,7 @@ export default function AdminTarifsPage(){
   const [paypalClientId,setPaypalClientId]=useState("");
   const [paypalSecret,setPaypalSecret]=useState("");
   const [paddleApiKey,setPaddleApiKey]=useState("");
+  const [paddleClientToken,setPaddleClientToken]=useState("");
   const [payoneerAccount,setPayoneerAccount]=useState("");
   const [payoneerCurrency,setPayoneerCurrency]=useState("USD");
   const [payoneerInstructions,setPayoneerInstructions]=useState("");
@@ -73,11 +74,11 @@ export default function AdminTarifsPage(){
     const body:any={action:"connect_provider",provider,environment:providerEnvironment};
     if(provider==="stripe")body.secret_key=stripeKey.trim();
     else if(provider==="paypal"){body.client_id=paypalClientId.trim();body.client_secret=paypalSecret.trim()}
-    else body.api_key=paddleApiKey.trim();
+    else{body.api_key=paddleApiKey.trim();body.client_token=paddleClientToken.trim()}
     const {data,error}=await supabase.functions.invoke("vydys-platform-billing",{body});
     setProviderBusy(false);
     if(error||data?.error){setMessage(data?.detail||data?.error||error?.message||"Connection failed");return}
-    setStripeKey("");setPaypalClientId("");setPaypalSecret("");setPaddleApiKey("");
+    setStripeKey("");setPaypalClientId("");setPaypalSecret("");setPaddleApiKey("");setPaddleClientToken("");
     setMessage(t({fr:"Provider Vydys connecté et vérifié.",ar:"تم ربط مزود Vydys والتحقق منه.",en:"Vydys provider connected and verified."}));
     window.location.reload();
   }
@@ -174,7 +175,10 @@ export default function AdminTarifsPage(){
           {provider==="stripe"?<label className="form-field"><span>Stripe Secret Key</span><input type="password" autoComplete="off" value={stripeKey} onChange={e=>setStripeKey(e.target.value)} placeholder={providerEnvironment==="live"?"sk_live_...":"sk_test_..."}/></label>:provider==="paypal"?<>
             <label className="form-field"><span>PayPal Client ID</span><input type="password" autoComplete="off" value={paypalClientId} onChange={e=>setPaypalClientId(e.target.value)}/></label>
             <label className="form-field"><span>PayPal Client Secret</span><input type="password" autoComplete="off" value={paypalSecret} onChange={e=>setPaypalSecret(e.target.value)}/></label>
-          </>:<label className="form-field"><span>Paddle API Key</span><input type="password" autoComplete="off" value={paddleApiKey} onChange={e=>setPaddleApiKey(e.target.value)} placeholder={providerEnvironment==="live"?"pdl_live_apikey_...":"pdl_sdbx_apikey_..."}/></label>}
+          </>:<>
+            <label className="form-field"><span>Paddle API Key</span><input type="password" autoComplete="off" value={paddleApiKey} onChange={e=>setPaddleApiKey(e.target.value)} placeholder={providerEnvironment==="live"?"pdl_live_apikey_...":"pdl_sdbx_apikey_..."}/></label>
+            <label className="form-field"><span>Paddle Client-side Token</span><input type="password" autoComplete="off" value={paddleClientToken} onChange={e=>setPaddleClientToken(e.target.value)} placeholder={providerEnvironment==="live"?"live_...":"test_..."}/><small>{t({fr:"Le token client Paddle est destiné à Paddle.js. La clé API reste uniquement côté serveur.",ar:"رمز Paddle للعميل مخصص لـ Paddle.js بينما تبقى مفتاح API على الخادم فقط.",en:"The Paddle client token is for Paddle.js. The API key stays server-side only."})}</small></label>
+          </>}
           <button className="btn" onClick={connectPlatformProvider} disabled={providerBusy}>{providerBusy?"...":t({fr:"Tester & connecter Vydys",ar:"اختبار وربط Vydys",en:"Test & connect Vydys"})}</button>
         </div>
         <div className="provider-list">{platformProviders.length===0?<p>{t({fr:"Aucun provider automatique Vydys connecté.",ar:"لا يوجد مزود تلقائي لـ Vydys.",en:"No automatic Vydys provider connected."})}</p>:platformProviders.map(p=><article className="provider-connected-card" key={p.provider}><div className="provider-logo">{p.provider==="stripe"?"S":p.provider==="paypal"?"P":"PD"}</div><div><strong>{p.provider==="stripe"?"Stripe":p.provider==="paypal"?"PayPal":"Paddle"}</strong><span>{p.provider_account_label||p.provider_account_id||p.key_hint}</span><small>{p.environment} · {p.status} · {p.key_hint}</small></div><button onClick={()=>disconnectPlatformProvider(p.provider)}>{t({fr:"Déconnecter",ar:"قطع الاتصال",en:"Disconnect"})}</button></article>)}</div>
