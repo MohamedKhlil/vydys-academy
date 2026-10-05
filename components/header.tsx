@@ -61,6 +61,7 @@ export function Header() {
           </div>
         </details>
 
+        <Link href="/hub">Hub</Link>
         <Link href="/formations">{t({fr:"Formations",ar:"الدورات",en:"Courses"})}</Link>
         <Link href="/classroom">Classroom</Link>
         <Link href="/practice">Practice</Link>
@@ -98,6 +99,7 @@ export function Header() {
 
         <div className="mobile-menu-section">
           <small>{t({fr:"Découvrir",ar:"اكتشف",en:"Discover"})}</small>
+          <Link href="/hub"><span>00</span><div><strong>Vydys Hub</strong><small>{t({fr:"Tout l’écosystème Vydys",ar:"منظومة Vydys كاملة",en:"The complete Vydys ecosystem"})}</small></div><b>→</b></Link>
           <Link href="/formations"><span>01</span><div><strong>{t({fr:"Formations",ar:"الدورات",en:"Courses"})}</strong><small>{t({fr:"Apprendre avec des experts",ar:"تعلم مع الخبراء",en:"Learn with experts"})}</small></div><b>→</b></Link>
           <Link href="/classroom"><span>02</span><div><strong>Vydys Classroom</strong><small>{t({fr:"Cohortes live",ar:"فصول مباشرة",en:"Live cohorts"})}</small></div><b>→</b></Link>
           <Link href="/practice"><span>03</span><div><strong>Practice Hub</strong><small>Code · SQL · API · Data · Cloud</small></div><b>→</b></Link>
