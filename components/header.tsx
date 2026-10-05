@@ -45,6 +45,8 @@ export function Header() {
               <Link href="/formations"><b>{t({fr:"Formations",ar:"الدورات",en:"Courses"})}</b><span>{t({fr:"Cours en ligne orientés pratique",ar:"دورات عملية عبر الإنترنت",en:"Practical online courses"})}</span></Link>
               <Link href="/classroom"><b>Vydys Classroom</b><span>{t({fr:"Cohortes live intégrées",ar:"فصول مباشرة مدمجة",en:"Integrated live cohorts"})}</span></Link>
               <Link href="/formateurs"><b>{t({fr:"Formateurs",ar:"المدربون",en:"Instructors"})}</b><span>{t({fr:"Experts et créateurs",ar:"خبراء ومنشئون",en:"Experts and creators"})}</span></Link>
+              <Link href="/forum"><b>Community</b><span>{t({fr:"Forum et entraide Vydys",ar:"منتدى ومجتمع Vydys",en:"Vydys forum and community"})}</span></Link>
+              <Link href="/marketplace"><b>Marketplace</b><span>{t({fr:"Produits vendus par la communauté",ar:"منتجات يبيعها المجتمع",en:"Products sold by the community"})}</span></Link>
             </div>
             <div className="nav-mega-column">
               <small>{t({fr:"Pratiquer",ar:"التدريب",en:"Practice"})}</small>
@@ -63,6 +65,7 @@ export function Header() {
 
         <Link href="/hub">Hub</Link>
         <Link href="/formations">{t({fr:"Formations",ar:"الدورات",en:"Courses"})}</Link>
+        <Link href="/marketplace">Market</Link>
         <Link href="/classroom">Classroom</Link>
         <Link href="/practice">Practice</Link>
         <Link href="/ai-lab">AI Lab</Link>
@@ -104,6 +107,8 @@ export function Header() {
           <Link href="/classroom"><span>02</span><div><strong>Vydys Classroom</strong><small>{t({fr:"Cohortes live",ar:"فصول مباشرة",en:"Live cohorts"})}</small></div><b>→</b></Link>
           <Link href="/practice"><span>03</span><div><strong>Practice Hub</strong><small>Code · SQL · API · Data · Cloud</small></div><b>→</b></Link>
           <Link href="/ai-lab"><span>04</span><div><strong>AI Lab</strong><small>Agents · RAG · Knowledge · Code</small></div><b>→</b></Link>
+          <Link href="/forum"><span>05</span><div><strong>Community</strong><small>{t({fr:"Forum Vydys",ar:"منتدى Vydys",en:"Vydys forum"})}</small></div><b>→</b></Link>
+          <Link href="/marketplace"><span>06</span><div><strong>Marketplace</strong><small>{t({fr:"Acheter et vendre",ar:"شراء وبيع",en:"Buy and sell"})}</small></div><b>→</b></Link>
         </div>
 
         {isStudent&&<div className="mobile-menu-section">
@@ -114,6 +119,7 @@ export function Header() {
           <Link href="/projects"><strong>{t({fr:"Mes projets",ar:"مشاريعي",en:"My projects"})}</strong></Link>
           <Link href="/competences"><strong>Skills Passport</strong></Link>
           <Link href="/portfolio"><strong>Portfolio</strong></Link>
+          <Link href="/parametres"><strong>{t({fr:"Paramètres",ar:"الإعدادات",en:"Settings"})}</strong></Link>
         </div>}
 
         {isInstructor&&<div className="mobile-menu-section">
@@ -123,6 +129,8 @@ export function Header() {
           <Link href="/formateur/classrooms"><strong>Classrooms</strong></Link>
           <Link href="/formateur/copilote"><strong>AI Copilot</strong></Link>
           <Link href="/formateur/paiements"><strong>{t({fr:"Paiements",ar:"المدفوعات",en:"Payments"})}</strong></Link>
+          <Link href="/marketplace/vendre"><strong>{t({fr:"Vendre un produit",ar:"بيع منتج",en:"Sell a product"})}</strong></Link>
+          <Link href="/parametres"><strong>{t({fr:"Paramètres",ar:"الإعدادات",en:"Settings"})}</strong></Link>
         </div>}
 
         {isManagement&&<div className="mobile-menu-section">
@@ -132,6 +140,8 @@ export function Header() {
           <Link href="/admin/formations"><strong>{t({fr:"Formations",ar:"الدورات",en:"Courses"})}</strong></Link>
           <Link href="/admin/classrooms"><strong>Classrooms</strong></Link>
           <Link href="/admin/tarifs"><strong>{t({fr:"Finance & tarifs",ar:"المالية والأسعار",en:"Finance & pricing"})}</strong></Link>
+          <Link href="/admin/marketplace"><strong>Marketplace</strong></Link>
+          <Link href="/parametres"><strong>{t({fr:"Paramètres",ar:"الإعدادات",en:"Settings"})}</strong></Link>
         </div>}
 
         <div className="mobile-menu-bottom">
