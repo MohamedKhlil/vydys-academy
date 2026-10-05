@@ -7,7 +7,7 @@ import { supabase } from "../../lib/supabase";
 
 export default function MarketplacePage(){
   const {lang,t}=useLanguage();const [products,setProducts]=useState<any[]>([]);const [profiles,setProfiles]=useState<Record<string,any>>({});const [search,setSearch]=useState("");const [category,setCategory]=useState("all");
-  useEffect(()=>{(async()=>{const {data:p}=await supabase.from("marketplace_products").select("*").eq("status","published").order("created_at",{ascending:false});setProducts(p||[]);const ids=[...new Set((p||[]).map((x:any)=>x.seller_id))];if(ids.length){const {data:pr}=await supabase.from("profiles").select("id,full_name,username,avatar_url").in("id",ids);const m:Record<string,any>={};(pr||[]).forEach((x:any)=>m[x.id]=x);setProfiles(m)}})()},[]);
+  useEffect(()=>{(async()=>{const {data:p}=await supabase.from("marketplace_products").select("*").eq("status","published").order("created_at",{ascending:false});setProducts(p||[]);const ids=[...new Set((p||[]).map((x:any)=>x.seller_id))];if(ids.length){const {data:pr}=await supabase.from("public_profiles").select("user_id,full_name,username,avatar_url").in("user_id",ids);const m:Record<string,any>={};(pr||[]).forEach((x:any)=>m[x.user_id]=x);setProfiles(m)}})()},[]);
   const categories=useMemo(()=>[...new Set(products.map(x=>x.category).filter(Boolean))],[products]);
   const shown=useMemo(()=>products.filter(p=>(category==="all"||p.category===category)&&(!search.trim()||[p.title,p.description,p.category].join(" ").toLowerCase().includes(search.toLowerCase()))),[products,search,category]);
   return <section className="section page-top marketplace-vydys"><div className="container">
