@@ -28,6 +28,8 @@ export default function VydysHubPage(){
   const [sessions,setSessions]=useState<any[]>([]);
   const [recommended,setRecommended]=useState<any[]>([]);
   const [skillEngine,setSkillEngine]=useState<any>(null);
+  const [socialActivity,setSocialActivity]=useState<any[]>([]);
+  const [socialProfiles,setSocialProfiles]=useState<Record<string,any>>({});
 
   useEffect(()=>{(async()=>{
     const {data:{user}}=await supabase.auth.getUser();
@@ -35,6 +37,13 @@ export default function VydysHubPage(){
     setSignedIn(true);
     const {data:p}=await supabase.from("profiles").select("role,full_name,preferred_currency").eq("id",user.id).maybeSingle();
     setProfile(p||null);
+    const {data:feed}=await supabase.from("activity_feed").select("*").order("created_at",{ascending:false}).limit(8);
+    setSocialActivity(feed||[]);
+    const actorIds=[...new Set((feed||[]).map((x:any)=>x.actor_id).filter(Boolean))];
+    if(actorIds.length){
+      const {data:pp}=await supabase.from("public_profiles").select("user_id,full_name,username,avatar_url,seller_verified,reputation_score").in("user_id",actorIds);
+      const pm:Record<string,any>={};(pp||[]).forEach((x:any)=>pm[x.user_id]=x);setSocialProfiles(pm);
+    }
 
     if((p?.role||"student")==="student"){
       const [{data:e},{data:pr},{data:ce},{data:engine},{data:courses},{data:ratings}]=await Promise.all([
@@ -159,6 +168,11 @@ export default function VydysHubPage(){
 
     {signedIn&&!loading&&role==="instructor"&&<section className="hub-role-strip"><div className="container"><div><span className="eyebrow">VYDYS STUDIO</span><h2>{t({fr:"Gérez votre activité de formateur depuis votre Hub.",ar:"أدر نشاطك كمدرب من الـ Hub.",en:"Run your instructor activity from your Hub."})}</h2></div><div><Link className="btn" href="/formateur">{t({fr:"Ouvrir Studio",ar:"فتح Studio",en:"Open Studio"})}</Link><Link className="btn btn-ghost" href="/formateur/nouvelle-formation">{t({fr:"Créer une formation",ar:"إنشاء دورة",en:"Create course"})}</Link></div></div></section>}
     {signedIn&&!loading&&(role==="admin"||role==="direction")&&<section className="hub-role-strip"><div className="container"><div><span className="eyebrow">VYDYS CONTROL</span><h2>{t({fr:"Supervisez la plateforme depuis le Hub.",ar:"أشرف على المنصة من الـ Hub.",en:"Supervise the platform from the Hub."})}</h2></div><Link className="btn" href="/admin">{t({fr:"Ouvrir Control",ar:"فتح Control",en:"Open Control"})}</Link></div></section>}
+
+    {signedIn&&!loading&&socialActivity.length>0&&<section className="hub-social"><div className="container">
+      <div className="hub-section-head dark"><div><span className="eyebrow">VYDYS NETWORK</span><h2>{t({fr:"Ce qui bouge dans votre communauté.",ar:"ما يحدث في مجتمعك.",en:"What is happening in your community."})}</h2></div><Link href="/forum">Community ↗</Link></div>
+      <div className="hub-social-grid">{socialActivity.map(a=>{const actor=socialProfiles[a.actor_id];return <Link href={a.link||"#"} className="hub-social-card" key={a.id}><div className="hub-social-author">{actor?.avatar_url?<img src={actor.avatar_url} alt=""/>:<span>{(actor?.full_name||"V").slice(0,2)}</span>}<div><strong>{actor?.full_name||actor?.username||"Vydys"} {actor?.seller_verified?"✓":""}</strong><small>{actor?.reputation_score||0} XP · {a.activity_type}</small></div></div><h3>{a.title}</h3><p>{a.body}</p><small>{new Date(a.created_at).toLocaleString()}</small></Link>})}</div>
+    </div></section>}
 
     <section className="hub-directory"><div className="container">
       <div className="hub-filter-row">{filters.map(([key,label])=><button key={key} className={filter===key?"active":""} onClick={()=>setFilter(key)}>{label}</button>)}</div>
