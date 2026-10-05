@@ -9,6 +9,7 @@ const items=[
   {href:"/admin/formateurs",icon:"◎",fr:"Formateurs",ar:"المدربون",en:"Instructors"},
   {href:"/admin/formations",icon:"▤",fr:"Formations",ar:"الدورات",en:"Courses"},
   {href:"/admin/classrooms",icon:"LIVE",fr:"Classrooms",ar:"الفصول المباشرة",en:"Classrooms"},
+  {href:"/admin/marketplace",icon:"M",fr:"Marketplace",ar:"السوق",en:"Marketplace"},
   {href:"/admin/abonnements",icon:"◇",fr:"Abonnements",ar:"الاشتراكات",en:"Subscriptions"},
   {href:"/admin/analytics",icon:"↗",fr:"Analytics",ar:"التحليلات",en:"Analytics"},
   {href:"/admin/support",icon:"?",fr:"Support",ar:"الدعم",en:"Support"},
