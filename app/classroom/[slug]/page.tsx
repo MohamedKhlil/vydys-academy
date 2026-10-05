@@ -66,6 +66,17 @@ export default function ClassroomDetailPage(){
   const formatMoney=(amount:number,currency:string)=>new Intl.NumberFormat(lang==="ar"?"ar-MR":lang==="en"?"en-US":"fr-FR",{style:"currency",currency,maximumFractionDigits:2}).format(amount);
   const formatDate=(iso:string)=>new Intl.DateTimeFormat(lang==="ar"?"ar-MR":lang==="en"?"en-US":"fr-FR",{weekday:"short",day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit",timeZone:room?.timezone||"UTC"}).format(new Date(iso));
 
+  async function enrollFree(){
+    setMessage("");setBusy(true);
+    const {data:{user}}=await supabase.auth.getUser();
+    if(!user){window.location.href="/connexion";return}
+    if(stats?.is_full){setBusy(false);setMessage(t({fr:"Cette Classroom est complète.",ar:"هذا الفصل ممتلئ.",en:"This Classroom is full."}));return}
+    const {error}=await supabase.rpc("enroll_free_classroom",{p_classroom_id:room.id});
+    setBusy(false);
+    if(error){setMessage(error.message);return}
+    setEnrolled(true);await load();
+  }
+
   async function enroll(e:FormEvent){
     e.preventDefault();setMessage("");
     const {data:{user}}=await supabase.auth.getUser();
@@ -120,9 +131,9 @@ export default function ClassroomDetailPage(){
 
       <aside className="panel classroom-enroll-card">
         {enrolled?<><div className="enrolled-check">✓</div><h2>{t({fr:"Vous êtes inscrit",ar:"أنت مسجل",en:"You are enrolled"})}</h2>{next&&<><p>{t({fr:"Prochaine séance",ar:"الحصة القادمة",en:"Next session"})}</p><strong className="next-session-time">{formatDate(next.starts_at)}</strong><Link className="btn full" href={"/classroom/"+room.slug+"/session/"+next.id}>{canJoin(next)?t({fr:"Rejoindre maintenant",ar:"انضم الآن",en:"Join now"}):t({fr:"Ouvrir l’espace session",ar:"فتح مساحة الحصة",en:"Open session space"})}</Link></>}<Link className="btn btn-ghost full" href="/classroom">{t({fr:"Mes Classrooms",ar:"فصولي",en:"My Classrooms"})}</Link></>:<>
-          <div className="classroom-price-head"><small>{t({fr:"Prix de la cohorte",ar:"سعر الدفعة",en:"Cohort price"})}</small><h2>{formatMoney(Number(room.base_price_amount),room.base_currency)}</h2></div>
+          <div className="classroom-price-head"><small>{t({fr:"Prix de la cohorte",ar:"سعر الدفعة",en:"Cohort price"})}</small><h2>{Number(room.base_price_amount)===0?t({fr:"GRATUIT",ar:"مجاني",en:"FREE"}):formatMoney(Number(room.base_price_amount),room.base_currency)}</h2></div>
           <div className="classroom-seats"><div><span>{t({fr:"Places disponibles",ar:"المقاعد المتاحة",en:"Available seats"})}</span><strong>{stats?.spots_left??room.capacity}/{room.capacity}</strong></div><div className="seat-bar"><span style={{width:`${Math.min(100,Math.max(0,((room.capacity-(stats?.spots_left??room.capacity))/room.capacity)*100))}%`}}></span></div></div>
-          {stats?.is_full?<div className="classroom-full-state">{t({fr:"COMPLET",ar:"مكتمل",en:"FULL"})}</div>:methods.length===0?<p className="manual-note">{t({fr:"Le formateur n’a pas encore configuré de moyen de paiement.",ar:"لم يضف المدرب وسيلة دفع بعد.",en:"The instructor has not configured a payment method yet."})}</p>:<form onSubmit={enroll}>
+          {stats?.is_full?<div className="classroom-full-state">{t({fr:"COMPLET",ar:"مكتمل",en:"FULL"})}</div>:Number(room.base_price_amount)===0?<button className="btn full" onClick={enrollFree} disabled={busy}>{busy?"...":t({fr:"S’inscrire gratuitement",ar:"التسجيل مجاناً",en:"Enroll for free"})}</button>:methods.length===0?<p className="manual-note">{t({fr:"Le formateur n’a pas encore configuré de moyen de paiement.",ar:"لم يضف المدرب وسيلة دفع بعد.",en:"The instructor has not configured a payment method yet."})}</p>:<form onSubmit={enroll}>
             <div className="checkout-methods">{methods.map(m=>{
               const cur=m.payment_mode==="automatic"?(checkoutCurrency||room.base_currency):String(m.currency||"MRU").toUpperCase();
               const p=priceMap[cur] ?? (String(room.base_currency).toUpperCase()===cur?Number(room.base_price_amount):null);
