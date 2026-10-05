@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { useLanguage } from "../../../components/language-provider";
 import { supabase } from "../../../lib/supabase";
 
@@ -12,14 +11,19 @@ declare global{
 }
 
 export default function PaddleCheckoutPage(){
-  const params=useSearchParams();
   const {t}=useLanguage();
-  const orderId=params.get("order_id")||"";
+  const [orderId,setOrderId]=useState("");
   const opened=useRef(false);
   const [state,setState]=useState<"loading"|"ready"|"error">("loading");
   const [message,setMessage]=useState("");
 
   useEffect(()=>{
+    const id=new URLSearchParams(window.location.search).get("order_id")||"";
+    setOrderId(id);
+  },[]);
+
+  useEffect(()=>{
+    if(!orderId)return;
     let cancelled=false;
 
     async function start(){
