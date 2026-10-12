@@ -4,7 +4,8 @@ import { Header } from "../components/header";
 import { Footer } from "../components/footer";
 import { LanguageProvider } from "../components/language-provider";
 
-export const metadata: Metadata = {\n  metadataBase: new URL("https://www.vydys.com"),
+export const metadata: Metadata = {
+  metadataBase: new URL("https://www.vydys.com"),
   title: {
     default: "Vydys Academy — AI, Tech & Verified Skills",
     template: "%s · Vydys Academy",
