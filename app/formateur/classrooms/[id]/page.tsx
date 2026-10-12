@@ -64,7 +64,7 @@ export default function ClassroomManagePage(){
   async function submitReview(){
     setMessage("");
     const {error}=await supabase.rpc("submit_classroom_for_review",{p_classroom_id:id});
-    if(error)setMessage(error.message);else{setMessage(t({fr:"Classroom envoyée à la Direction pour validation.",ar:"تم إرسال الفصل للإدارة للمراجعة.",en:"Classroom submitted to Management for review."}));await load()}
+    if(error)setMessage(error.message);else{setMessage(t({fr:"Classroom publiée.",ar:"تم نشر الفصل.",en:"Classroom published."}));await load()}
   }
 
   async function updateSession(session:any,starts:string,title:string){
@@ -105,7 +105,7 @@ export default function ClassroomManagePage(){
   const toLocal=(iso:string)=>{const d=new Date(iso);const pad=(n:number)=>String(n).padStart(2,"0");return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`};
 
   return <section className="dashboard-shell classroom-manage-page"><div className="container">
-    <div className="dash-header"><div><span className="eyebrow">Classroom Studio</span><h1>{room.title_fr}</h1><p>{room.session_count} {t({fr:"sessions",ar:"حصص",en:"sessions"})} · {room.capacity} {t({fr:"places",ar:"مقعد",en:"seats"})} · {room.timezone}</p></div><div className="builder-head-actions">{room.status==="draft"||room.status==="rejected"?<button className="btn" onClick={submitReview}>{t({fr:"Soumettre à l’Admin",ar:"إرسال للإدارة",en:"Submit to Admin"})}</button>:null}{room.status==="approved_pending_fee"&&<Link className="btn" href={"/formateur/classrooms/"+id+"/launch"}>{t({fr:"Payer le lancement",ar:"دفع الإطلاق",en:"Pay launch fee"})}</Link>}{room.status==="published"&&<Link className="btn btn-ghost" href={"/classroom/"+room.slug}>{t({fr:"Voir la page publique",ar:"عرض الصفحة",en:"View public page"})}</Link>}</div></div>
+    <div className="dash-header"><div><span className="eyebrow">Classroom Studio</span><h1>{room.title_fr}</h1><p>{room.session_count} {t({fr:"sessions",ar:"حصص",en:"sessions"})} · {room.capacity} {t({fr:"places",ar:"مقعد",en:"seats"})} · {room.timezone}</p></div><div className="builder-head-actions">{room.status==="draft"||room.status==="rejected"?<button className="btn" onClick={submitReview}>{t({fr:"Publier la Classroom",ar:"نشر الفصل",en:"Publish Classroom"})}</button>:null}{room.status==="approved_pending_fee"&&<Link className="btn" href={"/formateur/classrooms/"+id+"/launch"}>{t({fr:"Payer le lancement",ar:"دفع الإطلاق",en:"Pay launch fee"})}</Link>}{room.status==="published"&&<Link className="btn btn-ghost" href={"/classroom/"+room.slug}>{t({fr:"Voir la page publique",ar:"عرض الصفحة",en:"View public page"})}</Link>}</div></div>
 
     {message&&<p className="manual-note">{message}</p>}
     <div className="classroom-manage-kpis">
