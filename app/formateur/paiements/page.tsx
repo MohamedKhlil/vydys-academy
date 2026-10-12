@@ -66,6 +66,15 @@ export default function FormateurPaiementsPage(){
     setMessage(t({fr:"Provider international connecté et vérifié.",ar:"تم ربط مزود الدفع الدولي والتحقق منه.",en:"International provider connected and verified."}));await load();
   }
 
+  async function editDiscount(id:string,current:number|string){
+    const value=window.prompt(t({fr:"Réduction en % (0 à 100)",ar:"نسبة الخصم ٪ (0 إلى 100)",en:"Discount % (0 to 100)"}),String(current??0));
+    if(value===null)return;
+    const n=Number(value);
+    if(!Number.isFinite(n)||n<0||n>100){setMessage(t({fr:"Réduction invalide.",ar:"الخصم غير صالح.",en:"Invalid discount."}));return}
+    const {error}=await supabase.from("instructor_payment_methods").update({discount_percent:n,updated_at:new Date().toISOString()}).eq("id",id);
+    if(error)setMessage(error.message);else{setMessage(t({fr:"Réduction mise à jour.",ar:"تم تحديث الخصم.",en:"Discount updated."}));await load()}
+  }
+
   async function disable(id:string){
     await supabase.from("instructor_payment_methods").update({is_active:false}).eq("id",id);await load();
   }
@@ -103,10 +112,10 @@ export default function FormateurPaiementsPage(){
         <label className="form-field"><span>{t({fr:"Numéro / Compte / RIB",ar:"الرقم / الحساب",en:"Number / Account"})}</span><input value={account} onChange={e=>setAccount(e.target.value)} required/></label>
         {method==="bank_transfer"&&<label className="form-field"><span>{t({fr:"Devise reçue",ar:"عملة الاستلام",en:"Settlement currency"})}</span><select value={currency} onChange={e=>setCurrency(e.target.value)}>{currencies.map(c=><option key={c.code} value={c.code}>{c.code} · {c.name}</option>)}</select></label>}
         <label className="form-field"><span>{t({fr:"Instructions pour l’étudiant",ar:"تعليمات للطالب",en:"Student instructions"})}</span><textarea rows={4} value={instructions} onChange={e=>setInstructions(e.target.value)} placeholder={t({fr:"Ex: indiquez votre nom dans la référence puis envoyez la preuve.",ar:"مثال: اكتب اسمك في المرجع ثم أرسل الإثبات.",en:"Example: include your name in the reference then upload proof."})}/></label>
-        <label className="form-field"><span>{t({fr:"Réduction % optionnelle",ar:"خصم اختياري ٪",en:"Optional discount %"})}</span><input type="number" min="0" max="100" step="0.1" value={discount} onChange={e=>setDiscount(e.target.value)}/></label>
+        <label className="form-field"><span>{t({fr:"Réduction choisie par vous (%)",ar:"الخصم الذي تختاره أنت (٪)",en:"Discount chosen by you (%)"})}</span><input type="number" min="0" max="100" step="0.1" value={discount} onChange={e=>setDiscount(e.target.value)}/><small>{t({fr:"0 = aucune réduction. Vous pouvez la modifier plus tard.",ar:"0 = بدون خصم. يمكنك تغييره لاحقاً.",en:"0 = no discount. You can change it later."})}</small></label>
         <button className="btn">{t({fr:"Ajouter",ar:"إضافة",en:"Add method"})}</button>
       </form>
-      <aside className="panel"><h2>{t({fr:"Mes méthodes manuelles",ar:"طرقي اليدوية",en:"My manual methods"})}</h2><div className="method-list">{manualRows.length===0?<p>{t({fr:"Aucune méthode manuelle.",ar:"لا توجد طريقة يدوية.",en:"No manual method yet."})}</p>:manualRows.map(r=><div className="method-row payment-method-row-rich" key={r.id}><div><strong>{(r.label||r.method).toUpperCase()}</strong><span>{r.account_holder? r.account_holder+" · ":""}{r.account_number}</span><small>{r.currency} · {r.discount_percent}% · {r.is_active?t({fr:"Actif",ar:"نشط",en:"Active"}):t({fr:"Inactif",ar:"غير نشط",en:"Inactive"})}</small></div>{r.is_active?<button onClick={()=>disable(r.id)}>{t({fr:"Désactiver",ar:"تعطيل",en:"Disable"})}</button>:<button className="enable" onClick={()=>enable(r.id)}>{t({fr:"Activer",ar:"تفعيل",en:"Enable"})}</button>}</div>)}</div></aside>
+      <aside className="panel"><h2>{t({fr:"Mes méthodes manuelles",ar:"طرقي اليدوية",en:"My manual methods"})}</h2><div className="method-list">{manualRows.length===0?<p>{t({fr:"Aucune méthode manuelle.",ar:"لا توجد طريقة يدوية.",en:"No manual method yet."})}</p>:manualRows.map(r=><div className="method-row payment-method-row-rich" key={r.id}><div><strong>{(r.label||r.method).toUpperCase()}</strong><span>{r.account_holder? r.account_holder+" · ":""}{r.account_number}</span><small>{r.currency} · {r.discount_percent}% · {r.is_active?t({fr:"Actif",ar:"نشط",en:"Active"}):t({fr:"Inactif",ar:"غير نشط",en:"Inactive"})}</small></div><div className="method-row-actions"><button type="button" onClick={()=>editDiscount(r.id,r.discount_percent)}>{t({fr:"Réduction",ar:"الخصم",en:"Discount"})}</button>{r.is_active?<button type="button" onClick={()=>disable(r.id)}>{t({fr:"Désactiver",ar:"تعطيل",en:"Disable"})}</button>:<button type="button" className="enable" onClick={()=>enable(r.id)}>{t({fr:"Activer",ar:"تفعيل",en:"Enable"})}</button>}</div></div>)}</div></aside>
     </div>:<div className="dash-grid">
       <form className="panel trainer-form" onSubmit={connectAuto}>
         <span className="eyebrow">{t({fr:"Paiement international automatique",ar:"دفع دولي تلقائي",en:"Automatic international payment"})}</span>
@@ -123,7 +132,7 @@ export default function FormateurPaiementsPage(){
         <button className="btn" disabled={busy}>{busy?"...":t({fr:"Tester & connecter",ar:"اختبار وربط",en:"Test & connect"})}</button>
       </form>
       <aside className="panel"><h2>{t({fr:"Providers connectés",ar:"المزودون المتصلون",en:"Connected providers"})}</h2><div className="provider-list">{credentials.length===0?<p>{t({fr:"Aucun provider automatique connecté.",ar:"لا يوجد مزود تلقائي متصل.",en:"No automatic provider connected."})}</p>:credentials.map(c=><article className="provider-connected-card" key={c.provider}><div className="provider-logo">{c.provider==="stripe"?"S":"P"}</div><div><strong>{c.provider==="stripe"?"Stripe":"PayPal"}</strong><span>{c.provider_account_label||c.provider_account_id||c.key_hint}</span><small>{c.environment} · {c.status} · {c.key_hint}</small></div><button onClick={()=>disconnect(c.provider)}>{t({fr:"Déconnecter",ar:"قطع الاتصال",en:"Disconnect"})}</button></article>)}</div>
-        {autoRows.map(r=><div className="auto-method-status" key={r.id}><span>{r.provider_code}</span><b className={r.is_active?"on":"off"}>{r.is_active?"ON":"OFF"}</b></div>)}
+        {autoRows.map(r=><div className="auto-method-status" key={r.id}><span>{r.provider_code} · {Number(r.discount_percent||0)}%</span><div className="method-row-actions"><button type="button" onClick={()=>editDiscount(r.id,r.discount_percent)}>{t({fr:"Réduction",ar:"الخصم",en:"Discount"})}</button><b className={r.is_active?"on":"off"}>{r.is_active?"ON":"OFF"}</b></div></div>)}
       </aside>
     </div>}
   </div></section>
