@@ -13,7 +13,6 @@ export default function CourseBuilderPage(){
   const [lessons,setLessons]=useState<any[]>([]);
   const [quizzes,setQuizzes]=useState<any[]>([]);
   const [assignments,setAssignments]=useState<any[]>([]);
-  const [classrooms,setClassrooms]=useState<any[]>([]);
   const [submissions,setSubmissions]=useState<any[]>([]);
   const [message,setMessage]=useState("");
   const [activeSub,setActiveSub]=useState(false);
@@ -41,11 +40,6 @@ export default function CourseBuilderPage(){
   const [assignmentInstructions,setAssignmentInstructions]=useState("");
   const [assignmentDue,setAssignmentDue]=useState("");
 
-  const [classTitle,setClassTitle]=useState("");
-  const [cohort,setCohort]=useState("");
-  const [startsAt,setStartsAt]=useState("");
-  const [endsAt,setEndsAt]=useState("");
-  const [meetingUrl,setMeetingUrl]=useState("");
 
   async function load(){
     setMessage("");
@@ -54,16 +48,15 @@ export default function CourseBuilderPage(){
     const {data:c,error}=await supabase.from("courses").select("*").eq("id",id).eq("instructor_id",user.id).single();
     if(error||!c){setCourse(false);return}
     setCourse(c);
-    const [{data:m},{data:l},{data:q},{data:a},{data:cl},{data:sub},{data:subscription}]=await Promise.all([
+    const [{data:m},{data:l},{data:q},{data:a},{data:sub},{data:subscription}]=await Promise.all([
       supabase.from("course_modules").select("*").eq("course_id",id).order("position"),
       supabase.from("course_lessons").select("*").eq("course_id",id).order("position"),
       supabase.from("quizzes").select("*").eq("course_id",id).order("created_at"),
       supabase.from("assignments").select("*").eq("course_id",id).order("created_at"),
-      supabase.from("classrooms").select("*").eq("course_id",id).order("starts_at"),
       supabase.from("assignment_submission_view").select("*").eq("course_id",id).order("submitted_at",{ascending:false}),
       supabase.from("trainer_subscriptions").select("id,ends_at").eq("instructor_id",user.id).eq("status","active")
     ]);
-    setModules(m||[]);setLessons(l||[]);setQuizzes(q||[]);setAssignments(a||[]);setClassrooms(cl||[]);setSubmissions(sub||[]);
+    setModules(m||[]);setLessons(l||[]);setQuizzes(q||[]);setAssignments(a||[]);setSubmissions(sub||[]);
     setActiveSub((subscription||[]).some((s:any)=>!s.ends_at||new Date(s.ends_at)>=new Date()));
     if(m?.[0]&&!lessonModule){setLessonModule(m[0].id);setQuizModule(m[0].id);setAssignmentModule(m[0].id)}
     if(l?.[0]&&!resourceLesson)setResourceLesson(l[0].id);
@@ -140,14 +133,6 @@ export default function CourseBuilderPage(){
     if(error)setMessage(error.message);else{setAssignmentTitle("");setAssignmentInstructions("");setAssignmentDue("");await load()}
   }
 
-  async function addClassroom(e:FormEvent){
-    e.preventDefault();
-    const {error}=await supabase.from("classrooms").insert({
-      course_id:id,title:classTitle,cohort_name:cohort,starts_at:startsAt||null,ends_at:endsAt||null,meeting_url:meetingUrl||null
-    });
-    if(error)setMessage(error.message);else{setClassTitle("");setCohort("");setStartsAt("");setEndsAt("");setMeetingUrl("");await load()}
-  }
-
   async function submitForReview(){
     if(!activeSub){setMessage(t({fr:"Activez d'abord votre abonnement formateur.",ar:"فعّل اشتراك المدرب أولاً.",en:"Activate your instructor subscription first."}));return}
     if(modules.length===0||lessons.length===0){setMessage(t({fr:"Ajoutez au moins un module et une leçon avant soumission.",ar:"أضف وحدة ودرساً واحداً على الأقل قبل الإرسال.",en:"Add at least one module and one lesson before submitting."}));return}
@@ -169,7 +154,7 @@ export default function CourseBuilderPage(){
 
   return <section className="dashboard-shell"><div className="container">
     <div className="dash-header"><div><span className="eyebrow">{t({fr:"Course Builder",ar:"منشئ الدورة",en:"Course Builder"})}</span><h1>{course.title_fr}</h1><p>{t({fr:"Construisez tout le parcours pédagogique avant publication.",ar:"أنشئ المسار التعليمي كاملاً قبل النشر.",en:"Build the full learning journey before publishing."})}</p></div><div className="builder-head-actions"><a className="btn btn-ghost" href="/formateur/copilote">✨ {t({fr:"Copilote IA",ar:"المساعد الذكي",en:"AI Copilot"})}</a><a className="btn btn-ghost" href={"/formateur/formation/"+id+"/competences"}>✓ {t({fr:"Compétences",ar:"المهارات",en:"Skills"})}</a><a className="btn btn-ghost" href={"/formateur/formation/"+id+"/pricing"}>💱 {t({fr:"Prix & devises",ar:"الأسعار والعملات",en:"Pricing & currencies"})}</a>{course.status==="approved_pending_fee"&&<a className="btn" href={"/formateur/formation/"+id+"/launch"}>1$ · {t({fr:"Lancer",ar:"إطلاق",en:"Launch"})}</a>}<button className="btn" onClick={submitForReview} disabled={course.status==="pending"||course.status==="approved_pending_fee"||course.status==="published"}>{t({fr:"Soumettre à la Direction",ar:"إرسال للإدارة",en:"Submit to Management"})}</button></div></div>
-    <div className="builder-status"><span className="tag">{course.status}</span><span>{modules.length} {t({fr:"modules",ar:"وحدات",en:"modules"})}</span><span>{lessons.length} {t({fr:"leçons",ar:"دروس",en:"lessons"})}</span><span>{quizzes.length} quiz</span><span>{assignments.length} {t({fr:"devoirs",ar:"واجبات",en:"assignments"})}</span><span>{classrooms.length} Classroom</span></div>
+    <div className="builder-status"><span className="tag">{course.status}</span><span>{modules.length} {t({fr:"modules",ar:"وحدات",en:"modules"})}</span><span>{lessons.length} {t({fr:"leçons",ar:"دروس",en:"lessons"})}</span><span>{quizzes.length} quiz</span><span>{assignments.length} {t({fr:"devoirs",ar:"واجبات",en:"assignments"})}</span></div>
     {message&&<p className="manual-note">{message}</p>}
 
     <div className="builder-grid">
@@ -224,15 +209,12 @@ export default function CourseBuilderPage(){
         </form>
       </section>
 
-      <section className="panel builder-section"><h2>6. Classroom</h2>
-        <form onSubmit={addClassroom} className="builder-form">
-          <input value={classTitle} onChange={e=>setClassTitle(e.target.value)} placeholder={t({fr:"Titre de la session",ar:"عنوان الحصة",en:"Session title"})} required/>
-          <input value={cohort} onChange={e=>setCohort(e.target.value)} placeholder={t({fr:"Promotion / groupe",ar:"الدفعة / المجموعة",en:"Cohort / group"})} required/>
-          <input type="datetime-local" value={startsAt} onChange={e=>setStartsAt(e.target.value)}/>
-          <input type="datetime-local" value={endsAt} onChange={e=>setEndsAt(e.target.value)}/>
-          <input value={meetingUrl} onChange={e=>setMeetingUrl(e.target.value)} placeholder="Zoom / Meet / Teams URL"/>
-          <button className="btn">{t({fr:"Créer la Classroom",ar:"إنشاء الفصل",en:"Create classroom"})}</button>
-        </form>
+      <section className="panel builder-section"><h2>6. Classroom Studio</h2>
+        <p>{t({fr:"Les Classrooms utilisent maintenant le nouveau Studio Vydys : calendrier automatique, nombre de séances, capacité, prix ou gratuité, ressources, devoirs et suivi de présence.",ar:"تستخدم الفصول الآن استوديو Vydys الجديد: جدول تلقائي وعدد الحصص والسعة والسعر أو المجانية والموارد والواجبات وتتبع الحضور.",en:"Classrooms now use the new Vydys Studio: automatic schedule, session count, capacity, paid or free access, resources, assignments and attendance tracking."})}</p>
+        <div className="builder-head-actions">
+          <a className="btn" href="/formateur/classrooms/new">{t({fr:"Créer une Classroom",ar:"إنشاء فصل",en:"Create a Classroom"})}</a>
+          <a className="btn btn-ghost" href="/formateur/classrooms">{t({fr:"Gérer mes Classrooms",ar:"إدارة الفصول",en:"Manage Classrooms"})}</a>
+        </div>
       </section>
     </div>
 
