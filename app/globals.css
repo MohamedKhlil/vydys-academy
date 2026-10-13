@@ -6474,3 +6474,64 @@ label{color:#27344b}
   width:42px!important;
   height:42px!important;
 }
+
+
+/* Admin platform data overview */
+.admin-data-page .dash-header{margin-bottom:22px}
+.admin-data-section-head{
+  display:flex;
+  align-items:end;
+  justify-content:space-between;
+  gap:16px;
+  margin:28px 0 12px;
+}
+.admin-data-section-head h2{margin:7px 0 0;font-size:22px;letter-spacing:-.04em}
+.admin-data-section-head>small{max-width:360px;color:var(--muted);font-size:9px;line-height:1.5;text-align:right}
+.platform-metric-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+.platform-metric-grid .metric{
+  min-height:128px;
+  justify-content:space-between;
+  border:1px solid #dfe6ef;
+}
+.platform-metric-grid .metric strong{
+  font-size:30px;
+  letter-spacing:-.045em;
+}
+.platform-metric-grid .metric small{
+  color:#7e8da2;
+  font-size:8px;
+  font-weight:800;
+}
+.metric-primary{
+  background:linear-gradient(145deg,#071321,#0b2852)!important;
+  color:#fff!important;
+  border-color:#173c70!important;
+}
+.metric-primary span,.metric-primary small{color:#a9bedb!important}
+.admin-user-directory{margin-top:26px!important}
+.admin-user-table .tr{grid-template-columns:1.4fr .75fr .9fr .9fr .7fr;align-items:center}
+.admin-user-row>span:first-child{display:grid;gap:2px}
+.admin-user-row>span:first-child small{color:#8a97a8;font-size:7px}
+.role-pill{display:inline-flex;width:max-content;padding:5px 8px;border-radius:999px;font-size:7px;font-weight:900;background:#eef3f8;color:#53677f}
+.role-student{background:#eef5ff;color:#2f64a6}
+.role-instructor{background:#edf9f3;color:#15724d}
+.role-admin,.role-direction{background:#fff4e8;color:#9b5d12}
+.admin-empty-row{padding:14px;color:var(--muted);font-size:10px}
+@media(max-width:1180px){
+  .platform-metric-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:860px){
+  .admin-user-table .tr{grid-template-columns:1.2fr .8fr .9fr}
+  .admin-user-table .tr span:nth-child(4),
+  .admin-user-table .tr span:nth-child(5){display:none}
+}
+@media(max-width:620px){
+  .admin-data-section-head{align-items:flex-start;flex-direction:column}
+  .admin-data-section-head>small{text-align:left}
+  .platform-metric-grid{grid-template-columns:1fr 1fr}
+  .admin-user-table .tr{grid-template-columns:1.3fr .8fr}
+  .admin-user-table .tr span:nth-child(3){display:none}
+}
+@media(max-width:420px){
+  .platform-metric-grid{grid-template-columns:1fr}
+}
