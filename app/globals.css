@@ -1251,3 +1251,139 @@ input,select,textarea{max-width:100%}
 @media(max-width:620px){
   .settlement-amount strong{font-size:clamp(24px,7vw,28px)!important}
 }
+
+
+/* Vydys Live Lite reliability + always-visible controls */
+.vydys-live-lite-shell{
+  height:auto!important;
+  min-height:0!important;
+  overflow:visible!important;
+  display:flex;
+  flex-direction:column;
+}
+.vydys-live-role-banner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  padding:9px 12px;
+  background:#0b1423;
+  border-bottom:1px solid #23304a;
+  color:#dfe9ff;
+}
+.vydys-live-role-banner strong{font-size:9px;color:#fff}
+.vydys-live-role-banner span{font-size:7px;color:#91a3c0;text-align:right}
+.vydys-live-lite-shell .vydys-lite-stage{
+  min-height:0!important;
+  height:clamp(360px,55vh,650px);
+  position:relative;
+  flex:none;
+}
+.vydys-stage-empty{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  align-content:center;
+  gap:8px;
+  text-align:center;
+  padding:24px;
+  background:radial-gradient(circle at 50% 30%,#17223e,#050913);
+}
+.vydys-stage-empty>span{
+  width:62px;height:62px;border-radius:18px;
+  display:grid;place-items:center;
+  background:#1264ff;color:#fff;
+  font-size:22px;font-weight:950;
+}
+.vydys-stage-empty strong{font-size:16px;color:#fff}
+.vydys-stage-empty small{max-width:560px;font-size:9px;line-height:1.55;color:#8fa2c0}
+.vydys-live-lite-shell .vydys-live-main-video{
+  width:100%;height:100%;min-height:0!important;object-fit:contain;background:#02060d
+}
+.vydys-live-lite-shell .vydys-lite-controls{
+  position:relative;
+  z-index:6;
+  flex:none;
+  display:flex;
+  justify-content:center;
+  gap:9px;
+  padding:12px;
+  background:#07101d;
+  border-top:1px solid #233655;
+}
+.vydys-live-lite-shell .vydys-lite-controls button{
+  min-height:42px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  min-width:150px;
+  font-size:9px;
+  border-radius:11px;
+}
+.vydys-live-lite-shell .vydys-lite-controls button>span{font-size:13px}
+.vydys-live-lite-shell .vydys-lite-controls button.error{
+  border-color:#a83b50;
+  background:#34111b;
+  color:#ffb2bf;
+}
+.vydys-live-error-box{
+  flex:none;
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:3px 10px;
+  padding:11px 13px;
+  background:#32131a;
+  border-top:1px solid #783140;
+  color:#ffdbe1;
+}
+.vydys-live-error-box strong{grid-row:1/3;font-size:9px;align-self:center}
+.vydys-live-error-box span{font-size:9px;font-weight:800}
+.vydys-live-error-box small{font-size:7px;color:#e8aab5;line-height:1.45}
+
+/* Classroom chat usability */
+.live-chat-panel{min-height:460px}
+.live-chat-messages{min-height:220px}
+.live-chat-empty{opacity:.8}
+.live-chat-form{
+  position:relative;
+  z-index:4;
+  background:#101727;
+  grid-template-columns:minmax(0,1fr) 42px;
+  padding:10px;
+}
+.live-chat-form input{
+  min-width:0;
+  min-height:42px;
+  font-size:10px;
+  padding:10px 12px;
+}
+.live-chat-form button{
+  min-height:42px;
+  font-size:15px;
+  cursor:pointer;
+}
+.live-chat-form button:disabled{opacity:.45;cursor:not-allowed}
+.live-chat-error{
+  padding:7px 10px;
+  background:#35151d;
+  border-top:1px solid #71303e;
+  color:#ffb8c4;
+  font-size:8px;
+  line-height:1.4;
+}
+
+@media(max-width:760px){
+  .vydys-live-role-banner{align-items:flex-start;flex-direction:column;gap:4px}
+  .vydys-live-role-banner span{text-align:left}
+  .vydys-live-lite-shell .vydys-lite-stage{height:50vh;min-height:320px!important}
+  .vydys-live-lite-shell .vydys-lite-controls{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+  .vydys-live-lite-shell .vydys-lite-controls button{width:100%;min-width:0}
+  .vydys-live-error-box{grid-template-columns:1fr}
+  .vydys-live-error-box strong{grid-row:auto}
+  .live-chat-panel{min-height:420px}
+}
