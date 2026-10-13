@@ -6428,3 +6428,23 @@ label{color:#27344b}
     grid-template-columns:34px minmax(0,1fr) 24px;
   }
 }
+
+
+/* Auth provider availability */
+.auth-provider-btn.unavailable{
+  background:#f7f9fc;
+  border-color:#e1e7ef;
+  color:#7d8a9c;
+}
+.auth-provider-btn.unavailable .google-icon{
+  filter:grayscale(.25);
+  opacity:.8;
+}
+.auth-provider-status{
+  display:block;
+  margin:-5px 4px 1px;
+  color:#8a98aa;
+  font-size:7px;
+  line-height:1.45;
+  text-align:center;
+}
