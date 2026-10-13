@@ -14,6 +14,74 @@ export default function ConnexionPage(){
   const [message,setMessage]=useState("");
   const [loading,setLoading]=useState(false);
   const [accepted,setAccepted]=useState(false);
+  const [magicEmail,setMagicEmail]=useState("");
+  const [quickLoading,setQuickLoading]=useState<"google"|"magic"|null>(null);
+
+  function authRedirect(){
+    if(typeof window==="undefined") return "https://www.vydys.com/auth/complete";
+    return window.location.origin+"/auth/complete";
+  }
+
+  async function signInGoogle(){
+    setMessage("");
+    setQuickLoading("google");
+    try{
+      const {error}=await supabase.auth.signInWithOAuth({
+        provider:"google",
+        options:{
+          redirectTo:authRedirect(),
+          queryParams:{access_type:"offline",prompt:"select_account"}
+        }
+      });
+      if(error) throw error;
+    }catch(err){
+      setMessage(err instanceof Error?err.message:t({
+        fr:"Connexion Google indisponible pour le moment.",
+        ar:"تسجيل الدخول عبر Google غير متاح حالياً.",
+        en:"Google sign-in is currently unavailable."
+      }));
+      setQuickLoading(null);
+    }
+  }
+
+  async function sendMagicLink(){
+    const target=(magicEmail||email).trim();
+    if(!target){
+      setMessage(t({
+        fr:"Entrez votre adresse email pour recevoir le lien de connexion.",
+        ar:"أدخل بريدك الإلكتروني لاستلام رابط تسجيل الدخول.",
+        en:"Enter your email address to receive a sign-in link."
+      }));
+      return;
+    }
+    setMessage("");
+    setQuickLoading("magic");
+    try{
+      const {error}=await supabase.auth.signInWithOtp({
+        email:target,
+        options:{
+          emailRedirectTo:authRedirect(),
+          shouldCreateUser:true,
+          data:{
+            terms_accepted:true,
+            terms_version:"2026-10-03",
+            signup_source:"magic_link"
+          }
+        }
+      });
+      if(error) throw error;
+      setMagicEmail(target);
+      setMessage(t({
+        fr:"Lien envoyé. Ouvrez votre email et cliquez sur le lien pour entrer dans Vydys.",
+        ar:"تم إرسال الرابط. افتح بريدك الإلكتروني واضغط على الرابط للدخول إلى Vydys.",
+        en:"Link sent. Open your email and click the link to enter Vydys."
+      }));
+    }catch(err){
+      setMessage(err instanceof Error?err.message:"Erreur");
+    }finally{
+      setQuickLoading(null);
+    }
+  }
 
   async function submit(e:FormEvent){
     e.preventDefault();
@@ -58,6 +126,38 @@ export default function ConnexionPage(){
     <span className="brand-mark large-mark">V</span><span className="eyebrow">Vydys Academy</span>
     <h1>{mode==="login"?t({fr:"Bienvenue",ar:"مرحباً",en:"Welcome"}):t({fr:"Créer un compte",ar:"إنشاء حساب",en:"Create account"})}</h1>
     <p>{mode==="login"?t({fr:"Connectez-vous à votre espace de formation.",ar:"سجّل الدخول إلى مساحة التدريب الخاصة بك.",en:"Sign in to your learning space."}):t({fr:"Créez votre compte étudiant.",ar:"أنشئ حساب الطالب الخاص بك.",en:"Create your student account."})}</p>
+
+    <div className="auth-quick">
+      <button type="button" className="auth-provider-btn google" onClick={signInGoogle} disabled={quickLoading!==null||loading}>
+        <span className="auth-provider-icon google-icon">G</span>
+        <strong>{quickLoading==="google"?"...":t({fr:"Continuer avec Google",ar:"المتابعة باستخدام Google",en:"Continue with Google"})}</strong>
+      </button>
+
+      <div className="auth-divider"><span>{t({fr:"ou",ar:"أو",en:"or"})}</span></div>
+
+      <div className="auth-magic-box">
+        <div className="auth-magic-copy">
+          <span className="auth-provider-icon">✉</span>
+          <div>
+            <strong>{t({fr:"Connexion sans mot de passe",ar:"تسجيل الدخول بدون كلمة مرور",en:"Passwordless sign-in"})}</strong>
+            <small>{t({fr:"Recevez un lien sécurisé par email.",ar:"استلم رابطاً آمناً عبر البريد الإلكتروني.",en:"Receive a secure link by email."})}</small>
+          </div>
+        </div>
+        <div className="auth-magic-row">
+          <input type="email" value={magicEmail} onChange={e=>setMagicEmail(e.target.value)} placeholder="email@exemple.com" aria-label="Email magic link"/>
+          <button type="button" onClick={sendMagicLink} disabled={quickLoading!==null||loading}>{quickLoading==="magic"?"...":t({fr:"Envoyer le lien",ar:"إرسال الرابط",en:"Send link"})}</button>
+        </div>
+      </div>
+
+      <p className="auth-consent-note">{t({
+        fr:"En continuant, vous acceptez les Conditions d’utilisation et la Politique de confidentialité de Vydys.",
+        ar:"بالمتابعة، فإنك توافق على شروط الاستخدام وسياسة الخصوصية الخاصة بـ Vydys.",
+        en:"By continuing, you agree to Vydys Terms of Use and Privacy Policy."
+      })}</p>
+    </div>
+
+    <div className="auth-divider auth-divider-main"><span>{t({fr:"Email et mot de passe",ar:"البريد الإلكتروني وكلمة المرور",en:"Email and password"})}</span></div>
+
     <form onSubmit={submit}>
       {mode==="register" && <>
         <label>{t({fr:"Nom complet",ar:"الاسم الكامل",en:"Full name"})}<input value={fullName} onChange={e=>setFullName(e.target.value)} required /></label>
