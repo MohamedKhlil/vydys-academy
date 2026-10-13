@@ -14,6 +14,7 @@ export default function MobileInstallPrompt(){
   const [visible,setVisible]=useState(false);
   const [ios,setIos]=useState(false);
   const [showIosHelp,setShowIosHelp]=useState(false);
+  const [showGenericHelp,setShowGenericHelp]=useState(false);
 
   useEffect(()=>{
     if(typeof window==="undefined")return;
@@ -42,6 +43,7 @@ export default function MobileInstallPrompt(){
     const onForce=()=>{
       setVisible(true);
       if(isIos)setShowIosHelp(true);
+      else if(!deferred)setShowGenericHelp(true);
     };
     const onInstalled=()=>{
       setVisible(false);
@@ -53,7 +55,7 @@ export default function MobileInstallPrompt(){
     window.addEventListener("vydys:install",onForce);
 
     const timer=window.setTimeout(()=>{
-      if(canShow && (isIos || !("BeforeInstallPromptEvent" in window)))setVisible(true);
+      if(canShow && isIos)setVisible(true);
     },1600);
 
     return()=>{
@@ -67,6 +69,7 @@ export default function MobileInstallPrompt(){
   async function install(){
     if(ios){setShowIosHelp(true);return}
     if(!deferred){
+      setShowGenericHelp(true);
       setVisible(true);
       return;
     }
@@ -94,6 +97,10 @@ export default function MobileInstallPrompt(){
       <span>1. {t({fr:"Touchez Partager",ar:"اضغط مشاركة",en:"Tap Share"})}</span>
       <span>2. {t({fr:"Choisissez « Sur l’écran d’accueil »",ar:"اختر « إضافة إلى الشاشة الرئيسية »",en:"Choose “Add to Home Screen”"})}</span>
       <span>3. {t({fr:"Touchez Ajouter",ar:"اضغط إضافة",en:"Tap Add"})}</span>
+    </div>}
+    {!ios&&showGenericHelp&&<div className="ios-install-help">
+      <span>1. {t({fr:"Ouvrez le menu du navigateur (⋮)",ar:"افتح قائمة المتصفح (⋮)",en:"Open the browser menu (⋮)"})}</span>
+      <span>2. {t({fr:"Choisissez « Installer l’application » ou « Ajouter à l’écran d’accueil »",ar:"اختر « تثبيت التطبيق » أو « إضافة إلى الشاشة الرئيسية »",en:"Choose “Install app” or “Add to Home screen”"})}</span>
     </div>}
     <div className="mobile-install-actions">
       <button className="btn" onClick={install}>{ios?t({fr:"Comment installer",ar:"طريقة التثبيت",en:"How to install"}):t({fr:"Installer maintenant",ar:"ثبّت الآن",en:"Install now"})}</button>
