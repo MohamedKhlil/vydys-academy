@@ -75,6 +75,17 @@ export default function AutoLearnerPage(){
     if(n<1024*1024)return (n/1024).toFixed(1)+" KB";
     return (n/1024/1024).toFixed(1)+" MB";
   }
+  function detectedMime(f:File){
+    if(f.type)return f.type;
+    const n=f.name.toLowerCase();
+    if(n.endsWith(".pdf"))return "application/pdf";
+    if(n.endsWith(".docx"))return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    if(n.endsWith(".pptx"))return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+    if(n.endsWith(".md"))return "text/markdown";
+    if(n.endsWith(".csv"))return "text/csv";
+    if(n.endsWith(".json"))return "application/json";
+    return "text/plain";
+  }
 
   async function generate(documentId:string,projectId?:string){
     setStage(t({fr:"L’IA analyse le contenu et construit votre parcours…",ar:"يحلل الذكاء الاصطناعي المحتوى ويبني مسارك…",en:"AI is analyzing the content and building your pathway…"}));
@@ -97,7 +108,8 @@ export default function AutoLearnerPage(){
     try{
       setStage(t({fr:"Import du document…",ar:"جارٍ استيراد المستند…",en:"Uploading document…"}));
       const path=userId+"/"+crypto.randomUUID()+"/"+safeName(file.name);
-      const {error:upError}=await supabase.storage.from("ai-knowledge").upload(path,file,{upsert:false,contentType:file.type});
+      const mime=detectedMime(file);
+      const {error:upError}=await supabase.storage.from("ai-knowledge").upload(path,file,{upsert:false,contentType:mime});
       if(upError)throw upError;
 
       setStage(t({fr:"Extraction et indexation du contenu…",ar:"استخراج المحتوى وفهرسته…",en:"Extracting and indexing content…"}));
@@ -106,7 +118,7 @@ export default function AutoLearnerPage(){
         storage_path:path,
         title:(title||file.name).trim(),
         file_name:file.name,
-        mime_type:file.type,
+        mime_type:mime,
         file_size:file.size
       }});
       if(ingestError||ingest?.error)throw new Error(ingest?.detail||ingest?.error||ingestError?.message||"Indexing error");
@@ -227,11 +239,11 @@ export default function AutoLearnerPage(){
         <label className="form-field"><span>{t({fr:"Titre (facultatif)",ar:"العنوان (اختياري)",en:"Title (optional)"})}</span><input value={title} onChange={e=>setTitle(e.target.value)} placeholder={file?.name||t({fr:"Nom du cours",ar:"اسم الدورة",en:"Course name"})}/></label>
         <label className="knowledge-drop auto-learner-drop">
           <input id="auto-learner-file" type="file"
-            accept=".pdf,.docx,.txt,.md,.csv,.json,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown,text/csv,application/json"
+            accept=".pdf,.docx,.pptx,.txt,.md,.csv,.json,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/plain,text/markdown,text/csv,application/json"
             onChange={e=>setFile(e.target.files?.[0]||null)}/>
           <span className="auto-upload-icon">↑</span>
           <strong>{file?file.name:t({fr:"Choisir ou déposer votre cours",ar:"اختر أو ارفع دورتك",en:"Choose or drop your course"})}</strong>
-          <small>{file?formatBytes(file.size):"PDF · DOCX · TXT · MD · CSV · JSON · 15 MB max"}</small>
+          <small>{file?formatBytes(file.size):"PDF · DOCX · PPTX · TXT · MD · CSV · JSON · 15 MB max"}</small>
         </label>
         <div className="auto-learner-options">
           <label><span>{t({fr:"Langue de sortie",ar:"لغة المخرجات",en:"Output language"})}</span><select value={targetLanguage} onChange={e=>setTargetLanguage(e.target.value as any)}><option value="fr">Français</option><option value="ar">العربية</option><option value="en">English</option></select></label>
