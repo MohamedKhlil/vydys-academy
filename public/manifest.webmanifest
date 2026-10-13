@@ -1,11 +1,17 @@
 {
+  "id": "/",
   "name": "Vydys Academy",
   "short_name": "Vydys",
   "description": "AI, technology, live learning and verified skills.",
-  "start_url": "/",
+  "start_url": "/?source=pwa",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
   "background_color": "#05070C",
   "theme_color": "#05070C",
+  "categories": ["education", "productivity"],
+  "lang": "fr",
   "icons": [
     {
       "src": "/vydys-icon.svg",
