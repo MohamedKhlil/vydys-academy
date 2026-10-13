@@ -26,6 +26,7 @@ export default function ClassroomSessionPage(){
   const [chatError,setChatError]=useState("");
   const [userId,setUserId]=useState("");
   const [message,setMessage]=useState("");
+  const [sessionBusy,setSessionBusy]=useState(false);
 
   async function hydrateProfiles(items:any[]){
     const ids=[...new Set(items.map(x=>x.user_id).filter(Boolean))];
@@ -69,6 +70,23 @@ export default function ClassroomSessionPage(){
   useEffect(()=>{load()},[slug,sessionId]);
 
   useEffect(()=>{
+    if(!sessionId)return;
+    const channel=supabase.channel("classroom-session-state-"+sessionId)
+      .on("postgres_changes",{
+        event:"UPDATE",
+        schema:"public",
+        table:"classroom_sessions",
+        filter:`id=eq.${sessionId}`
+      },payload=>{
+        const row=payload.new as any;
+        setSession((prev:any)=>prev?{...prev,...row}:row);
+        setAccess((prev:any)=>prev?{...prev,session_status:row.status,is_live:row.status==="live"}:prev);
+      })
+      .subscribe();
+    return()=>{supabase.removeChannel(channel)}
+  },[sessionId]);
+
+  useEffect(()=>{
     if(!room?.id)return;
     const channel=supabase.channel("classroom-chat-"+sessionId)
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"classroom_chat_messages",filter:`classroom_id=eq.${room.id}`},async payload=>{
@@ -109,6 +127,60 @@ export default function ClassroomSessionPage(){
     }
   }
 
+  async function setSessionLive(open:boolean){
+    if(!isModerator||sessionBusy)return;
+    if(!open){
+      const ok=window.confirm(t({
+        fr:"Fermer cette séance ? Les étudiants seront déconnectés du direct et le chat sera fermé.",
+        ar:"إغلاق هذه الحصة؟ سيتم فصل الطلاب عن البث المباشر وإغلاق الدردشة.",
+        en:"Close this session? Learners will be disconnected from live media and chat will close."
+      }));
+      if(!ok)return;
+    }
+
+    setSessionBusy(true);
+    setMessage("");
+    const {data:{user}}=await supabase.auth.getUser();
+    if(!user){setSessionBusy(false);return}
+
+    const payload=open
+      ? {
+          status:"live",
+          opened_at:new Date().toISOString(),
+          opened_by:user.id,
+          closed_at:null,
+          closed_by:null,
+          updated_at:new Date().toISOString()
+        }
+      : {
+          status:"completed",
+          closed_at:new Date().toISOString(),
+          closed_by:user.id,
+          updated_at:new Date().toISOString()
+        };
+
+    const {data:updated,error}=await supabase
+      .from("classroom_sessions")
+      .update(payload)
+      .eq("id",sessionId)
+      .eq("classroom_id",room.id)
+      .select("*")
+      .single();
+
+    setSessionBusy(false);
+    if(error){
+      setMessage(error.message);
+      return;
+    }
+
+    setSession(updated);
+    setAccess((prev:any)=>prev?{...prev,session_status:updated.status,is_live:updated.status==="live"}:prev);
+    setMessage(open
+      ? t({fr:"La séance est ouverte. Les étudiants peuvent maintenant rejoindre le direct.",ar:"تم فتح الحصة ويمكن للطلاب الآن الانضمام للبث.",en:"Session opened. Learners can now join live."})
+      : t({fr:"La séance est fermée.",ar:"تم إغلاق الحصة.",en:"Session closed."})
+    );
+  }
+
   async function submitAssignment(assignmentId:string){
     const text=(answers[assignmentId]||"").trim();if(!text)return;
     const {error}=await supabase.from("classroom_submissions").upsert({assignment_id:assignmentId,user_id:userId,text_answer:text,submitted_at:new Date().toISOString()},{onConflict:"assignment_id,user_id"});
@@ -131,13 +203,16 @@ export default function ClassroomSessionPage(){
   const isModerator=access?.role==="moderator";
   const fmt=(iso:string)=>new Intl.DateTimeFormat(lang==="ar"?"ar-MR":lang==="en"?"en-US":"fr-FR",{dateStyle:"medium",timeStyle:"short",timeZone:room.timezone}).format(new Date(iso));
 
-  return <section className="live-classroom-page"><div className="live-classroom-topbar"><div><Link href={"/classroom/"+room.slug}>←</Link><span className="live-brand">V</span><div><strong>{title}</strong><small>{session.title||"Session "+session.position} · {fmt(session.starts_at)}</small></div></div><div><span className="live-secure">● {t({fr:"Accès Vydys sécurisé",ar:"وصول Vydys آمن",en:"Secure Vydys access"})}</span><Link href="/classroom">{t({fr:"Mes Classrooms",ar:"فصولي",en:"My Classrooms"})}</Link></div></div>
+  const isLive=session.status==="live";
+  const isCompleted=session.status==="completed";
+
+  return <section className="live-classroom-page"><div className="live-classroom-topbar"><div><Link href={"/classroom/"+room.slug}>←</Link><span className="live-brand">V</span><div><strong>{title}</strong><small>{session.title||"Session "+session.position} · {fmt(session.starts_at)}</small></div></div><div className="live-topbar-actions"><span className={"live-session-state "+session.status}>{isLive?"● LIVE":isCompleted?t({fr:"Terminée",ar:"منتهية",en:"Completed"}):t({fr:"Fermée",ar:"مغلقة",en:"Closed"})}</span>{isModerator&&session.status!=="cancelled"&&<button type="button" className={isLive?"live-close-btn":"live-open-btn"} onClick={()=>setSessionLive(!isLive)} disabled={sessionBusy}>{sessionBusy?"…":isLive?t({fr:"Fermer la séance",ar:"إغلاق الحصة",en:"Close session"}):isCompleted?t({fr:"Rouvrir la séance",ar:"إعادة فتح الحصة",en:"Reopen session"}):t({fr:"Ouvrir la séance",ar:"فتح الحصة",en:"Open session"})}</button>}<span className="live-secure">● {t({fr:"Accès Vydys sécurisé",ar:"وصول Vydys آمن",en:"Secure Vydys access"})}</span><Link href="/classroom">{t({fr:"Mes Classrooms",ar:"فصولي",en:"My Classrooms"})}</Link></div></div>
 
     {message&&<div className="live-toast">{message}</div>}
 
     <div className="live-classroom-layout">
       <main className="live-main-column">
-        {access?<ClassroomLiveRoom access={access}/>:<div className="vydys-live-waiting"><div className="waiting-orb">V</div><span className="eyebrow">{t({fr:"Salle protégée",ar:"قاعة محمية",en:"Protected room"})}</span><h1>{t({fr:"La salle vidéo n’est pas encore ouverte.",ar:"قاعة الفيديو لم تفتح بعد.",en:"The video room is not open yet."})}</h1><p>{accessError||t({fr:"Les étudiants peuvent rejoindre 30 minutes avant la séance. Le formateur peut ouvrir la salle à tout moment.",ar:"يمكن للطلاب الانضمام قبل 30 دقيقة ويمكن للمدرب فتحها في أي وقت.",en:"Learners can join 30 minutes before the session. The instructor can open it anytime."})}</p><strong>{fmt(session.starts_at)}</strong></div>}
+        {access&&isLive?<ClassroomLiveRoom access={{...access,session_status:"live",is_live:true}}/>:<div className="vydys-live-waiting"><div className="waiting-orb">V</div><span className="eyebrow">{isCompleted?t({fr:"Séance terminée",ar:"انتهت الحصة",en:"Session completed"}):t({fr:"Salle d’attente",ar:"غرفة الانتظار",en:"Waiting room"})}</span><h1>{isCompleted?t({fr:"Le formateur a fermé cette séance.",ar:"أغلق المدرب هذه الحصة.",en:"The instructor has closed this session."}):t({fr:"La salle est fermée.",ar:"القاعة مغلقة.",en:"The room is closed."})}</h1><p>{accessError||(isModerator?t({fr:"Vous êtes le formateur. Ouvrez la séance avec le bouton en haut pour activer caméra, micro, partage d’écran et chat.",ar:"أنت المدرب. افتح الحصة من الزر بالأعلى لتفعيل الكاميرا والميكروفون ومشاركة الشاشة والدردشة.",en:"You are the instructor. Open the session using the button above to enable camera, microphone, screen sharing and chat."}):t({fr:"Seul le formateur peut ouvrir la séance. Cette page passera automatiquement en direct dès son ouverture.",ar:"المدرب فقط يمكنه فتح الحصة. ستنتقل هذه الصفحة تلقائياً إلى البث عند فتحها.",en:"Only the instructor can open the session. This page will switch to live automatically when it opens."}))}</p><strong>{fmt(session.starts_at)}</strong></div>}
 
         <div className="live-learning-tools">
           <article className="panel live-resource-panel"><div className="live-panel-head"><span>↗</span><div><strong>{t({fr:"Ressources de séance",ar:"موارد الحصة",en:"Session resources"})}</strong><small>{resources.length} items</small></div></div><div>{resources.map(r=><a href={r.url||"#"} target="_blank" rel="noreferrer" key={r.id}><span>↗</span><strong>{r.title}</strong></a>)}{resources.length===0&&<p>{t({fr:"Aucune ressource pour cette séance.",ar:"لا توجد موارد لهذه الحصة.",en:"No resources for this session."})}</p>}</div></article>
@@ -147,7 +222,7 @@ export default function ClassroomSessionPage(){
       </main>
 
       <aside className="live-side-column">
-        <article className="live-chat-panel"><div className="live-side-head"><div><strong>{t({fr:"Chat Vydys",ar:"دردشة Vydys",en:"Vydys chat"})}</strong><small>{messages.length} messages · {t({fr:"temps réel",ar:"مباشر",en:"live"})}</small></div><span>LIVE</span></div><div className="live-chat-messages">{messages.length===0&&<div className="live-chat-empty"><span>💬</span><div><strong>{t({fr:"Le chat est prêt",ar:"الدردشة جاهزة",en:"Chat is ready"})}</strong><p>{t({fr:"Écrivez un message pour tester la discussion avec la classe.",ar:"اكتب رسالة لاختبار الدردشة مع الفصل.",en:"Send a message to test the classroom chat."})}</p></div></div>}{messages.map(m=><div className={m.user_id===userId?"mine":""} key={m.id}><span>{(profiles[m.user_id]?.full_name||"V").slice(0,2).toUpperCase()}</span><div><strong>{profiles[m.user_id]?.full_name||t({fr:"Participant",ar:"مشارك",en:"Participant"})}</strong><p>{m.message}</p><small>{new Date(m.created_at).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</small></div></div>)}</div>{chatError&&<div className="live-chat-error">{chatError}</div>}<form onSubmit={sendChat} className="live-chat-form"><input value={chat} onChange={e=>setChat(e.target.value)} disabled={chatBusy} maxLength={4000} placeholder={t({fr:"Écrire au groupe...",ar:"اكتب للمجموعة...",en:"Message the group..."})}/><button type="submit" disabled={chatBusy||!chat.trim()}>{chatBusy?"…":"↑"}</button></form></article>
+        <article className="live-chat-panel"><div className="live-side-head"><div><strong>{t({fr:"Chat Vydys",ar:"دردشة Vydys",en:"Vydys chat"})}</strong><small>{messages.length} messages · {t({fr:"temps réel",ar:"مباشر",en:"live"})}</small></div><span>LIVE</span></div><div className="live-chat-messages">{messages.length===0&&<div className="live-chat-empty"><span>💬</span><div><strong>{t({fr:"Le chat est prêt",ar:"الدردشة جاهزة",en:"Chat is ready"})}</strong><p>{t({fr:"Écrivez un message pour tester la discussion avec la classe.",ar:"اكتب رسالة لاختبار الدردشة مع الفصل.",en:"Send a message to test the classroom chat."})}</p></div></div>}{messages.map(m=><div className={m.user_id===userId?"mine":""} key={m.id}><span>{(profiles[m.user_id]?.full_name||"V").slice(0,2).toUpperCase()}</span><div><strong>{profiles[m.user_id]?.full_name||t({fr:"Participant",ar:"مشارك",en:"Participant"})}</strong><p>{m.message}</p><small>{new Date(m.created_at).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</small></div></div>)}</div>{chatError&&<div className="live-chat-error">{chatError}</div>}{!isLive&&<div className="live-chat-closed">{isModerator?t({fr:"Ouvrez la séance pour activer le chat.",ar:"افتح الحصة لتفعيل الدردشة.",en:"Open the session to enable chat."}):t({fr:"Le chat s’ouvrira lorsque le formateur démarrera la séance.",ar:"ستفتح الدردشة عندما يبدأ المدرب الحصة.",en:"Chat will open when the instructor starts the session."})}</div>}<form onSubmit={sendChat} className="live-chat-form"><input value={chat} onChange={e=>setChat(e.target.value)} disabled={chatBusy||!isLive} maxLength={4000} placeholder={isLive?t({fr:"Écrire au groupe...",ar:"اكتب للمجموعة...",en:"Message the group..."}):t({fr:"Chat fermé",ar:"الدردشة مغلقة",en:"Chat closed"})}/><button type="submit" disabled={chatBusy||!chat.trim()||!isLive}>{chatBusy?"…":"↑"}</button></form></article>
 
         {isModerator&&<article className="panel live-attendance-panel"><div className="live-side-head"><div><strong>{t({fr:"Présence",ar:"الحضور",en:"Attendance"})}</strong><small>{attendanceSummary.length} {t({fr:"participants suivis",ar:"مشارك متابع",en:"tracked participants"})}</small></div><span>AUTO</span></div><div className="attendance-live-list">{attendanceSummary.map(a=><div key={a.user_id}><span>{(profiles[a.user_id]?.full_name||"V").slice(0,2).toUpperCase()}</span><div><strong>{profiles[a.user_id]?.full_name||"Participant"}</strong><small>{a.minutes} min · {a.connection_count} connexions</small></div></div>)}{attendanceSummary.length===0&&<p>{t({fr:"La présence sera enregistrée automatiquement dès l’entrée dans la vidéo.",ar:"سيتم تسجيل الحضور تلقائياً عند دخول الفيديو.",en:"Attendance starts automatically when participants enter the video."})}</p>}</div></article>}
 
