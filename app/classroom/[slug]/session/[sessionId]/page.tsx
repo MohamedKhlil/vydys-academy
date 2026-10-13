@@ -22,6 +22,8 @@ export default function ClassroomSessionPage(){
   const [submissions,setSubmissions]=useState<Record<string,any>>({});
   const [answers,setAnswers]=useState<Record<string,string>>({});
   const [chat,setChat]=useState("");
+  const [chatBusy,setChatBusy]=useState(false);
+  const [chatError,setChatError]=useState("");
   const [userId,setUserId]=useState("");
   const [message,setMessage]=useState("");
 
@@ -82,10 +84,29 @@ export default function ClassroomSessionPage(){
   },[room?.id,sessionId]);
 
   async function sendChat(e:FormEvent){
-    e.preventDefault();const value=chat.trim();if(!value||!room?.id||!userId)return;
+    e.preventDefault();
+    const value=chat.trim();
+    if(!value||!room?.id||!userId||chatBusy)return;
+    setChatBusy(true);
+    setChatError("");
+    const {data:row,error}=await supabase
+      .from("classroom_chat_messages")
+      .insert({classroom_id:room.id,session_id:sessionId,user_id:userId,message:value})
+      .select("*")
+      .single();
+    setChatBusy(false);
+    if(error){
+      setChatError(error.message);
+      return;
+    }
     setChat("");
-    const {error}=await supabase.from("classroom_chat_messages").insert({classroom_id:room.id,session_id:sessionId,user_id:userId,message:value});
-    if(error)setMessage(error.message);
+    if(row){
+      setMessages(prev=>prev.some(x=>x.id===row.id)?prev:[...prev,row]);
+      if(!profiles[row.user_id]){
+        const {data:p}=await supabase.from("profiles").select("id,full_name").eq("id",row.user_id).maybeSingle();
+        if(p)setProfiles(prev=>({...prev,[p.id]:p}));
+      }
+    }
   }
 
   async function submitAssignment(assignmentId:string){
@@ -126,7 +147,7 @@ export default function ClassroomSessionPage(){
       </main>
 
       <aside className="live-side-column">
-        <article className="live-chat-panel"><div className="live-side-head"><div><strong>{t({fr:"Chat Vydys",ar:"دردشة Vydys",en:"Vydys chat"})}</strong><small>{messages.length} messages</small></div><span>LIVE</span></div><div className="live-chat-messages">{messages.map(m=><div className={m.user_id===userId?"mine":""} key={m.id}><span>{(profiles[m.user_id]?.full_name||"V").slice(0,2).toUpperCase()}</span><div><strong>{profiles[m.user_id]?.full_name||t({fr:"Participant",ar:"مشارك",en:"Participant"})}</strong><p>{m.message}</p><small>{new Date(m.created_at).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</small></div></div>)}</div><form onSubmit={sendChat} className="live-chat-form"><input value={chat} onChange={e=>setChat(e.target.value)} maxLength={4000} placeholder={t({fr:"Écrire au groupe...",ar:"اكتب للمجموعة...",en:"Message the group..."})}/><button>↑</button></form></article>
+        <article className="live-chat-panel"><div className="live-side-head"><div><strong>{t({fr:"Chat Vydys",ar:"دردشة Vydys",en:"Vydys chat"})}</strong><small>{messages.length} messages · {t({fr:"temps réel",ar:"مباشر",en:"live"})}</small></div><span>LIVE</span></div><div className="live-chat-messages">{messages.length===0&&<div className="live-chat-empty"><span>💬</span><div><strong>{t({fr:"Le chat est prêt",ar:"الدردشة جاهزة",en:"Chat is ready"})}</strong><p>{t({fr:"Écrivez un message pour tester la discussion avec la classe.",ar:"اكتب رسالة لاختبار الدردشة مع الفصل.",en:"Send a message to test the classroom chat."})}</p></div></div>}{messages.map(m=><div className={m.user_id===userId?"mine":""} key={m.id}><span>{(profiles[m.user_id]?.full_name||"V").slice(0,2).toUpperCase()}</span><div><strong>{profiles[m.user_id]?.full_name||t({fr:"Participant",ar:"مشارك",en:"Participant"})}</strong><p>{m.message}</p><small>{new Date(m.created_at).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</small></div></div>)}</div>{chatError&&<div className="live-chat-error">{chatError}</div>}<form onSubmit={sendChat} className="live-chat-form"><input value={chat} onChange={e=>setChat(e.target.value)} disabled={chatBusy} maxLength={4000} placeholder={t({fr:"Écrire au groupe...",ar:"اكتب للمجموعة...",en:"Message the group..."})}/><button type="submit" disabled={chatBusy||!chat.trim()}>{chatBusy?"…":"↑"}</button></form></article>
 
         {isModerator&&<article className="panel live-attendance-panel"><div className="live-side-head"><div><strong>{t({fr:"Présence",ar:"الحضور",en:"Attendance"})}</strong><small>{attendanceSummary.length} {t({fr:"participants suivis",ar:"مشارك متابع",en:"tracked participants"})}</small></div><span>AUTO</span></div><div className="attendance-live-list">{attendanceSummary.map(a=><div key={a.user_id}><span>{(profiles[a.user_id]?.full_name||"V").slice(0,2).toUpperCase()}</span><div><strong>{profiles[a.user_id]?.full_name||"Participant"}</strong><small>{a.minutes} min · {a.connection_count} connexions</small></div></div>)}{attendanceSummary.length===0&&<p>{t({fr:"La présence sera enregistrée automatiquement dès l’entrée dans la vidéo.",ar:"سيتم تسجيل الحضور تلقائياً عند دخول الفيديو.",en:"Attendance starts automatically when participants enter the video."})}</p>}</div></article>}
 
