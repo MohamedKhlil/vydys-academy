@@ -2888,3 +2888,223 @@ label{color:#27344b}
   .course-card-footer{align-items:stretch!important;flex-direction:column!important}
   .course-open-btn{width:100%!important}
 }
+
+
+/* Formations catalog — simplified premium pass */
+.formations-market-hero{
+  margin-bottom:30px!important;
+}
+.formations-market-hero h1{
+  max-width:900px;
+}
+.formations-market-hero p{
+  max-width:790px;
+}
+.formations-filter-panel{
+  padding:9px!important;
+}
+.formations-simple-filters{
+  display:grid;
+  grid-template-columns:minmax(280px,1fr) 220px 190px;
+  gap:8px;
+}
+.formations-simple-filters select,
+.formations-search{
+  min-height:46px;
+  border:1px solid #dce4ee;
+  border-radius:12px;
+  background:#fff;
+}
+.formations-simple-filters select{
+  width:100%;
+  padding:0 12px!important;
+  font-size:9px!important;
+}
+.formations-search{
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr);
+  align-items:center;
+  padding:0 8px;
+}
+.formations-search>span{
+  display:grid;
+  place-items:center;
+  color:#7b8da5;
+  font-size:18px;
+}
+.formations-search input{
+  min-height:42px!important;
+  padding:0 4px!important;
+  border:0!important;
+  box-shadow:none!important;
+  font-size:10px!important;
+}
+.formations-search input:focus{
+  box-shadow:none!important;
+}
+
+.formations-market-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:20px!important;
+}
+.course-market-card{
+  min-height:100%;
+}
+.course-market-cover{
+  height:150px!important;
+}
+.course-cover-monogram>span{
+  width:54px;
+  height:54px;
+  border-radius:15px;
+  font-size:27px;
+}
+.course-cover-badges{
+  right:56px;
+}
+.course-cover-badges span{
+  max-width:230px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.course-market-body{
+  padding:20px!important;
+  gap:13px!important;
+}
+.course-card-meta-row{
+  justify-content:flex-start!important;
+  flex-wrap:wrap;
+  min-height:26px;
+}
+.course-module-count,
+.course-live-inline,
+.course-rating-inline{
+  display:inline-flex;
+  align-items:center;
+  min-height:25px;
+  padding:0 8px;
+  border-radius:999px;
+  font-size:7px;
+  font-weight:900;
+}
+.course-module-count{
+  background:#edf4ff;
+  color:#135ec9;
+}
+.course-live-inline{
+  background:#ecf8f2;
+  color:#18704e;
+}
+.course-rating-inline{
+  background:#fff7df;
+  color:#8a6500;
+}
+.course-market-body h2{
+  min-height:0!important;
+  font-size:25px!important;
+  line-height:1.05!important;
+  margin-top:1px!important;
+}
+.course-market-desc{
+  min-height:0!important;
+  -webkit-line-clamp:2!important;
+  font-size:10px!important;
+  line-height:1.62!important;
+}
+.course-program-preview.compact{
+  padding:12px 0 0!important;
+  border:0!important;
+  border-top:1px solid #e7edf4!important;
+  border-radius:0!important;
+  background:transparent!important;
+}
+.course-program-label{
+  display:block;
+  margin-bottom:9px;
+  color:#738298;
+  font-size:7px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.09em;
+}
+.course-program-preview.compact .course-module-preview-list{
+  gap:7px;
+}
+.course-program-preview.compact .course-module-preview-list>div{
+  grid-template-columns:26px minmax(0,1fr);
+  align-items:center;
+}
+.course-program-preview.compact .course-module-preview-list>div>span{
+  width:26px;
+  height:24px;
+  background:#f0f4f9;
+  color:#55708f;
+  border:1px solid #e0e7ef;
+}
+.course-program-preview.compact .course-module-preview-list>div>strong{
+  font-size:9px;
+  line-height:1.32;
+  -webkit-line-clamp:1;
+  color:#263750;
+}
+.course-program-preview.compact .course-more-modules{
+  margin-top:9px;
+  color:#56759e;
+  border-top:0;
+  padding-top:0;
+}
+.course-trainer-row{
+  margin-top:1px;
+  padding:10px 0 0!important;
+  border-top:1px solid #edf1f5;
+}
+.course-trainer-avatar{
+  background:#eef4fc!important;
+  color:#315c91!important;
+}
+.course-card-footer{
+  min-height:60px!important;
+  margin-top:1px!important;
+}
+.course-price-stack>strong{
+  font-size:22px!important;
+}
+.course-open-btn{
+  min-width:108px;
+}
+
+@media(max-width:900px){
+  .formations-simple-filters{
+    grid-template-columns:1fr 1fr;
+  }
+  .formations-search{
+    grid-column:1/-1;
+  }
+  .formations-market-grid{
+    grid-template-columns:1fr!important;
+  }
+}
+@media(max-width:620px){
+  .formations-market-hero{
+    margin-bottom:22px!important;
+  }
+  .formations-simple-filters{
+    grid-template-columns:1fr;
+  }
+  .formations-search{
+    grid-column:auto;
+  }
+  .formations-results-bar{
+    margin-top:16px!important;
+  }
+  .course-market-cover{
+    height:138px!important;
+  }
+  .course-market-body{
+    padding:16px!important;
+  }
+  .course-market-body h2{
+    font-size:22px!important;
+  }
+}
