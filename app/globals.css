@@ -1215,3 +1215,39 @@ input,select,textarea{max-width:100%}
   .proof-modal-actions{display:grid;grid-template-columns:1fr}
   .proof-modal-actions .btn{width:100%}
 }
+
+
+/* Final payment amount containment fix */
+.settlement-amount{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  justify-content:center!important;
+  gap:7px!important;
+  overflow:hidden;
+}
+.settlement-amount span{
+  display:block;
+  width:100%;
+  max-width:100%!important;
+  margin:0!important;
+}
+.settlement-amount strong{
+  display:block;
+  width:100%;
+  max-width:100%!important;
+  font-size:clamp(24px,1.8vw,30px)!important;
+  line-height:1.05!important;
+  letter-spacing:-.025em!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:clip;
+  text-align:left!important;
+  font-variant-numeric:tabular-nums;
+}
+@media(max-width:1100px){
+  .settlement-amount strong{font-size:26px!important}
+}
+@media(max-width:620px){
+  .settlement-amount strong{font-size:clamp(24px,7vw,28px)!important}
+}
