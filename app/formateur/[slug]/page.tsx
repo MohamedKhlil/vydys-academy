@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useLanguage } from "../../../components/language-provider";
 import { supabase } from "../../../lib/supabase";
+import WhatsAppBubble from "../../../components/whatsapp-bubble";
 
 export default function PublicTrainerPage(){
   const {slug}=useParams<{slug:string}>();
@@ -30,5 +31,5 @@ export default function PublicTrainerPage(){
     <div className="trainer-public-hero"><div className="avatar trainer-avatar">{trainer.display_name?.slice(0,2).toUpperCase()}</div><div><span className="eyebrow">{t({fr:"Formateur Vydys",ar:"مدرب Vydys",en:"Vydys Instructor"})}</span><h1>{trainer.display_name}</h1><h3>{trainer.headline}</h3><p>{trainer.bio}</p><div className="pill-row"><span>{trainer.expertise}</span><span>{courses.length} {t({fr:"formations",ar:"دورات",en:"courses"})}</span></div></div></div>
     <h2 className="subhead">{t({fr:"Formations publiées",ar:"الدورات المنشورة",en:"Published courses"})}</h2>
     <div className="market-grid">{courses.map(c=>{const title=lang==="ar"?c.title_ar:lang==="en"?c.title_en:c.title_fr;const desc=lang==="ar"?c.description_ar:lang==="en"?c.description_en:c.description_fr;const rs=ratings[c.id];return <article className="market-card" key={c.id}><div className="course-cover"><span>V</span></div><div className="market-card-body"><div className="rating-line"><span className="stars">★★★★★</span><strong>{Number(rs?.average_rating||0).toFixed(1)}</strong><small>({rs?.review_count||0})</small></div><h2>{title}</h2><p>{desc}</p><div className="course-card-footer"><strong>{c.base_price_mru.toLocaleString("fr-FR")} MRU</strong><Link className="btn btn-small" href={"/formation/"+c.slug}>{t({fr:"Voir",ar:"عرض",en:"View"})}</Link></div></div></article>})}</div>
-  </div></section>
+  </div><WhatsAppBubble number={trainer?.whatsapp_number} message={"Bonjour, je souhaite plus d'informations sur les formations de "+trainer.display_name+"."}/></section>
 }
