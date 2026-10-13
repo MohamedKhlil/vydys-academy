@@ -45,6 +45,7 @@ export default function ClassroomPage(){
     const q=search.trim().toLowerCase();
     return rooms.filter(r=>{
       if(r.status!=="published"&&!enrolledIds.has(r.id))return false;
+      if(r.course_id&&!enrolledIds.has(r.id))return false;
       const title=lang==="ar"?r.title_ar:lang==="en"?r.title_en:r.title_fr;
       const desc=lang==="ar"?r.description_ar:lang==="en"?r.description_en:r.description_fr;
       return (language==="all"||r.language===language)&&(!q||String(title||"").toLowerCase().includes(q)||String(desc||"").toLowerCase().includes(q));
@@ -52,7 +53,7 @@ export default function ClassroomPage(){
   },[rooms,enrolledIds,search,language,lang]);
 
   const myRooms=shown.filter(r=>enrolledIds.has(r.id));
-  const discover=shown.filter(r=>r.visibility==="public"&&!enrolledIds.has(r.id));
+  const discover=shown.filter(r=>r.visibility==="public"&&!r.course_id&&!enrolledIds.has(r.id));
   const fmtMoney=(amount:number,currency:string)=>new Intl.NumberFormat(lang==="ar"?"ar-MR":lang==="en"?"en-US":"fr-FR",{style:"currency",currency,maximumFractionDigits:2}).format(amount);
   const fmtDate=(iso:string,zone:string)=>new Intl.DateTimeFormat(lang==="ar"?"ar-MR":lang==="en"?"en-US":"fr-FR",{weekday:"short",day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit",timeZone:zone}).format(new Date(iso));
 
@@ -64,7 +65,7 @@ export default function ClassroomPage(){
       <div className="classroom-market-cover"><span className="live-orb">LIVE</span><div><small>{room.language.toUpperCase()} · {room.level}</small><strong>{room.session_count} {t({fr:"sessions live",ar:"حصص مباشرة",en:"live sessions"})}</strong></div>{my&&<b>{t({fr:"INSCRIT",ar:"مسجل",en:"ENROLLED"})}</b>}</div>
       <div className="classroom-market-body"><div className="classroom-market-meta"><span>{new Date(room.start_date).toLocaleDateString(lang==="ar"?"ar-MR":lang==="en"?"en-US":"fr-FR")}</span><span>{room.capacity} {t({fr:"places",ar:"مقعد",en:"seats"})}</span></div><h2>{title}</h2><p>{desc}</p>{instructor&&<Link className="trainer-link" href={"/formateur/"+instructor.public_slug}>{instructor.display_name}{instructor.headline?" · "+instructor.headline:""}</Link>}
         {next&&<div className="next-live-chip"><span>●</span><div><small>{t({fr:"Prochaine séance",ar:"الحصة القادمة",en:"Next session"})}</small><strong>{fmtDate(next.starts_at,room.timezone)}</strong></div></div>}
-        <div className="classroom-market-footer"><strong>{fmtMoney(Number(room.base_price_amount),room.base_currency)}</strong><Link className="btn btn-small" href={"/classroom/"+room.slug}>{my?t({fr:"Ouvrir",ar:"فتح",en:"Open"}):t({fr:"Voir & s’inscrire",ar:"عرض والتسجيل",en:"View & enroll"})}</Link></div>
+        <div className="classroom-market-footer"><strong>{room.course_id?t({fr:"Inclus dans la formation",ar:"مشمول في الدورة",en:"Included with course"}):fmtMoney(Number(room.base_price_amount),room.base_currency)}</strong><Link className="btn btn-small" href={"/classroom/"+room.slug}>{my?t({fr:"Ouvrir",ar:"فتح",en:"Open"}):t({fr:"Voir & s’inscrire",ar:"عرض والتسجيل",en:"View & enroll"})}</Link></div>
       </div>
     </article>
   }
