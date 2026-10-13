@@ -1019,3 +1019,68 @@ input:focus,select:focus,textarea:focus{border-color:#1264ff!important;box-shado
 .whatsapp-bubble-icon{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#128c4a;font-size:9px;font-weight:950}
 .whatsapp-bubble-text{white-space:nowrap}
 @media(max-width:620px){.whatsapp-bubble{right:14px;bottom:14px;padding-right:8px}.whatsapp-bubble-text{display:none}.whatsapp-bubble-icon{width:44px;height:44px}}
+
+
+/* Mobile responsiveness hardening + PWA install */
+html,body{max-width:100%;overflow-x:hidden}
+img,video,canvas,svg{max-width:100%}
+main,section,article,.container,.panel,.market-card,.hub-card,.hub-command-card,.home-ecosystem-card{min-width:0}
+pre,code{max-width:100%;overflow-wrap:anywhere}
+pre{overflow-x:auto;-webkit-overflow-scrolling:touch}
+input,select,textarea{max-width:100%}
+.mobile-nav-panel-v3{max-height:calc(100dvh - 72px);overflow-y:auto;overscroll-behavior:contain}
+.mobile-menu-v3{padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+
+.mobile-install-menu-btn{width:100%;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;text-align:left;border:1px solid #263752;background:#0b1524;color:#fff;border-radius:13px;padding:12px;margin-bottom:10px;cursor:pointer}
+.mobile-install-menu-btn>span{width:34px;height:34px;border-radius:10px;background:#1264ff;display:grid;place-items:center;font-weight:900}
+.mobile-install-menu-btn>div{display:grid;gap:2px}.mobile-install-menu-btn strong{font-size:10px}.mobile-install-menu-btn small{font-size:7px;color:#8091ab}
+
+.mobile-install-prompt{position:fixed;right:18px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:120;width:min(390px,calc(100% - 28px));background:#07101d;color:#fff;border:1px solid #243a5a;border-radius:20px;padding:17px;box-shadow:0 24px 70px rgba(0,0,0,.34)}
+.mobile-install-close{position:absolute;right:10px;top:9px;width:30px;height:30px;border:0;border-radius:50%;background:#111f33;color:#91a5c5;cursor:pointer}
+.mobile-install-head{display:flex;align-items:center;gap:11px;padding-right:28px}.mobile-install-head img{width:44px;height:44px;border-radius:12px;background:#0e2a52;padding:7px}.mobile-install-head>div{display:grid;gap:2px}.mobile-install-head strong{font-size:14px}.mobile-install-head small{font-size:8px;color:#8395b1}
+.mobile-install-prompt>p{font-size:9px;line-height:1.6;color:#8d9eb7;margin:13px 0}
+.mobile-install-actions{display:grid;grid-template-columns:1fr auto;gap:8px}.mobile-install-actions .btn{font-size:9px;padding:11px 13px}.mobile-install-actions .btn-ghost{background:transparent;color:#dbe7fb;border-color:#334863}
+.ios-install-help{display:grid;gap:6px;border:1px solid #243b5d;background:#0a1728;border-radius:12px;padding:11px;margin-bottom:12px}.ios-install-help span{font-size:8px;color:#b4c4dc}
+
+@media(min-width:901px){
+  .mobile-install-prompt{display:none}
+}
+
+@media(max-width:900px){
+  .dash-header,.admin-section-head,.panel-title,.course-card-footer,.live-room-top,.payment-option,.admin-marketplace-fee,.admin-marketplace-list>article,.footer-cta-row{flex-wrap:wrap}
+  .course-detail-grid,.classroom-detail-layout,.payment-layout,.product-detail-grid,.sell-product-layout,.public-profile-layout,.settings-layout,.forum-layout{grid-template-columns:1fr}
+  .payment-summary,.forum-categories{position:static}
+  .market-grid,.marketplace-vydys-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+@media(max-width:620px){
+  body{padding-bottom:env(safe-area-inset-bottom)}
+  .container{width:calc(100% - 24px)}
+  .page-top{padding-top:34px}
+  .page-hero{margin-bottom:30px}
+  .page-hero h1,.course-detail-title,.product-detail-grid h1,.forum-main-post h1,.public-profile-name h1{font-size:clamp(32px,10vw,42px);line-height:1.03}
+  .dash-header h1{font-size:34px}
+  .panel{padding:18px;border-radius:16px}
+  .dash-header,.admin-section-head,.panel-title,.live-room-top,.course-card-footer,.admin-marketplace-fee,.admin-marketplace-list>article,.footer-cta-row{align-items:stretch;flex-direction:column;gap:12px}
+  .dash-actions,.hero-actions,.form-actions,.review-actions,.footer-cta-actions{width:100%;display:grid;grid-template-columns:1fr;gap:8px}
+  .dash-actions .btn,.hero-actions .btn,.form-actions .btn,.review-actions .btn,.footer-cta-actions .btn{width:100%}
+  .market-grid,.marketplace-vydys-grid,.hub-social-grid,.hub-grid,.hub-path-grid,.home-ecosystem-grid,.home-audience-grid,.pricing-grid,.feature-grid,.stat-grid,.payment-methods,.payment-methods.four{grid-template-columns:1fr}
+  .market-filter-panel,.market-filters,.market-filters.advanced,.market-filters.global,.marketplace-vydys-filters{grid-template-columns:1fr!important}
+  .course-detail-grid,.classroom-detail-layout,.payment-layout,.product-detail-grid,.sell-product-layout,.public-profile-layout,.settings-layout,.forum-layout,.dash-grid,.class-layout,.form-grid{grid-template-columns:1fr!important}
+  .course-cover{height:170px}
+  .product-detail-cover{min-height:280px}
+  .classroom-detail-hero,.forum-main-post{padding:20px}
+  .checkout-method,.payment-option{width:100%;min-width:0;gap:8px}
+  .checkout-method>div,.payment-option>div{min-width:0}
+  .checkout-method strong,.checkout-method span,.payment-option strong,.payment-option span,.method-row span{overflow-wrap:anywhere;word-break:break-word}
+  .method-row,.payment-method-row-rich{align-items:flex-start;flex-direction:column}
+  .method-row-actions{width:100%;display:flex;flex-wrap:wrap}
+  .method-row-actions button{flex:1}
+  .tr{min-width:560px}
+  .table{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{display:block;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .mobile-install-prompt{left:14px;right:14px;width:auto;bottom:calc(78px + env(safe-area-inset-bottom));padding:15px}
+  .mobile-install-actions{grid-template-columns:1fr}
+  .mobile-install-actions .btn{width:100%}
+  .whatsapp-bubble{bottom:calc(14px + env(safe-area-inset-bottom))}
+}
