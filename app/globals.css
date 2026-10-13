@@ -1089,3 +1089,24 @@ input,select,textarea{max-width:100%}
 .trainer-avatar{overflow:hidden}
 .trainer-avatar img{width:100%;height:100%;object-fit:cover;border-radius:inherit}
 @media(max-width:620px){.trainer-public-hero{padding:22px}.trainer-public-hero h1{font-size:36px}.trainer-avatar{width:72px;height:72px}}
+
+
+/* Prominent settlement account + exact payment amount */
+.settlement-highlight{display:grid;grid-template-columns:1.1fr .9fr;gap:10px;margin:16px 0;padding:14px;border-radius:18px;background:linear-gradient(135deg,#07101d,#0d2444);color:#fff;border:1px solid #244a7b;box-shadow:0 16px 42px rgba(7,16,29,.14)}
+.settlement-account,.settlement-amount{display:flex;flex-direction:column;justify-content:center;min-width:0;padding:16px;border-radius:14px}
+.settlement-account{background:rgba(255,255,255,.06)}
+.settlement-amount{background:#fff;color:#07101d}
+.settlement-highlight span{font-size:10px;font-weight:850;letter-spacing:.03em;text-transform:uppercase;opacity:.72;margin-bottom:6px}
+.settlement-account strong{font-size:clamp(30px,4vw,42px);line-height:1;letter-spacing:.055em;overflow-wrap:anywhere}
+.settlement-account small{margin-top:8px;font-size:9px;font-weight:900;color:#82afff}
+.settlement-amount strong{font-size:clamp(26px,3.2vw,36px);line-height:1.08;letter-spacing:-.035em}
+.payment-discount-summary{display:flex;gap:8px;flex-wrap:wrap;margin:-4px 0 12px}
+.payment-discount-summary small{background:#e8f8ef;color:#15794c;border-radius:999px;padding:6px 9px;font-weight:800}
+.pay-number strong{font-size:clamp(32px,4vw,46px)}
+.amount-box strong{font-size:clamp(30px,3.5vw,40px)}
+@media(max-width:620px){
+  .settlement-highlight{grid-template-columns:1fr;padding:10px}
+  .settlement-account,.settlement-amount{padding:14px}
+  .settlement-account strong{font-size:36px}
+  .settlement-amount strong{font-size:30px}
+}
