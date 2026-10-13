@@ -147,6 +147,9 @@ export function Header() {
         </div>}
 
         <div className="mobile-menu-bottom">
+          <button className="mobile-install-menu-btn" type="button" onClick={()=>window.dispatchEvent(new Event("vydys:install"))}>
+            <span>↓</span><div><strong>{t({fr:"Installer Vydys",ar:"تثبيت Vydys",en:"Install Vydys"})}</strong><small>{t({fr:"Ajouter l’application à votre téléphone",ar:"أضف التطبيق إلى هاتفك",en:"Add the app to your phone"})}</small></div>
+          </button>
           <div className="language-switcher">{(["fr","ar","en"] as const).map(code=><button key={code} className={lang===code?"active":""} onClick={()=>setLang(code)}>{code.toUpperCase()}</button>)}</div>
           {signedIn?<button className="btn" onClick={logout}>{t({fr:"Déconnexion",ar:"تسجيل الخروج",en:"Sign out"})}</button>:<div><Link className="btn btn-ghost" href="/devenir-formateur">{t({fr:"Enseigner",ar:"درّس",en:"Teach"})}</Link><Link className="btn" href="/connexion">{t({fr:"Se connecter",ar:"دخول",en:"Sign in"})}</Link></div>}
         </div>
