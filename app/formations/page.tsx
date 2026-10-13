@@ -13,6 +13,8 @@ type Course={
 type Rating={course_id:string;average_rating:number|string;review_count:number};
 type Instructor={user_id:string;public_slug:string;display_name:string;headline:string|null};
 type CoursePrice={course_id:string;currency:string;amount:number|string};
+type CourseModule={id:string;course_id:string;title_fr:string;title_ar:string;title_en:string;position:number};
+type LiveSummary={has_live_classroom?:boolean;session_count?:number;session_duration_minutes?:number;title_fr?:string;title_ar?:string;title_en?:string};
 
 export default function FormationsPage(){
   const {lang,t}=useLanguage();
@@ -21,6 +23,8 @@ export default function FormationsPage(){
   const [instructors,setInstructors]=useState<Record<string,Instructor>>({});
   const [favorites,setFavorites]=useState<Set<string>>(new Set());
   const [priceRows,setPriceRows]=useState<CoursePrice[]>([]);
+  const [modulesByCourse,setModulesByCourse]=useState<Record<string,CourseModule[]>>({});
+  const [liveByCourse,setLiveByCourse]=useState<Record<string,LiveSummary>>({});
   const [displayCurrency,setDisplayCurrency]=useState("USD");
   const [userId,setUserId]=useState<string|null>(null);
   const [search,setSearch]=useState("");
@@ -30,14 +34,24 @@ export default function FormationsPage(){
   const [sort,setSort]=useState("top");
 
   async function load(){
-    const [{data:c},{data:r},{data:i},{data:pr},{data:{user}}]=await Promise.all([
+    const [{data:c},{data:r},{data:i},{data:pr},{data:mods},{data:{user}}]=await Promise.all([
       supabase.from("courses").select("id,slug,title_fr,title_ar,title_en,description_fr,description_ar,description_en,base_price_mru,base_price_amount,base_currency,category,instructor_id,cover_url").eq("status","published"),
       supabase.from("course_rating_summary").select("course_id,average_rating,review_count"),
       supabase.from("instructor_profiles").select("user_id,public_slug,display_name,headline").eq("is_public",true),
       supabase.from("course_prices").select("course_id,currency,amount").eq("is_active",true),
+      supabase.from("course_modules").select("id,course_id,title_fr,title_ar,title_en,position").order("position"),
       supabase.auth.getUser()
     ]);
     setCourses((c||[]) as Course[]);setPriceRows((pr||[]) as CoursePrice[]);
+    const mm:Record<string,CourseModule[]>={};
+    ((mods||[]) as CourseModule[]).forEach(m=>{if(!mm[m.course_id])mm[m.course_id]=[];mm[m.course_id].push(m)});
+    setModulesByCourse(mm);
+    const liveRows=await Promise.all((c||[]).map(async(course:any)=>{
+      const {data}=await supabase.rpc("get_public_course_live_summary",{p_course_id:course.id});
+      return [course.id,data||null] as const;
+    }));
+    const lm:Record<string,LiveSummary>={};liveRows.forEach(([id,data])=>{if(data?.has_live_classroom)lm[id]=data});
+    setLiveByCourse(lm);
     const rm:Record<string,Rating>={};(r||[]).forEach((x:any)=>rm[x.course_id]=x);setRatings(rm);
     const im:Record<string,Instructor>={};(i||[]).forEach((x:any)=>im[x.user_id]=x);setInstructors(im);
     setUserId(user?.id||null);
@@ -130,13 +144,42 @@ export default function FormationsPage(){
         const desc=lang==="ar"?c.description_ar:lang==="en"?c.description_en:c.description_fr;
         const rating=Number(ratings[c.id]?.average_rating||0);const reviews=ratings[c.id]?.review_count||0;
         const instructor=c.instructor_id?instructors[c.instructor_id]:null;const shownPrice=displayPrice(c);const cur=shownPrice.currency;const amount=shownPrice.amount;
-        return <article className="market-card" key={c.id}>
-          <div className="course-cover">{c.cover_url?<img src={c.cover_url} alt="" />:<span>V</span>}{index<3&&rating>0?<b>{t({fr:"Top formation",ar:"من الأفضل",en:"Top course"})}</b>:null}<button className={favorites.has(c.id)?"favorite-btn active":"favorite-btn"} onClick={()=>toggleFavorite(c.id)} aria-label="favorite">♥</button></div>
-          <div className="market-card-body">
-            <div className="rating-line"><span className="stars">★★★★★</span><strong>{rating?rating.toFixed(1):"—"}</strong><small>({reviews})</small></div>
-            <h2>{title}</h2><p>{desc}</p>
-            {instructor?<Link className="trainer-link" href={"/formateur/"+instructor.public_slug}>{instructor.display_name}{instructor.headline?" · "+instructor.headline:""}</Link>:<span className="trainer-link">Vydys Academy</span>}
-            <div className="course-card-footer"><div><strong>{formatMoney(amount,cur)}</strong>{shownPrice.isLocalFallback&&<small style={{display:"block"}}>{t({fr:"Prix local · aucun taux de change inventé",ar:"سعر محلي · بدون تحويل عملة افتراضي",en:"Local price · no invented FX rate"})}</small>}</div><Link className="btn btn-small" href={"/formation/"+c.slug}>{t({fr:"Voir",ar:"عرض",en:"View"})}</Link></div>
+        const modules=modulesByCourse[c.id]||[];
+        const live=liveByCourse[c.id];
+        const moduleTitle=(m:CourseModule)=>lang==="ar"?(m.title_ar||m.title_fr):lang==="en"?(m.title_en||m.title_fr):m.title_fr;
+        return <article className="market-card course-market-card" key={c.id}>
+          <div className="course-cover course-market-cover">
+            {c.cover_url?<img src={c.cover_url} alt="" />:<div className="course-cover-monogram"><span>V</span><small>VYDYS COURSE</small></div>}
+            <div className="course-cover-badges">
+              {c.category&&<span>{c.category}</span>}
+              {live?.has_live_classroom&&<span className="live">● {live.session_count} LIVE</span>}
+              {index<3&&rating>0&&<span className="top">{t({fr:"Top formation",ar:"من الأفضل",en:"Top course"})}</span>}
+            </div>
+            <button className={favorites.has(c.id)?"favorite-btn active":"favorite-btn"} onClick={()=>toggleFavorite(c.id)} aria-label="favorite">♥</button>
+          </div>
+          <div className="market-card-body course-market-body">
+            <div className="course-card-meta-row">
+              <div className="rating-line"><span className="stars">★★★★★</span><strong>{rating?rating.toFixed(1):"Nouveau"}</strong>{reviews>0&&<small>({reviews})</small>}</div>
+              <span className="course-module-count">{modules.length} {t({fr:"modules",ar:"وحدات",en:"modules"})}</span>
+            </div>
+            <h2>{title}</h2>
+            <p className="course-market-desc">{desc}</p>
+
+            {modules.length>0&&<div className="course-program-preview">
+              <div className="course-program-head"><strong>{t({fr:"Programme",ar:"البرنامج",en:"Curriculum"})}</strong><span>{modules.length} {t({fr:"modules",ar:"وحدات",en:"modules"})}</span></div>
+              <div className="course-module-preview-list">
+                {modules.slice(0,4).map((m,idx)=><div key={m.id}><span>{String(idx+1).padStart(2,"0")}</span><strong>{moduleTitle(m)}</strong></div>)}
+              </div>
+              {modules.length>4&&<small className="course-more-modules">+{modules.length-4} {t({fr:"autres modules",ar:"وحدات أخرى",en:"more modules"})}</small>}
+            </div>}
+
+            {live?.has_live_classroom&&<div className="course-live-summary"><span>●</span><div><strong>{t({fr:"Classroom live incluse",ar:"فصل مباشر مشمول",en:"Live Classroom included"})}</strong><small>{live.session_count} × {live.session_duration_minutes} min · {t({fr:"même inscription",ar:"نفس التسجيل",en:"same enrollment"})}</small></div></div>}
+
+            {instructor?<Link className="trainer-link course-trainer-row" href={"/formateur/"+instructor.public_slug}><span className="course-trainer-avatar">{instructor.display_name?.slice(0,2).toUpperCase()}</span><span><strong>{instructor.display_name}</strong>{instructor.headline&&<small>{instructor.headline}</small>}</span></Link>:<span className="trainer-link">Vydys Academy</span>}
+            <div className="course-card-footer">
+              <div className="course-price-stack"><small>{t({fr:"Prix",ar:"السعر",en:"Price"})}</small><strong>{formatMoney(amount,cur)}</strong>{shownPrice.isLocalFallback&&<span>{t({fr:"Prix local",ar:"سعر محلي",en:"Local price"})}</span>}</div>
+              <Link className="btn btn-small course-open-btn" href={"/formation/"+c.slug}>{t({fr:"Voir la formation",ar:"عرض الدورة",en:"View course"})} →</Link>
+            </div>
           </div>
         </article>
       })}
