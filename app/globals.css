@@ -1387,3 +1387,34 @@ input,select,textarea{max-width:100%}
   .vydys-live-error-box strong{grid-row:auto}
   .live-chat-panel{min-height:420px}
 }
+
+
+/* Instructor-controlled Classroom live state */
+.live-topbar-actions{display:flex;align-items:center;gap:9px}
+.live-session-state{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:28px;padding:0 9px;border-radius:999px;
+  font-size:7px;font-weight:950;letter-spacing:.04em;text-transform:uppercase;
+  background:#202b3d;color:#9fb0ca;border:1px solid #31405a
+}
+.live-session-state.live{background:#0d3a2a;color:#7ff0b3;border-color:#21674d}
+.live-session-state.completed{background:#242a38;color:#aab6ca;border-color:#3a455c}
+.live-open-btn,.live-close-btn{
+  border:0;border-radius:9px;min-height:32px;padding:0 12px;
+  font-size:8px;font-weight:900;cursor:pointer
+}
+.live-open-btn{background:#1264ff;color:#fff;box-shadow:0 8px 20px rgba(18,100,255,.24)}
+.live-close-btn{background:#471521;color:#ffccd5;border:1px solid #7c2d3e}
+.live-open-btn:disabled,.live-close-btn:disabled{opacity:.55;cursor:not-allowed}
+.live-chat-closed{
+  padding:9px 11px;
+  background:#121a28;
+  border-top:1px solid #28344b;
+  color:#8fa0bb;
+  font-size:8px;
+  line-height:1.45
+}
+@media(max-width:760px){
+  .live-topbar-actions{width:100%;flex-wrap:wrap}
+  .live-open-btn,.live-close-btn{flex:1;min-width:150px}
+}
