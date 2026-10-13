@@ -11,10 +11,11 @@ function jsonError(message:string,status=400){
   return NextResponse.json({error:message},{status});
 }
 
-async function cf(path:string, init:RequestInit){
+async function cf(path:string, init:RequestInit, operation:string){
   const appId=process.env.REALTIME_SFU_APP_ID;
   const token=process.env.REALTIME_SFU_BEARER_TOKEN;
   if(!appId||!token)throw new Error("Cloudflare Realtime is not configured");
+  const started=Date.now();
   const res=await fetch(`${CF_BASE}/apps/${appId}${path}`,{
     ...init,
     headers:{
@@ -24,11 +25,19 @@ async function cf(path:string, init:RequestInit){
     },
     cache:"no-store"
   });
-  const text=await res.text();
+  const responseText=await res.text();
   let data:any={};
-  try{data=text?JSON.parse(text):{}}catch{data={raw:text}}
-  if(!res.ok){
-    const msg=data?.errorDescription||data?.error||data?.message||`Cloudflare SFU error ${res.status}`;
+  try{data=responseText?JSON.parse(responseText):{}}catch{data={}}
+  const itemError=Array.isArray(data?.tracks)?data.tracks.find((x:any)=>x?.errorCode):null;
+  console.info("[vydys-live]",JSON.stringify({
+    operation,
+    status:res.status,
+    duration_ms:Date.now()-started,
+    ok:res.ok&&!itemError,
+    error_code:data?.errorCode||itemError?.errorCode||null
+  }));
+  if(!res.ok||data?.errorCode||itemError){
+    const msg=data?.errorDescription||itemError?.errorDescription||data?.error||data?.message||`Cloudflare SFU error ${res.status}`;
     throw new Error(typeof msg==="string"?msg:JSON.stringify(msg));
   }
   return data;
@@ -57,7 +66,7 @@ export async function POST(req:NextRequest){
 
   try{
     if(action==="create_session"){
-      const data=await cf("/sessions/new",{method:"POST"});
+      const data=await cf("/sessions/new",{method:"POST"},"create_session");
       return NextResponse.json({session_id:data.sessionId,role:access.role});
     }
 
@@ -91,7 +100,7 @@ export async function POST(req:NextRequest){
             mid
           }]
         })
-      });
+      },"publish_"+source);
       return NextResponse.json(data);
     }
 
@@ -119,7 +128,7 @@ export async function POST(req:NextRequest){
             trackName:pub.track_name
           }]
         })
-      });
+      },"subscribe_"+pub.source);
       return NextResponse.json({...data,publication:{id:pub.id,kind:pub.kind,source:pub.source,user_id:pub.user_id}});
     }
 
@@ -129,7 +138,7 @@ export async function POST(req:NextRequest){
       const data=await cf(`/sessions/${encodeURIComponent(providerSessionId)}/renegotiate`,{
         method:"PUT",
         body:JSON.stringify({sessionDescription})
-      });
+      },"renegotiate");
       return NextResponse.json(data);
     }
 
