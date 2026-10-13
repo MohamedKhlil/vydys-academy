@@ -409,6 +409,19 @@ export default function ClassroomLiveRoom({access}:{access:any}){
     };
   },[access.session_id]);
 
+  useEffect(()=>{
+    const channel=supabase.channel("classroom-live-publications-"+access.session_id)
+      .on("postgres_changes",{
+        event:"*",
+        schema:"public",
+        table:"classroom_live_publications",
+        filter:`classroom_session_id=eq.${access.session_id}`
+      },()=>{void poll()})
+      .subscribe();
+
+    return()=>{supabase.removeChannel(channel)};
+  },[access.session_id]);
+
   async function toggle(source:Source){
     if(busy)return;
     setBusy(true);
