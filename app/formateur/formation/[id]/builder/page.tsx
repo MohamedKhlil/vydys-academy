@@ -133,6 +133,19 @@ export default function CourseBuilderPage(){
     if(error)setMessage(error.message);else{setAssignmentTitle("");setAssignmentInstructions("");setAssignmentDue("");await load()}
   }
 
+  async function deleteCourse(){
+    const ok=window.confirm(t({
+      fr:"Supprimer définitivement cette formation ? Cette action est irréversible.",
+      ar:"هل تريد حذف هذه الدورة نهائياً؟ لا يمكن التراجع عن هذا الإجراء.",
+      en:"Permanently delete this course? This action cannot be undone."
+    }));
+    if(!ok)return;
+    setMessage("");
+    const {error}=await supabase.rpc("delete_owned_course",{p_course_id:id});
+    if(error){setMessage(error.message);return}
+    window.location.href="/formateur";
+  }
+
   async function submitForReview(){
     if(!activeSub){setMessage(t({fr:"Activez d'abord votre abonnement formateur.",ar:"فعّل اشتراك المدرب أولاً.",en:"Activate your instructor subscription first."}));return}
     if(modules.length===0||lessons.length===0){setMessage(t({fr:"Ajoutez au moins un module et une leçon avant soumission.",ar:"أضف وحدة ودرساً واحداً على الأقل قبل الإرسال.",en:"Add at least one module and one lesson before submitting."}));return}
@@ -153,7 +166,7 @@ export default function CourseBuilderPage(){
   if(course===false)return <section className="dashboard-shell"><div className="container"><article className="panel"><h1>{t({fr:"Formation introuvable",ar:"الدورة غير موجودة",en:"Course not found"})}</h1></article></div></section>;
 
   return <section className="dashboard-shell"><div className="container">
-    <div className="dash-header"><div><span className="eyebrow">{t({fr:"Course Builder",ar:"منشئ الدورة",en:"Course Builder"})}</span><h1>{course.title_fr}</h1><p>{t({fr:"Construisez tout le parcours pédagogique avant publication.",ar:"أنشئ المسار التعليمي كاملاً قبل النشر.",en:"Build the full learning journey before publishing."})}</p></div><div className="builder-head-actions"><a className="btn btn-ghost" href="/formateur/copilote">✨ {t({fr:"Copilote IA",ar:"المساعد الذكي",en:"AI Copilot"})}</a><a className="btn btn-ghost" href={"/formateur/formation/"+id+"/competences"}>✓ {t({fr:"Compétences",ar:"المهارات",en:"Skills"})}</a><a className="btn btn-ghost" href={"/formateur/formation/"+id+"/pricing"}>💱 {t({fr:"Prix & devises",ar:"الأسعار والعملات",en:"Pricing & currencies"})}</a>{course.status==="approved_pending_fee"&&<a className="btn" href={"/formateur/formation/"+id+"/launch"}>1$ · {t({fr:"Lancer",ar:"إطلاق",en:"Launch"})}</a>}<button className="btn" onClick={submitForReview} disabled={course.status==="pending"||course.status==="approved_pending_fee"||course.status==="published"}>{t({fr:"Publier la formation",ar:"نشر الدورة",en:"Publish course"})}</button></div></div>
+    <div className="dash-header"><div><span className="eyebrow">{t({fr:"Course Builder",ar:"منشئ الدورة",en:"Course Builder"})}</span><h1>{course.title_fr}</h1><p>{t({fr:"Construisez tout le parcours pédagogique avant publication.",ar:"أنشئ المسار التعليمي كاملاً قبل النشر.",en:"Build the full learning journey before publishing."})}</p></div><div className="builder-head-actions"><a className="btn btn-ghost" href="/formateur/copilote">✨ {t({fr:"Copilote IA",ar:"المساعد الذكي",en:"AI Copilot"})}</a><a className="btn btn-ghost" href={"/formateur/formation/"+id+"/competences"}>✓ {t({fr:"Compétences",ar:"المهارات",en:"Skills"})}</a><a className="btn btn-ghost" href={"/formateur/formation/"+id+"/pricing"}>💱 {t({fr:"Prix & devises",ar:"الأسعار والعملات",en:"Pricing & currencies"})}</a>{course.status==="approved_pending_fee"&&<a className="btn" href={"/formateur/formation/"+id+"/launch"}>1$ · {t({fr:"Lancer",ar:"إطلاق",en:"Launch"})}</a>}<button className="btn" onClick={submitForReview} disabled={course.status==="pending"||course.status==="approved_pending_fee"||course.status==="published"}>{t({fr:"Publier la formation",ar:"نشر الدورة",en:"Publish course"})}</button><button className="btn btn-danger" onClick={deleteCourse}>{t({fr:"Supprimer",ar:"حذف",en:"Delete"})}</button></div></div>
     <div className="builder-status"><span className="tag">{course.status}</span><span>{modules.length} {t({fr:"modules",ar:"وحدات",en:"modules"})}</span><span>{lessons.length} {t({fr:"leçons",ar:"دروس",en:"lessons"})}</span><span>{quizzes.length} quiz</span><span>{assignments.length} {t({fr:"devoirs",ar:"واجبات",en:"assignments"})}</span></div>
     {message&&<p className="manual-note">{message}</p>}
 
