@@ -34,6 +34,7 @@ export default function FormationsPage(){
       supabase.from("courses").select("id,slug,title_fr,title_ar,title_en,description_fr,description_ar,description_en,base_price_mru,base_price_amount,base_currency,category,instructor_id,cover_url").eq("status","published"),
       supabase.from("course_rating_summary").select("course_id,average_rating,review_count"),
       supabase.from("instructor_profiles").select("user_id,public_slug,display_name,headline").eq("is_public",true),
+      supabase.from("course_prices").select("course_id,currency,amount").eq("is_active",true),
       supabase.auth.getUser()
     ]);
     setCourses((c||[]) as Course[]);setPriceRows((pr||[]) as CoursePrice[]);
@@ -52,6 +53,17 @@ export default function FormationsPage(){
   }
 
   useEffect(()=>{load()},[]);
+
+  const priceMap=useMemo(()=>{
+    const map:Record<string,Record<string,number>>={};
+    priceRows.forEach(p=>{
+      const courseId=String(p.course_id);
+      const currency=String(p.currency||"").toUpperCase();
+      if(!map[courseId])map[courseId]={};
+      map[courseId][currency]=Number(p.amount);
+    });
+    return map;
+  },[priceRows]);
 
   const categories=useMemo(()=>Array.from(new Set(courses.map(c=>c.category).filter(Boolean) as string[])),[courses]);
   const currencies=useMemo(()=>Array.from(new Set(courses.map(c=>String(c.base_currency||"MRU").toUpperCase()))).sort(),[courses]);
