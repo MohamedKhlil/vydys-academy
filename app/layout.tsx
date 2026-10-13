@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Header } from "../components/header";
 import { Footer } from "../components/footer";
 import { LanguageProvider } from "../components/language-provider";
+import MobileInstallPrompt from "../components/mobile-install-prompt";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.vydys.com"),
@@ -32,6 +33,18 @@ export const metadata: Metadata = {
     ],
   },
   manifest: "/manifest.webmanifest",
+  applicationName: "Vydys",
+  appleWebApp: {
+    capable: true,
+    title: "Vydys",
+    statusBarStyle: "black-translucent",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
   themeColor: "#05070C",
 };
 
@@ -71,6 +84,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <Header />
           <main>{children}</main>
           <Footer />
+          <MobileInstallPrompt />
         </LanguageProvider>
       </body>
     </html>
