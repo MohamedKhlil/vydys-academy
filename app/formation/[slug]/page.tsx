@@ -16,6 +16,7 @@ export default function FormationDetailPage(){
   const [prices,setPrices]=useState<any[]>([]);
   const [ratings,setRatings]=useState<any>({average_rating:0,review_count:0});
   const [reviews,setReviews]=useState<any[]>([]);
+  const [modules,setModules]=useState<any[]>([]);
   const [linkedClassroom,setLinkedClassroom]=useState<any>(null);
   const [hybridSummary,setHybridSummary]=useState<any>(null);
   const [enrolled,setEnrolled]=useState(false);
@@ -36,12 +37,13 @@ export default function FormationDetailPage(){
     const {data:c}=await supabase.from("courses").select("*").eq("slug",params.slug).eq("status","published").single();
     if(!c){setCourse(false);return}
     setCourse(c);
-    const [{data:rs},{data:rv},{data:cp}]=await Promise.all([
+    const [{data:rs},{data:rv},{data:cp},{data:mods}]=await Promise.all([
       supabase.from("course_rating_summary").select("*").eq("course_id",c.id).single(),
       supabase.from("course_reviews").select("id,rating,review_text,created_at").eq("course_id",c.id).order("created_at",{ascending:false}),
-      supabase.from("course_prices").select("currency,amount").eq("course_id",c.id).eq("is_active",true).order("currency")
+      supabase.from("course_prices").select("currency,amount").eq("course_id",c.id).eq("is_active",true).order("currency"),
+      supabase.from("course_modules").select("id,title_fr,title_ar,title_en,position").eq("course_id",c.id).order("position")
     ]);
-    if(rs)setRatings(rs);setReviews(rv||[]);setPrices(cp||[]);
+    if(rs)setRatings(rs);setReviews(rv||[]);setPrices(cp||[]);setModules(mods||[]);
     const [{data:linkedRoom},{data:liveSummary}]=await Promise.all([
       supabase.from("classrooms").select("id,slug,title_fr,title_ar,title_en,status,start_date,session_count,session_duration_minutes,timezone").eq("course_id",c.id).maybeSingle(),
       supabase.rpc("get_public_course_live_summary",{p_course_id:c.id})
@@ -166,6 +168,29 @@ export default function FormationDetailPage(){
         <div><span className="eyebrow">{t({fr:"Formation hybride · 1 seul paiement",ar:"دورة هجينة · دفعة واحدة",en:"Hybrid course · one payment"})}</span><h3>{lang==="ar"?((linkedClassroom||hybridSummary)?.title_ar||(linkedClassroom||hybridSummary)?.title_fr):lang==="en"?((linkedClassroom||hybridSummary)?.title_en||(linkedClassroom||hybridSummary)?.title_fr):(linkedClassroom||hybridSummary)?.title_fr}</h3><p><strong>{(linkedClassroom||hybridSummary)?.session_count} {t({fr:"séances live incluses",ar:"حصص مباشرة مشمولة",en:"live sessions included"})}</strong> · {(linkedClassroom||hybridSummary)?.session_duration_minutes} min · {t({fr:"cours, supports et exercices inclus",ar:"الدروس والموارد والتمارين مشمولة",en:"lessons, resources and assignments included"})}</p></div>
         {enrolled&&linkedClassroom?<Link className="btn btn-ghost" href={"/classroom/"+linkedClassroom.slug}>{t({fr:"Ouvrir ma Classroom",ar:"فتح فصلي",en:"Open my Classroom"})}</Link>:<span className="hybrid-included-chip">{t({fr:"Inclus avec l’inscription",ar:"مشمول مع التسجيل",en:"Included with enrollment"})}</span>}
       </article>}
+
+      {modules.length>0&&<section className="course-public-curriculum">
+        <div className="course-curriculum-head">
+          <div><span className="eyebrow">{t({fr:"Programme de la formation",ar:"برنامج الدورة",en:"Course curriculum"})}</span><h2>{t({fr:"Ce que vous allez apprendre",ar:"ما الذي ستتعلمه",en:"What you will learn"})}</h2></div>
+          <div className="course-curriculum-summary"><strong>{modules.length}</strong><span>{t({fr:"modules structurés",ar:"وحدات منظمة",en:"structured modules"})}</span></div>
+        </div>
+        <div className="course-public-module-grid">
+          {modules.map((m:any,idx:number)=>{
+            const moduleTitle=lang==="ar"?(m.title_ar||m.title_fr):lang==="en"?(m.title_en||m.title_fr):m.title_fr;
+            return <article className="course-public-module" key={m.id}>
+              <div className="course-module-number">{String(idx+1).padStart(2,"0")}</div>
+              <div><small>{t({fr:"Module",ar:"الوحدة",en:"Module"})} {idx+1}</small><h3>{moduleTitle}</h3><p>{t({fr:"Leçon complète, support pédagogique et exercice pratique.",ar:"درس كامل ومواد تعليمية وتمرين تطبيقي.",en:"Complete lesson, learning material and practical exercise."})}</p></div>
+              <span className="course-module-arrow">→</span>
+            </article>
+          })}
+        </div>
+        <div className="course-curriculum-includes">
+          <span>✓ {t({fr:"Leçons complètes",ar:"دروس كاملة",en:"Complete lessons"})}</span>
+          <span>✓ {t({fr:"Exercices pratiques",ar:"تمارين تطبيقية",en:"Practical assignments"})}</span>
+          <span>✓ {t({fr:"Supports pédagogiques",ar:"مواد تعليمية",en:"Learning resources"})}</span>
+          {(linkedClassroom||hybridSummary?.has_live_classroom)&&<span>✓ {hybridSummary?.session_count||linkedClassroom?.session_count} {t({fr:"séances live",ar:"حصص مباشرة",en:"live sessions"})}</span>}
+        </div>
+      </section>}
 
       <section className="reviews-section"><h2>{t({fr:"Avis des étudiants",ar:"آراء الطلاب",en:"Student reviews"})}</h2>
         {reviews.length===0?<p>{t({fr:"Pas encore d'avis.",ar:"لا توجد تقييمات بعد.",en:"No reviews yet."})}</p>:reviews.map(r=><article className="review-card" key={r.id}><div className="rating-line"><span className="stars">★★★★★</span><strong>{r.rating}/5</strong></div><p>{r.review_text}</p><small>{t({fr:"Étudiant vérifié",ar:"طالب مسجل",en:"Verified student"})}</small></article>)}
