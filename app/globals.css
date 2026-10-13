@@ -6166,3 +6166,70 @@ label{color:#27344b}
   .ai-page .ai-layout{grid-template-columns:1fr}
   .ai-page .ai-history{max-height:180px}
 }
+
+
+/* Final visual QA fixes */
+.course-new-badge{
+  display:inline-flex;
+  align-items:center;
+  width:max-content;
+  min-height:30px;
+  margin:14px 0 18px;
+  padding:0 10px;
+  border:1px solid #cfe0f6;
+  border-radius:999px;
+  background:#f1f6ff;
+  color:#33639f;
+  font-size:8px;
+  font-weight:900;
+}
+@media(min-width:1001px){
+  .course-checkout{
+    max-height:calc(100vh - 118px);
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    scrollbar-width:thin;
+    scrollbar-color:#b5c6dc transparent;
+  }
+}
+.checkout-methods{
+  padding-right:2px;
+}
+.checkout-method{
+  align-items:flex-start!important;
+}
+.checkout-method>div{
+  min-width:0;
+}
+.checkout-method>div>span{
+  overflow-wrap:anywhere;
+  line-height:1.4;
+}
+.checkout-method>b{
+  flex:none;
+  max-width:46%;
+  text-align:right;
+  white-space:normal;
+  line-height:1.25;
+}
+.hub-filter-row{
+  scrollbar-width:none;
+}
+.hub-filter-row::-webkit-scrollbar{
+  display:none;
+}
+@media(max-width:620px){
+  .hub-filter-row{
+    flex-wrap:nowrap!important;
+    overflow-x:auto;
+    overscroll-behavior-x:contain;
+    -webkit-overflow-scrolling:touch;
+    margin-left:-13px;
+    margin-right:-13px;
+    padding:0 13px 7px;
+  }
+  .hub-filter-row button{
+    flex:none;
+    min-height:40px;
+  }
+}
