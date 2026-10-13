@@ -25,6 +25,7 @@ export default function ClassroomManagePage(){
   const [assignmentText,setAssignmentText]=useState("");
   const [priceCurrency,setPriceCurrency]=useState("USD");
   const [priceAmount,setPriceAmount]=useState("");
+  const [capacityValue,setCapacityValue]=useState("");
   const [message,setMessage]=useState("");
 
   async function load(){
@@ -41,7 +42,7 @@ export default function ClassroomManagePage(){
       supabase.from("classroom_prices").select("*").eq("classroom_id",id).order("currency"),
       supabase.from("currency_catalog").select("code,name").eq("enabled",true).order("code")
     ]);
-    setRoom(r||false);setSessions(s||[]);setEnrollments(e||[]);setAttendance(a||[]);setResources(res||[]);setAssignments(ass||[]);setPrices(pr||[]);setCurrencies(cur||[]);
+    setRoom(r||false);if(r)setCapacityValue(String(r.capacity||""));setSessions(s||[]);setEnrollments(e||[]);setAttendance(a||[]);setResources(res||[]);setAssignments(ass||[]);setPrices(pr||[]);setCurrencies(cur||[]);
     const ids=[...new Set((e||[]).map((x:any)=>x.user_id).filter(Boolean))];
     if(ids.length){
       const {data:ps}=await supabase.from("profiles").select("id,full_name,phone").in("id",ids);
@@ -90,6 +91,30 @@ export default function ClassroomManagePage(){
     if(error)setMessage(error.message);else{setAssignmentTitle("");setAssignmentText("");setAssignmentDue("");await load()}
   }
 
+  async function updateCapacity(e:FormEvent){
+    e.preventDefault();setMessage("");
+    const n=Number(capacityValue);
+    if(!Number.isInteger(n)||n<1||n>5000){
+      setMessage(t({fr:"Le nombre de places doit être compris entre 1 et 5000.",ar:"يجب أن تكون السعة بين 1 و5000.",en:"Capacity must be between 1 and 5000."}));return;
+    }
+    const {error}=await supabase.rpc("update_owned_classroom_capacity",{p_classroom_id:id,p_capacity:n});
+    if(error){setMessage(error.message);return}
+    setMessage(t({fr:"Nombre de places mis à jour.",ar:"تم تحديث عدد المقاعد.",en:"Capacity updated."}));await load();
+  }
+
+  async function deleteClassroom(){
+    const ok=window.confirm(t({
+      fr:"Supprimer définitivement cette Classroom ? Cette action est irréversible.",
+      ar:"هل تريد حذف هذا الفصل نهائياً؟ لا يمكن التراجع عن هذا الإجراء.",
+      en:"Permanently delete this Classroom? This action cannot be undone."
+    }));
+    if(!ok)return;
+    setMessage("");
+    const {error}=await supabase.rpc("delete_owned_classroom",{p_classroom_id:id});
+    if(error){setMessage(error.message);return}
+    window.location.href="/formateur/classrooms";
+  }
+
   async function addPrice(e:FormEvent){
     e.preventDefault();
     const n=Number(priceAmount);if(!Number.isFinite(n)||n<0)return;
@@ -105,7 +130,7 @@ export default function ClassroomManagePage(){
   const toLocal=(iso:string)=>{const d=new Date(iso);const pad=(n:number)=>String(n).padStart(2,"0");return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`};
 
   return <section className="dashboard-shell classroom-manage-page"><div className="container">
-    <div className="dash-header"><div><span className="eyebrow">Classroom Studio</span><h1>{room.title_fr}</h1><p>{room.session_count} {t({fr:"sessions",ar:"حصص",en:"sessions"})} · {room.capacity} {t({fr:"places",ar:"مقعد",en:"seats"})} · {room.timezone}</p></div><div className="builder-head-actions">{room.status==="draft"||room.status==="rejected"?<button className="btn" onClick={submitReview}>{t({fr:"Publier la Classroom",ar:"نشر الفصل",en:"Publish Classroom"})}</button>:null}{room.status==="approved_pending_fee"&&<Link className="btn" href={"/formateur/classrooms/"+id+"/launch"}>{t({fr:"Payer le lancement",ar:"دفع الإطلاق",en:"Pay launch fee"})}</Link>}{room.status==="published"&&<Link className="btn btn-ghost" href={"/classroom/"+room.slug}>{t({fr:"Voir la page publique",ar:"عرض الصفحة",en:"View public page"})}</Link>}</div></div>
+    <div className="dash-header"><div><span className="eyebrow">Classroom Studio</span><h1>{room.title_fr}</h1><p>{room.session_count} {t({fr:"sessions",ar:"حصص",en:"sessions"})} · {room.capacity} {t({fr:"places",ar:"مقعد",en:"seats"})} · {room.timezone}</p></div><div className="builder-head-actions">{room.status==="draft"||room.status==="rejected"?<button className="btn" onClick={submitReview}>{t({fr:"Publier la Classroom",ar:"نشر الفصل",en:"Publish Classroom"})}</button>:null}{room.status==="approved_pending_fee"&&<Link className="btn" href={"/formateur/classrooms/"+id+"/launch"}>{t({fr:"Payer le lancement",ar:"دفع الإطلاق",en:"Pay launch fee"})}</Link>}{room.status==="published"&&<Link className="btn btn-ghost" href={"/classroom/"+room.slug}>{t({fr:"Voir la page publique",ar:"عرض الصفحة",en:"View public page"})}</Link>}<button className="btn btn-danger" onClick={deleteClassroom}>{t({fr:"Supprimer",ar:"حذف",en:"Delete"})}</button></div></div>
 
     {message&&<p className="manual-note">{message}</p>}
     <div className="classroom-manage-kpis">
@@ -127,6 +152,7 @@ export default function ClassroomManagePage(){
       </article>
 
       <aside className="classroom-manage-side">
+        <article className="panel classroom-capacity-editor"><h3>{t({fr:"Nombre de places",ar:"عدد المقاعد",en:"Capacity"})}</h3><p>{t({fr:"Vous pouvez modifier la capacité même après publication. Elle ne peut pas être inférieure au nombre d’inscrits.",ar:"يمكنك تعديل السعة حتى بعد النشر، ولا يمكن أن تقل عن عدد المسجلين.",en:"You can change capacity even after publication. It cannot be lower than current enrollments."})}</p><form onSubmit={updateCapacity} className="inline-price-form"><input type="number" min={Math.max(1,enrollments.length)} max="5000" value={capacityValue} onChange={e=>setCapacityValue(e.target.value)} required/><button>{t({fr:"Mettre à jour",ar:"تحديث",en:"Update"})}</button></form></article>
         <article className="panel"><h3>{t({fr:"Prix par devise",ar:"الأسعار حسب العملة",en:"Prices by currency"})}</h3><div className="classroom-price-chips">{prices.map(p=><span key={p.currency}><b>{p.currency}</b> {Number(p.amount).toLocaleString("fr-FR")}</span>)}</div>{canEdit&&<form onSubmit={addPrice} className="inline-price-form"><select value={priceCurrency} onChange={e=>setPriceCurrency(e.target.value)}>{currencies.map(c=><option key={c.code} value={c.code}>{c.code}</option>)}</select><input type="number" min="0" step="0.01" value={priceAmount} onChange={e=>setPriceAmount(e.target.value)} placeholder="0.00"/><button>{t({fr:"Ajouter",ar:"إضافة",en:"Add"})}</button></form>}</article>
         <article className="panel"><h3>{t({fr:"Étudiants",ar:"الطلاب",en:"Learners"})}</h3><div className="classroom-learner-list">{enrollments.slice(0,12).map(e=><div key={e.id}><span>{(profiles[e.user_id]?.full_name||"V").slice(0,2).toUpperCase()}</span><div><strong>{profiles[e.user_id]?.full_name||t({fr:"Étudiant",ar:"طالب",en:"Student"})}</strong><small>{profiles[e.user_id]?.phone||""}</small></div></div>)}{enrollments.length===0&&<p>{t({fr:"Aucun étudiant inscrit.",ar:"لا يوجد طلاب مسجلون.",en:"No learners enrolled."})}</p>}</div></article>
       </aside>
