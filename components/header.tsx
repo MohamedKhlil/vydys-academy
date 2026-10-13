@@ -66,6 +66,7 @@ export function Header() {
               <small>{t({fr:"Pratiquer",ar:"التدريب",en:"Practice"})}</small>
               <Link href="/practice"><b>Practice Hub</b><span>Code · SQL · API · Data · Cloud</span></Link>
               <Link href="/ai-lab"><b>AI Lab</b><span>Agents · RAG · Knowledge · Code</span></Link>
+              <Link href="/auto-learner"><b>Auto Learner</b><span>{t({fr:"Importez un cours, l’IA crée votre parcours",ar:"استورد دورة والذكاء الاصطناعي ينشئ مسارك",en:"Import a course, AI builds your pathway"})}</span></Link>
               <Link href="/skill-engine"><b>Skill Engine</b><span>{t({fr:"Diagnostic & missions",ar:"تشخيص ومهام",en:"Diagnostics & missions"})}</span></Link>
             </div>
             <div className="nav-mega-column">
@@ -83,6 +84,7 @@ export function Header() {
         <Link href="/classroom">Classroom</Link>
         <Link href="/practice">Practice</Link>
         <Link href="/ai-lab">AI Lab</Link>
+        <Link href="/auto-learner">Auto Learner</Link>
 
         {isStudent&&<Link href="/ai-tutor">Vydys AI</Link>}
         {isInstructor&&<Link href="/formateur/copilote">Vydys AI</Link>}
@@ -129,6 +131,7 @@ export function Header() {
           <Link href="/classroom"><span>02</span><div><strong>Vydys Classroom</strong><small>{t({fr:"Cohortes live",ar:"فصول مباشرة",en:"Live cohorts"})}</small></div><b>→</b></Link>
           <Link href="/practice"><span>03</span><div><strong>Practice Hub</strong><small>Code · SQL · API · Data · Cloud</small></div><b>→</b></Link>
           <Link href="/ai-lab"><span>04</span><div><strong>AI Lab</strong><small>Agents · RAG · Knowledge · Code</small></div><b>→</b></Link>
+          <Link href="/auto-learner"><span>AI</span><div><strong>Auto Learner</strong><small>{t({fr:"Transformez vos cours avec l’IA",ar:"حوّل دوراتك بالذكاء الاصطناعي",en:"Transform your courses with AI"})}</small></div><b>→</b></Link>
           <Link href="/forum"><span>05</span><div><strong>Community</strong><small>{t({fr:"Forum Vydys",ar:"منتدى Vydys",en:"Vydys forum"})}</small></div><b>→</b></Link>
           <Link href="/marketplace"><span>06</span><div><strong>Marketplace</strong><small>{t({fr:"Acheter et vendre",ar:"شراء وبيع",en:"Buy and sell"})}</small></div><b>→</b></Link>
         </div>
