@@ -6448,3 +6448,29 @@ label{color:#27344b}
   line-height:1.45;
   text-align:center;
 }
+
+
+/* Header & mobile menu — larger navigation icons */
+.nav-icon-link{
+  width:38px!important;
+  height:38px!important;
+  border-radius:10px!important;
+  font-size:15px!important;
+  line-height:1!important;
+  font-weight:800!important;
+}
+.mobile-menu-section>a>span{
+  width:40px!important;
+  height:40px!important;
+  border-radius:11px!important;
+  font-size:11px!important;
+  line-height:1!important;
+}
+.mobile-menu-section>a>b{
+  font-size:15px!important;
+  line-height:1!important;
+}
+.mobile-nav-toggle-v3{
+  width:42px!important;
+  height:42px!important;
+}
