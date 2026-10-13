@@ -13,7 +13,7 @@ type Course={
 type Rating={course_id:string;average_rating:number|string;review_count:number};
 type Instructor={user_id:string;public_slug:string;display_name:string;headline:string|null};
 type CoursePrice={course_id:string;currency:string;amount:number|string};
-type CourseModule={id:string;course_id:string;title_fr:string;title_ar:string;title_en:string;position:number};
+type CourseModule={id:string;course_id:string;title_fr:string;title_ar:string;title_en:string;module_position:number};
 type LiveSummary={has_live_classroom?:boolean;session_count?:number;session_duration_minutes?:number;title_fr?:string;title_ar?:string;title_en?:string};
 
 export default function FormationsPage(){
@@ -39,13 +39,16 @@ export default function FormationsPage(){
       supabase.from("course_rating_summary").select("course_id,average_rating,review_count"),
       supabase.from("instructor_profiles").select("user_id,public_slug,display_name,headline").eq("is_public",true),
       supabase.from("course_prices").select("course_id,currency,amount").eq("is_active",true),
-      supabase.from("course_modules").select("id,course_id,title_fr,title_ar,title_en,position").order("position"),
+      supabase.rpc("get_public_course_modules"),
       supabase.auth.getUser()
     ]);
     setCourses((c||[]) as Course[]);setPriceRows((pr||[]) as CoursePrice[]);
     const mm:Record<string,CourseModule[]>={};
     ((mods||[]) as CourseModule[]).forEach(m=>{if(!mm[m.course_id])mm[m.course_id]=[];mm[m.course_id].push(m)});
+    Object.values(mm).forEach(rows=>rows.sort((a,b)=>a.module_position-b.module_position));
     setModulesByCourse(mm);
+    const availableCurrencies=Array.from(new Set((c||[]).map((x:any)=>String(x.base_currency||"MRU").toUpperCase())));
+    if(availableCurrencies.length===1)setDisplayCurrency(availableCurrencies[0]);
     const liveRows=await Promise.all((c||[]).map(async(course:any)=>{
       const {data}=await supabase.rpc("get_public_course_live_summary",{p_course_id:course.id});
       return [course.id,data||null] as const;
@@ -62,7 +65,7 @@ export default function FormationsPage(){
       ]);
       setFavorites(new Set((f||[]).map((x:any)=>x.course_id)));
       const pref=String(p?.preferred_currency||"").toUpperCase();
-      if(pref&&(c||[]).some((x:any)=>String(x.base_currency||"MRU").toUpperCase()===pref))setCurrency(pref);
+      if(pref&&(c||[]).some((x:any)=>String(x.base_currency||"MRU").toUpperCase()===pref))setDisplayCurrency(pref);
     }
   }
 
@@ -79,8 +82,9 @@ export default function FormationsPage(){
     return map;
   },[priceRows]);
 
-  const categories=useMemo(()=>Array.from(new Set(courses.map(c=>c.category).filter(Boolean) as string[])),[courses]);
-  const currencies=useMemo(()=>Array.from(new Set(courses.map(c=>String(c.base_currency||"MRU").toUpperCase()))).sort(),[courses]);
+  const catalogCourses=useMemo(()=>courses.filter(c=>(modulesByCourse[c.id]||[]).length>0),[courses,modulesByCourse]);
+  const categories=useMemo(()=>Array.from(new Set(catalogCourses.map(c=>c.category).filter(Boolean) as string[])),[catalogCourses]);
+  const currencies=useMemo(()=>Array.from(new Set(catalogCourses.map(c=>String(c.base_currency||"MRU").toUpperCase()))).sort(),[catalogCourses]);
   const formatMoney=(amount:number,cur:string)=>new Intl.NumberFormat(lang==="ar"?"ar-MR":lang==="en"?"en-US":"fr-FR",{style:"currency",currency:cur,maximumFractionDigits:2}).format(amount);
   function exactPrice(c:Course,cur:string){
     const code=String(cur||"").toUpperCase();
@@ -98,7 +102,7 @@ export default function FormationsPage(){
 
   const shown=useMemo(()=>{
     const q=search.trim().toLowerCase();const minR=Number(minRating||0);
-    const arr=courses.filter(c=>{
+    const arr=catalogCourses.filter(c=>{
       const title=lang==="ar"?c.title_ar:lang==="en"?c.title_en:c.title_fr;
       const desc=lang==="ar"?c.description_ar:lang==="en"?c.description_en:c.description_fr;
       const instructor=c.instructor_id?instructors[c.instructor_id]:null;
@@ -118,7 +122,7 @@ export default function FormationsPage(){
       if(rb!==ra)return rb-ra;
       return (ratings[b.id]?.review_count||0)-(ratings[a.id]?.review_count||0);
     });
-  },[courses,ratings,instructors,search,category,currency,minRating,sort,lang,priceMap]);
+  },[catalogCourses,ratings,instructors,search,category,currency,minRating,sort,lang,priceMap]);
 
   async function toggleFavorite(courseId:string){
     if(!userId){window.location.href="/connexion";return}
@@ -129,13 +133,10 @@ export default function FormationsPage(){
   return <section className="section page-top marketplace-page"><div className="container">
     <div className="page-hero formations-market-hero"><span className="eyebrow">{t({fr:"Catalogue Vydys Academy",ar:"دليل Vydys Academy",en:"Vydys Academy Catalog"})}</span><h1>{t({fr:"Choisissez un parcours. Voyez le programme avant de vous inscrire.",ar:"اختر مسارك واطلع على البرنامج قبل التسجيل.",en:"Choose a pathway. See the curriculum before you enroll."})}</h1><p>{t({fr:"Chaque formation présente clairement ses modules, son formateur, son prix et les séances Classroom live incluses. Vous savez exactement ce que vous allez apprendre.",ar:"كل دورة تعرض الوحدات والمدرب والسعر والحصص المباشرة المشمولة بوضوح حتى تعرف ما ستتعلمه قبل التسجيل.",en:"Every course clearly shows its modules, instructor, price and included live Classroom sessions, so you know exactly what you will learn."})}</p><div className="formation-value-strip"><span>▦ {t({fr:"Programme visible",ar:"برنامج واضح",en:"Visible curriculum"})}</span><span>◉ {t({fr:"Classroom live",ar:"فصول مباشرة",en:"Live Classroom"})}</span><span>✓ {t({fr:"Exercices pratiques",ar:"تمارين تطبيقية",en:"Practical assignments"})}</span><span>MRU {t({fr:"Paiement local",ar:"دفع محلي",en:"Local payment"})}</span></div><div className="hero-actions"><Link className="btn btn-ghost" href="/formateurs">{t({fr:"Découvrir les formateurs",ar:"اكتشف المدربين",en:"Meet instructors"})}</Link>{userId&&<Link className="btn btn-ghost" href="/favoris">♥ {t({fr:"Mes favoris",ar:"المفضلة",en:"My favorites"})}</Link>}</div></div>
 
-    <div className="market-filter-panel"><div className="market-filters advanced global">
-      <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t({fr:"Formation ou formateur...",ar:"دورة أو مدرب...",en:"Course or instructor..."})}/>
+    <div className="market-filter-panel formations-filter-panel"><div className="formations-simple-filters">
+      <label className="formations-search"><span>⌕</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t({fr:"Rechercher une formation...",ar:"ابحث عن دورة...",en:"Search courses..."})}/></label>
       <select value={category} onChange={e=>setCategory(e.target.value)}><option value="all">{t({fr:"Toutes les catégories",ar:"كل الفئات",en:"All categories"})}</option>{categories.map(c=><option key={c} value={c}>{c}</option>)}</select>
-      <select value={currency} onChange={e=>setCurrency(e.target.value)}><option value="all">{t({fr:"Toutes les devises",ar:"كل العملات",en:"All currencies"})}</option>{currencies.map(c=><option key={c} value={c}>{c}</option>)}</select>
-      <select value={displayCurrency} onChange={e=>setDisplayCurrency(e.target.value)} aria-label={t({fr:"Devise d'affichage",ar:"عملة العرض",en:"Display currency"})}>{currencies.map(c=><option key={c} value={c}>{t({fr:"Afficher en",ar:"عرض بـ",en:"Show in"})} {c}</option>)}</select>
-      <select value={minRating} onChange={e=>setMinRating(e.target.value)}><option value="0">{t({fr:"Toutes les notes",ar:"كل التقييمات",en:"All ratings"})}</option><option value="4">4★+</option><option value="4.5">4.5★+</option></select>
-      <select value={sort} onChange={e=>setSort(e.target.value)}><option value="top">{t({fr:"Mieux notées",ar:"الأعلى تقييماً",en:"Top rated"})}</option><option value="reviews">{t({fr:"Plus d'avis",ar:"الأكثر تقييماً",en:"Most reviewed"})}</option><option value="price_low" disabled={currency==="all"}>{t({fr:"Prix croissant",ar:"السعر تصاعدي",en:"Price low to high"})}</option><option value="price_high" disabled={currency==="all"}>{t({fr:"Prix décroissant",ar:"السعر تنازلي",en:"Price high to low"})}</option></select>
+      <select value={sort} onChange={e=>setSort(e.target.value)}><option value="top">{t({fr:"Recommandées",ar:"الموصى بها",en:"Recommended"})}</option><option value="reviews">{t({fr:"Plus d'avis",ar:"الأكثر تقييماً",en:"Most reviewed"})}</option></select>
     </div></div>
 
     <div className="formations-results-bar"><div><strong>{shown.length}</strong><span>{shown.length>1?t({fr:"formations disponibles",ar:"دورات متاحة",en:"courses available"}):t({fr:"formation disponible",ar:"دورة متاحة",en:"course available"})}</span></div><small>{t({fr:"Modules et contenu visibles avant inscription",ar:"الوحدات والمحتوى ظاهرة قبل التسجيل",en:"Modules and curriculum visible before enrollment"})}</small></div>
@@ -161,26 +162,27 @@ export default function FormationsPage(){
           </div>
           <div className="market-card-body course-market-body">
             <div className="course-card-meta-row">
-              <div className="rating-line"><span className="stars">★★★★★</span><strong>{rating?rating.toFixed(1):"Nouveau"}</strong>{reviews>0&&<small>({reviews})</small>}</div>
               <span className="course-module-count">{modules.length} {t({fr:"modules",ar:"وحدات",en:"modules"})}</span>
+              {live?.has_live_classroom&&<span className="course-live-inline">● {live.session_count} × {live.session_duration_minutes} min</span>}
+              {rating>0&&<span className="course-rating-inline">★ {rating.toFixed(1)}{reviews>0?" · "+reviews:""}</span>}
             </div>
+
             <h2>{title}</h2>
             <p className="course-market-desc">{desc}</p>
 
-            {modules.length>0&&<div className="course-program-preview">
-              <div className="course-program-head"><strong>{t({fr:"Programme",ar:"البرنامج",en:"Curriculum"})}</strong><span>{modules.length} {t({fr:"modules",ar:"وحدات",en:"modules"})}</span></div>
+            <div className="course-program-preview compact">
+              <strong className="course-program-label">{t({fr:"Aperçu du programme",ar:"لمحة عن البرنامج",en:"Curriculum preview"})}</strong>
               <div className="course-module-preview-list">
-                {modules.slice(0,4).map((m,idx)=><div key={m.id}><span>{String(idx+1).padStart(2,"0")}</span><strong>{moduleTitle(m)}</strong></div>)}
+                {modules.slice(0,3).map((m,idx)=><div key={m.id}><span>{String(idx+1).padStart(2,"0")}</span><strong>{moduleTitle(m)}</strong></div>)}
               </div>
-              {modules.length>4&&<small className="course-more-modules">+{modules.length-4} {t({fr:"autres modules",ar:"وحدات أخرى",en:"more modules"})}</small>}
-            </div>}
+              {modules.length>3&&<small className="course-more-modules">+{modules.length-3} {t({fr:"modules dans le programme complet",ar:"وحدات في البرنامج الكامل",en:"modules in the full curriculum"})}</small>}
+            </div>
 
-            {live?.has_live_classroom&&<div className="course-live-summary"><span>●</span><div><strong>{t({fr:"Classroom live incluse",ar:"فصل مباشر مشمول",en:"Live Classroom included"})}</strong><small>{live.session_count} × {live.session_duration_minutes} min · {t({fr:"même inscription",ar:"نفس التسجيل",en:"same enrollment"})}</small></div></div>}
+            {instructor?<Link className="trainer-link course-trainer-row" href={"/formateur/"+instructor.public_slug}><span className="course-trainer-avatar">{instructor.display_name?.slice(0,2).toUpperCase()}</span><span><strong>{instructor.display_name}</strong><small>{live?.has_live_classroom?t({fr:"Formateur · sessions live incluses",ar:"مدرب · حصص مباشرة مشمولة",en:"Instructor · live sessions included"}):instructor.headline||""}</small></span></Link>:null}
 
-            {instructor?<Link className="trainer-link course-trainer-row" href={"/formateur/"+instructor.public_slug}><span className="course-trainer-avatar">{instructor.display_name?.slice(0,2).toUpperCase()}</span><span><strong>{instructor.display_name}</strong>{instructor.headline&&<small>{instructor.headline}</small>}</span></Link>:<span className="trainer-link">Vydys Academy</span>}
             <div className="course-card-footer">
-              <div className="course-price-stack"><small>{t({fr:"Prix",ar:"السعر",en:"Price"})}</small><strong>{formatMoney(amount,cur)}</strong>{shownPrice.isLocalFallback&&<span>{t({fr:"Prix local",ar:"سعر محلي",en:"Local price"})}</span>}</div>
-              <Link className="btn btn-small course-open-btn" href={"/formation/"+c.slug}>{t({fr:"Voir la formation",ar:"عرض الدورة",en:"View course"})} →</Link>
+              <div className="course-price-stack"><small>{t({fr:"Prix unique",ar:"السعر الموحد",en:"Single price"})}</small><strong>{formatMoney(amount,cur)}</strong></div>
+              <Link className="btn btn-small course-open-btn" href={"/formation/"+c.slug}>{t({fr:"Découvrir",ar:"اكتشف",en:"Explore"})} →</Link>
             </div>
           </div>
         </article>
