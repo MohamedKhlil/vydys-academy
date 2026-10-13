@@ -1139,3 +1139,55 @@ input,select,textarea{max-width:100%}
   .vydys-lite-controls{display:grid;grid-template-columns:1fr}
   .vydys-lite-controls button{width:100%}
 }
+
+
+/* Fix settlement number + amount overflow */
+.settlement-highlight{
+  grid-template-columns:1fr;
+  gap:10px;
+}
+.settlement-account,.settlement-amount{
+  width:100%;
+  min-width:0;
+  padding:15px 16px;
+}
+.settlement-account strong{
+  display:block;
+  max-width:100%;
+  font-size:clamp(30px,2.5vw,38px);
+  line-height:1.05;
+  letter-spacing:.035em;
+  white-space:nowrap;
+  overflow-wrap:normal;
+  word-break:normal;
+  font-variant-numeric:tabular-nums;
+}
+.settlement-amount{
+  flex-direction:row;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+}
+.settlement-amount span{
+  margin:0;
+  max-width:42%;
+}
+.settlement-amount strong{
+  display:block;
+  max-width:58%;
+  font-size:clamp(25px,2.2vw,34px);
+  line-height:1;
+  letter-spacing:-.025em;
+  white-space:nowrap;
+  overflow-wrap:normal;
+  word-break:normal;
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+}
+@media(max-width:620px){
+  .settlement-highlight{grid-template-columns:1fr}
+  .settlement-account strong{font-size:clamp(28px,9vw,36px)}
+  .settlement-amount{align-items:flex-start;flex-direction:column;gap:7px}
+  .settlement-amount span,.settlement-amount strong{max-width:100%}
+  .settlement-amount strong{font-size:clamp(26px,8vw,32px);text-align:left}
+}
