@@ -20,11 +20,14 @@ export default function InstructorClassroomsPage(){
     const {data:p}=await supabase.from("profiles").select("role").eq("id",user.id).maybeSingle();
     const ok=p?.role==="instructor";setAllowed(ok);if(!ok)return;
 
-    const [{data:r},{data:e},{data:o}]=await Promise.all([
+    const [{data:r,error:rError},{data:e,error:eError},{data:o,error:oError}]=await Promise.all([
       supabase.from("classrooms").select("*").eq("instructor_id",user.id).order("created_at",{ascending:false}),
       supabase.from("classroom_enrollments").select("id,classroom_id,user_id,status,enrolled_at").eq("status","active"),
       supabase.from("classroom_orders").select("*").eq("instructor_id",user.id).eq("payment_mode","manual").eq("status","proof_submitted").order("created_at",{ascending:true})
     ]);
+    if(rError||eError||oError){
+      setMessage(rError?.message||eError?.message||oError?.message||t({fr:"Impossible de charger vos Classrooms.",ar:"تعذر تحميل الفصول.",en:"Unable to load your Classrooms."}));
+    }else setMessage("");
     setRooms(r||[]);setEnrollments(e||[]);setOrders(o||[]);
     const ids=[...new Set((o||[]).map((x:any)=>x.user_id).filter(Boolean))];
     if(ids.length){
