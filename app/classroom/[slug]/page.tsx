@@ -5,6 +5,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { useLanguage } from "../../../components/language-provider";
 import { supabase } from "../../../lib/supabase";
+import WhatsAppBubble from "../../../components/whatsapp-bubble";
 
 export default function ClassroomDetailPage(){
   const {slug}=useParams<{slug:string}>();
@@ -147,5 +148,5 @@ export default function ClassroomDetailPage(){
         {message&&<p className="manual-note">{message}</p>}
       </aside>
     </div>
-  </div></section>
+  </div><WhatsAppBubble number={instructor?.whatsapp_number} message={"Bonjour, je souhaite plus d'informations sur la Classroom "+title+"."}/></section>
 }
