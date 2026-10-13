@@ -122,20 +122,20 @@ export default function ClassroomManagePage(){
       if(!ok){setLinkedCourseId(room.course_id||"");return}
     }
     setLinkBusy(true);setMessage("");
-    const {data:{user}}=await supabase.auth.getUser();
-    if(!user){setLinkBusy(false);return}
-    const {data:updated,error}=await supabase
-      .from("classrooms")
-      .update({course_id:next,updated_at:new Date().toISOString()})
-      .eq("id",id)
-      .eq("instructor_id",user.id)
-      .select("*")
-      .single();
+    const {data:updated,error}=await supabase.rpc("set_owned_classroom_course_link",{
+      p_classroom_id:id,
+      p_course_id:next
+    });
     setLinkBusy(false);
-    if(error){setMessage(error.message);setLinkedCourseId(room.course_id||"");return}
-    setRoom(updated);
-    setLinkedCourseId(updated.course_id||"");
-    setMessage(updated.course_id
+    if(error){
+      setMessage(error.message);
+      setLinkedCourseId(room.course_id||"");
+      return;
+    }
+    const updatedCourseId=updated?.course_id||"";
+    setRoom((prev:any)=>({...prev,course_id:updatedCourseId,updated_at:updated?.updated_at||prev?.updated_at}));
+    setLinkedCourseId(updatedCourseId);
+    setMessage(updatedCourseId
       ? t({fr:"Formation et Classroom fusionnées. Les inscriptions sont synchronisées.",ar:"تم دمج الدورة والفصل ومزامنة التسجيلات.",en:"Course and Classroom merged. Enrollments are synchronized."})
       : t({fr:"Formation dissociée de la Classroom.",ar:"تم إلغاء ربط الدورة بالفصل.",en:"Course unlinked from Classroom."})
     );
