@@ -31,8 +31,8 @@ export default function LearnCoursePage(){
     if(!user){window.location.href="/connexion";return}
     const {data:c}=await supabase.from("courses").select("*").eq("slug",slug).eq("status","published").single();
     if(!c){setCourse(false);return}
-    const {data:e}=await supabase.from("enrollments").select("id,status").eq("course_id",c.id).eq("user_id",user.id).in("status",["active","completed"]).maybeSingle();
-    if(!e){window.location.href="/formation/"+slug;return}
+    const {data:hasAccess,error:accessError}=await supabase.rpc("can_access_course_content",{p_course_id:c.id});
+    if(accessError||!hasAccess){window.location.href="/formation/"+slug;return}
     setCourse(c);
 
     const [{data:m},{data:l},{data:r},{data:q},{data:a},{data:cl},{data:p},{data:at},{data:sub},{data:cert},{data:ann}]=await Promise.all([
@@ -41,7 +41,7 @@ export default function LearnCoursePage(){
       supabase.from("lesson_resources").select("*").eq("course_id",c.id),
       supabase.from("quizzes").select("*").eq("course_id",c.id),
       supabase.from("assignments").select("*").eq("course_id",c.id),
-      supabase.from("classrooms").select("*").eq("course_id",c.id).order("starts_at"),
+      supabase.from("classrooms").select("id,slug,title_fr,title_ar,title_en,status,start_date,end_date,session_count,session_duration_minutes,timezone").eq("course_id",c.id).order("start_date"),
       supabase.from("lesson_progress").select("lesson_id").eq("course_id",c.id).eq("user_id",user.id),
       supabase.from("quiz_attempts").select("quiz_id,score,passed,created_at").eq("course_id",c.id).eq("user_id",user.id).order("created_at",{ascending:false}),
       supabase.from("assignment_submissions").select("*").eq("course_id",c.id).eq("user_id",user.id),
@@ -149,7 +149,7 @@ export default function LearnCoursePage(){
 
       <section className="learning-block"><h2>{t({fr:"Devoirs",ar:"الواجبات",en:"Assignments"})}</h2>{assignments.map(a=><AssignmentCard key={a.id} assignment={a} submission={submissions.find(s=>s.assignment_id===a.id)} local={local} t={t} onSubmit={submitAssignment}/>)}</section>
 
-      <section className="learning-block"><h2>Classroom</h2><div className="classroom-list">{classrooms.map(c=><article className="panel" key={c.id}><span className="tag live">LIVE</span><h3>{c.title}</h3><p>{c.cohort_name}</p><small>{c.starts_at?new Date(c.starts_at).toLocaleString():""}</small>{c.meeting_url&&<a className="btn full" href={c.meeting_url} target="_blank" rel="noreferrer">{t({fr:"Rejoindre",ar:"انضم",en:"Join"})}</a>}</article>)}</div></section>
+      <section className="learning-block hybrid-live-block"><div className="learning-block-head"><div><span className="eyebrow">{t({fr:"Parcours hybride",ar:"المسار الهجين",en:"Hybrid pathway"})}</span><h2>Classroom Live</h2></div><small>{classrooms.length} {t({fr:"cohorte liée",ar:"فصل مرتبط",en:"linked cohort"})}</small></div><div className="classroom-list">{classrooms.length===0&&<article className="panel"><p>{t({fr:"Aucune Classroom live n’est liée à cette formation.",ar:"لا يوجد فصل مباشر مرتبط بهذه الدورة.",en:"No live Classroom is linked to this course."})}</p></article>}{classrooms.map(c=><article className="panel hybrid-classroom-card" key={c.id}><div><span className="tag live">LIVE</span><span className={"status "+(c.status==="published"?"":"pending")}>{c.status}</span></div><h3>{local(c,"title")}</h3><p>{c.session_count} {t({fr:"séances",ar:"حصص",en:"sessions"})} · {c.session_duration_minutes} min · {c.timezone}</p><small>{c.start_date?new Intl.DateTimeFormat(lang==="ar"?"ar-MR":lang==="en"?"en-US":"fr-FR",{dateStyle:"medium"}).format(new Date(c.start_date+"T00:00:00")):""}</small><Link className="btn full" href={"/classroom/"+c.slug}>{t({fr:"Ouvrir ma Classroom",ar:"فتح فصلي",en:"Open my Classroom"})}</Link></article>)}</div></section>
 
       <section className="certificate-cta panel"><div><span className="eyebrow">{t({fr:"Certification",ar:"الشهادة",en:"Certification"})}</span><h2>{t({fr:"Votre certificat Vydys",ar:"شهادة Vydys الخاصة بك",en:"Your Vydys certificate"})}</h2><p>{t({fr:"Disponible après avoir terminé toutes les leçons, réussi les quiz et fait accepter les devoirs.",ar:"متاحة بعد إكمال جميع الدروس والاختبارات والواجبات.",en:"Available after completing all lessons, passing quizzes and having assignments accepted."})}</p></div>{certificate?<Link className="btn" href={"/certificat/"+certificate}>{t({fr:"Voir le certificat",ar:"عرض الشهادة",en:"View certificate"})}</Link>:<button className="btn" onClick={issueCertificate}>{t({fr:"Générer mon certificat",ar:"إنشاء شهادتي",en:"Generate certificate"})}</button>}</section>
     </main>
