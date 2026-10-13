@@ -9,6 +9,7 @@ export default function SettingsPage(){
   const [userId,setUserId]=useState("");
   const [email,setEmail]=useState("");
   const [profile,setProfile]=useState<any>({full_name:"",username:"",phone:"",bio:"",website:"",avatar_url:"",preferred_language:"fr",preferred_currency:"USD",timezone:"Africa/Nouakchott",role:"student"});
+  const [whatsappNumber,setWhatsappNumber]=useState("");
   const [busy,setBusy]=useState(false);const [notice,setNotice]=useState("");
 
   useEffect(()=>{(async()=>{
@@ -16,7 +17,13 @@ export default function SettingsPage(){
     if(!user){window.location.href="/connexion";return}
     setUserId(user.id);setEmail(user.email||"");
     const {data}=await supabase.from("profiles").select("full_name,username,phone,bio,website,avatar_url,preferred_language,preferred_currency,timezone,role").eq("id",user.id).maybeSingle();
-    if(data)setProfile((p:any)=>({...p,...data}));
+    if(data){
+      setProfile((p:any)=>({...p,...data}));
+      if(data.role==="instructor"){
+        const {data:trainer}=await supabase.from("instructor_profiles").select("whatsapp_number").eq("user_id",user.id).maybeSingle();
+        setWhatsappNumber(trainer?.whatsapp_number||"");
+      }
+    }
   })()},[]);
 
   async function save(e:FormEvent){
@@ -25,6 +32,10 @@ export default function SettingsPage(){
       full_name:profile.full_name||null,username:profile.username||null,phone:profile.phone||null,bio:profile.bio||null,website:profile.website||null,
       preferred_language:profile.preferred_language,preferred_currency:profile.preferred_currency,timezone:profile.timezone,updated_at:new Date().toISOString()
     }).eq("id",userId);
+    if(!error&&profile.role==="instructor"){
+      const {error:waError}=await supabase.from("instructor_profiles").update({whatsapp_number:whatsappNumber.trim()||null,updated_at:new Date().toISOString()}).eq("user_id",userId);
+      if(waError){setBusy(false);setNotice(waError.message);return}
+    }
     setBusy(false);setNotice(error?error.message:t({fr:"Profil mis à jour.",ar:"تم تحديث الملف.",en:"Profile updated."}));
   }
 
@@ -58,6 +69,7 @@ export default function SettingsPage(){
           <label><span>{t({fr:"Téléphone",ar:"الهاتف",en:"Phone"})}</span><input value={profile.phone||""} onChange={e=>setProfile({...profile,phone:e.target.value})}/></label>
           <label className="wide"><span>Bio</span><textarea value={profile.bio||""} onChange={e=>setProfile({...profile,bio:e.target.value})}/></label>
           <label className="wide"><span>Website</span><input value={profile.website||""} onChange={e=>setProfile({...profile,website:e.target.value})}/></label>
+          {profile.role==="instructor"&&<label className="wide"><span>{t({fr:"WhatsApp pour les demandes d’information",ar:"واتساب للاستفسارات",en:"WhatsApp for enquiries"})}</span><input value={whatsappNumber} onChange={e=>setWhatsappNumber(e.target.value)} placeholder="36787827"/><small>{t({fr:"Ce numéro sera affiché sur vos formations et Classrooms.",ar:"سيظهر هذا الرقم في دوراتك وفصولك.",en:"This number will appear on your courses and Classrooms."})}</small></label>}
           <label><span>{t({fr:"Langue",ar:"اللغة",en:"Language"})}</span><select value={profile.preferred_language} onChange={e=>setProfile({...profile,preferred_language:e.target.value})}><option value="fr">Français</option><option value="ar">العربية</option><option value="en">English</option></select></label>
           <label><span>{t({fr:"Devise",ar:"العملة",en:"Currency"})}</span><input value={profile.preferred_currency||"USD"} onChange={e=>setProfile({...profile,preferred_currency:e.target.value.toUpperCase()})}/></label>
           <label className="wide"><span>Timezone</span><input value={profile.timezone||""} onChange={e=>setProfile({...profile,timezone:e.target.value})}/></label>
