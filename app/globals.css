@@ -1122,3 +1122,20 @@ input,select,textarea{max-width:100%}
   .builder-head-actions .btn-danger{width:100%}
   .classroom-capacity-editor .inline-price-form{grid-template-columns:1fr}
 }
+
+
+/* Vydys Live Lite */
+.vydys-lite-stage{position:relative;min-height:520px;background:#02060d;display:grid;place-items:center;overflow:hidden}
+.vydys-live-main-video{width:100%;height:100%;min-height:520px;object-fit:contain;background:#02060d}
+.vydys-live-audio-host{display:none}
+.vydys-lite-controls{display:flex;gap:8px;flex-wrap:wrap;padding:10px 12px;background:#07101d;border-top:1px solid #1f3553}
+.vydys-lite-controls button{border:1px solid #2d4567;background:#0d1a2b;color:#dce9fb;border-radius:10px;padding:9px 12px;font-size:10px;font-weight:850;cursor:pointer}
+.vydys-lite-controls button.active{background:#1264ff;border-color:#1264ff;color:#fff}
+.vydys-lite-controls button:disabled{opacity:.55;cursor:not-allowed}
+.vydys-lite-rule,.vydys-live-fallback-note{font-size:9px;line-height:1.5;padding:8px 12px;background:#0a1524;color:#8ea1bd;border-top:1px solid #1d314d}
+.vydys-live-fallback-note{background:#2b1e06;color:#ffd888;border-color:#6e5014}
+@media(max-width:700px){
+  .vydys-lite-stage,.vydys-live-main-video{min-height:310px}
+  .vydys-lite-controls{display:grid;grid-template-columns:1fr}
+  .vydys-lite-controls button{width:100%}
+}
