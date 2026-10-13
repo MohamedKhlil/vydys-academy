@@ -12,6 +12,8 @@ export default function InstructorClassroomsPage(){
   const [enrollments,setEnrollments]=useState<any[]>([]);
   const [orders,setOrders]=useState<any[]>([]);
   const [profiles,setProfiles]=useState<Record<string,any>>({});
+  const [proofUrls,setProofUrls]=useState<Record<string,string>>({});
+  const [proofPreview,setProofPreview]=useState<{url:string;name:string}|null>(null);
   const [message,setMessage]=useState("");
 
   async function load(){
@@ -29,6 +31,13 @@ export default function InstructorClassroomsPage(){
       setMessage(rError?.message||eError?.message||oError?.message||t({fr:"Impossible de charger vos Classrooms.",ar:"تعذر تحميل الفصول.",en:"Unable to load your Classrooms."}));
     }else setMessage("");
     setRooms(r||[]);setEnrollments(e||[]);setOrders(o||[]);
+    const proofMap:Record<string,string>={};
+    await Promise.all((o||[]).map(async(order:any)=>{
+      if(!order.proof_path)return;
+      const {data:signed}=await supabase.storage.from("payment-proofs").createSignedUrl(order.proof_path,600);
+      if(signed?.signedUrl)proofMap[order.id]=signed.signedUrl;
+    }));
+    setProofUrls(proofMap);
     const ids=[...new Set((o||[]).map((x:any)=>x.user_id).filter(Boolean))];
     if(ids.length){
       const {data:ps}=await supabase.from("profiles").select("id,full_name,phone").in("id",ids);
@@ -70,8 +79,28 @@ export default function InstructorClassroomsPage(){
     </div>
 
     {orders.length>0&&<article className="panel classroom-payment-queue"><div className="admin-section-head"><div><span className="eyebrow">{t({fr:"Inscriptions directes",ar:"التسجيلات المباشرة",en:"Direct enrollments"})}</span><h2>{t({fr:"Paiements manuels à valider",ar:"المدفوعات اليدوية للمراجعة",en:"Manual payments to review"})}</h2></div></div>
-      <div className="payment-review-list">{orders.map(o=><div className="payment-review" key={o.id}><div className="proof-thumb">MR</div><div className="payment-review-main"><strong>{profiles[o.user_id]?.full_name||t({fr:"Étudiant",ar:"طالب",en:"Student"})}</strong><span>{Number(o.amount).toLocaleString("fr-FR")} {o.currency} · {String(o.provider_code).toUpperCase()}</span><small>{profiles[o.user_id]?.phone||""}{o.transaction_reference?" · Ref: "+o.transaction_reference:""}</small></div><div className="review-actions"><button className="approve" onClick={()=>approve(o)}>{t({fr:"Valider",ar:"قبول",en:"Approve"})}</button><button className="reject" onClick={()=>reject(o)}>{t({fr:"Refuser",ar:"رفض",en:"Reject"})}</button></div></div>)}</div>
+      <div className="payment-review-list">{orders.map(o=><div className="payment-review" key={o.id}>
+        <button
+          type="button"
+          className={"proof-thumb "+(proofUrls[o.id]?"has-proof":"")}
+          onClick={()=>proofUrls[o.id]&&setProofPreview({url:proofUrls[o.id],name:profiles[o.user_id]?.full_name||t({fr:"Étudiant",ar:"طالب",en:"Student"})})}
+          disabled={!proofUrls[o.id]}
+          title={proofUrls[o.id]?t({fr:"Voir la preuve",ar:"عرض الإثبات",en:"View proof"}):t({fr:"Preuve indisponible",ar:"الإثبات غير متاح",en:"Proof unavailable"})}
+        >
+          {proofUrls[o.id]?<img src={proofUrls[o.id]} alt={t({fr:"Preuve de paiement",ar:"إثبات الدفع",en:"Payment proof"})}/>:<span>MR</span>}
+        </button>
+        <div className="payment-review-main"><strong>{profiles[o.user_id]?.full_name||t({fr:"Étudiant",ar:"طالب",en:"Student"})}</strong><span>{Number(o.amount).toLocaleString("fr-FR")} {o.currency} · {String(o.provider_code).toUpperCase()}</span><small>{profiles[o.user_id]?.phone||""}{o.transaction_reference?" · Ref: "+o.transaction_reference:""}</small>{proofUrls[o.id]&&<button type="button" className="proof-view-btn" onClick={()=>setProofPreview({url:proofUrls[o.id],name:profiles[o.user_id]?.full_name||t({fr:"Étudiant",ar:"طالب",en:"Student"})})}>↗ {t({fr:"Voir la preuve",ar:"عرض الإثبات",en:"View proof"})}</button>}</div>
+        <div className="review-actions"><button className="approve" onClick={()=>approve(o)}>{t({fr:"Valider",ar:"قبول",en:"Approve"})}</button><button className="reject" onClick={()=>reject(o)}>{t({fr:"Refuser",ar:"رفض",en:"Reject"})}</button></div>
+      </div>)}</div>
     </article>}
+
+    {proofPreview&&<div className="proof-modal-backdrop" onClick={()=>setProofPreview(null)}>
+      <div className="proof-modal" onClick={e=>e.stopPropagation()}>
+        <div className="proof-modal-head"><div><span className="eyebrow">{t({fr:"Preuve de paiement",ar:"إثبات الدفع",en:"Payment proof"})}</span><strong>{proofPreview.name}</strong></div><button type="button" onClick={()=>setProofPreview(null)}>×</button></div>
+        <div className="proof-modal-body"><img src={proofPreview.url} alt={t({fr:"Preuve de paiement",ar:"إثبات الدفع",en:"Payment proof"})}/></div>
+        <div className="proof-modal-actions"><a className="btn btn-small btn-ghost" href={proofPreview.url} target="_blank" rel="noreferrer">{t({fr:"Ouvrir en grand",ar:"فتح بالحجم الكامل",en:"Open full size"})}</a><button className="btn btn-small" type="button" onClick={()=>setProofPreview(null)}>{t({fr:"Fermer",ar:"إغلاق",en:"Close"})}</button></div>
+      </div>
+    </div>}
 
     <div className="classroom-studio-grid">
       {rooms.length===0?<article className="panel classroom-empty"><span>LIVE</span><h2>{t({fr:"Créez votre première Classroom",ar:"أنشئ أول فصل مباشر",en:"Create your first Classroom"})}</h2><p>{t({fr:"Le calendrier des séances sera généré automatiquement à partir de votre date de début, vos jours et votre nombre de sessions.",ar:"سيتم إنشاء جدول الحصص تلقائياً من تاريخ البداية والأيام وعدد الحصص.",en:"Session dates are generated automatically from the start date, weekdays and session count."})}</p><Link className="btn" href="/formateur/classrooms/new">{t({fr:"Créer maintenant",ar:"إنشاء الآن",en:"Create now"})}</Link></article>:rooms.map(room=><article className="panel classroom-studio-card" key={room.id}>
