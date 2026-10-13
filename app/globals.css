@@ -1191,3 +1191,27 @@ input,select,textarea{max-width:100%}
   .settlement-amount span,.settlement-amount strong{max-width:100%}
   .settlement-amount strong{font-size:clamp(26px,8vw,32px);text-align:left}
 }
+
+
+/* Classroom payment proof review */
+.payment-review .proof-thumb{width:64px;height:54px;padding:0;border:1px solid var(--line);border-radius:12px;background:#eef3fb;display:grid;place-items:center;overflow:hidden;cursor:default}
+.payment-review .proof-thumb.has-proof{cursor:pointer;background:#0b1626}
+.payment-review .proof-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.payment-review .proof-thumb span{font-size:11px;font-weight:900;color:#365276}
+.proof-view-btn{margin-top:8px;width:max-content;border:0;background:transparent;color:#1264ff;padding:0;font-size:9px;font-weight:900;cursor:pointer}
+.proof-modal-backdrop{position:fixed;inset:0;z-index:300;background:rgba(2,8,18,.78);display:grid;place-items:center;padding:20px}
+.proof-modal{width:min(760px,96vw);max-height:92vh;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.38);display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+.proof-modal-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 20px;border-bottom:1px solid var(--line)}
+.proof-modal-head>div{display:grid;gap:4px}.proof-modal-head strong{font-size:15px}
+.proof-modal-head>button{width:36px;height:36px;border:0;border-radius:50%;background:#eef3fb;color:#10213b;font-size:22px;cursor:pointer}
+.proof-modal-body{background:#07101d;min-height:280px;display:grid;place-items:center;overflow:auto;padding:14px}
+.proof-modal-body img{max-width:100%;max-height:68vh;object-fit:contain;border-radius:10px}
+.proof-modal-actions{display:flex;justify-content:flex-end;gap:8px;padding:14px 18px;border-top:1px solid var(--line)}
+@media(max-width:620px){
+  .payment-review{align-items:flex-start}
+  .payment-review .proof-thumb{width:72px;height:60px}
+  .proof-modal-backdrop{padding:10px}
+  .proof-modal{width:100%;max-height:94vh}
+  .proof-modal-actions{display:grid;grid-template-columns:1fr}
+  .proof-modal-actions .btn{width:100%}
+}
