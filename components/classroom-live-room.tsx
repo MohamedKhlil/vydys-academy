@@ -31,12 +31,14 @@ export default function ClassroomLiveRoom({access}:{access:any}){
   const publicationsRef=useRef<Map<Source,PubState>>(new Map());
   const subscriptionsRef=useRef<Map<string,RTCPeerConnection>>(new Map());
   const disposedRef=useRef(false);
+  const userIdRef=useRef("");
   const [status,setStatus]=useState<"loading"|"ready"|"error">("loading");
   const [participants,setParticipants]=useState(1);
   const [userId,setUserId]=useState("");
   const [micOn,setMicOn]=useState(false);
   const [cameraOn,setCameraOn]=useState(false);
   const [screenOn,setScreenOn]=useState(false);
+  const [stageHasVideo,setStageHasVideo]=useState(false);
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState("");
   const isModerator=access.role==="moderator";
@@ -167,6 +169,7 @@ export default function ClassroomLiveRoom({access}:{access:any}){
       video.className="vydys-live-main-video";
       video.srcObject=stream;
       stageRef.current.prepend(video);
+      setStageHasVideo(true);
     }
 
     track.addEventListener("ended",()=>{void stopSource(source)},{once:true});
@@ -181,6 +184,8 @@ export default function ClassroomLiveRoom({access}:{access:any}){
     try{state.pc.close()}catch{}
     if(source!=="microphone"){
       stageRef.current?.querySelectorAll(`video[data-local='1'][data-source='${source}']`).forEach(v=>v.remove());
+      const remaining=stageRef.current?.querySelectorAll("video").length||0;
+      if(remaining===0)setStageHasVideo(false);
     }
     if(source==="microphone")setMicOn(false);
     if(source==="camera")setCameraOn(false);
@@ -188,7 +193,8 @@ export default function ClassroomLiveRoom({access}:{access:any}){
   }
 
   async function subscribePublication(pub:any){
-    if(subscriptionsRef.current.has(pub.id)||pub.user_id===userId)return;
+    const currentUserId=userIdRef.current;
+    if(subscriptionsRef.current.has(pub.id)||pub.user_id===currentUserId)return;
 
     const pc=new RTCPeerConnection(rtcConfig);
     subscriptionsRef.current.set(pub.id,pc);
@@ -221,7 +227,8 @@ export default function ClassroomLiveRoom({access}:{access:any}){
   }
 
   async function poll(){
-    if(disposedRef.current||!userId)return;
+    const currentUserId=userIdRef.current;
+    if(disposedRef.current||!currentUserId)return;
     const [{data:pubs},{data:att}]=await Promise.all([
       supabase.from("classroom_live_publications")
         .select("id,user_id,provider_session_id,track_name,kind,source,active")
@@ -233,11 +240,11 @@ export default function ClassroomLiveRoom({access}:{access:any}){
     ]);
     const rows=pubs||[];
     const ids=new Set((att||[]).map((x:any)=>x.user_id));
-    if(userId)ids.add(userId);
+    if(currentUserId)ids.add(currentUserId);
     setParticipants(Math.max(1,ids.size));
 
     for(const pub of rows){
-      if(pub.user_id===userId||subscriptionsRef.current.has(pub.id))continue;
+      if(pub.user_id===currentUserId||subscriptionsRef.current.has(pub.id))continue;
       try{await subscribePublication(pub)}catch{}
     }
 
@@ -249,6 +256,8 @@ export default function ClassroomLiveRoom({access}:{access:any}){
         stageRef.current?.querySelectorAll(`[data-publication-id='${id}']`).forEach(el=>el.remove());
         audioRef.current?.querySelectorAll(`[data-publication-id='${id}']`).forEach(el=>el.remove());
         refreshVideoPriority();
+        const remaining=stageRef.current?.querySelectorAll("video").length||0;
+        if(remaining===0)setStageHasVideo(false);
       }
     }
   }
@@ -261,6 +270,7 @@ export default function ClassroomLiveRoom({access}:{access:any}){
     (async()=>{
       const {data:{user}}=await supabase.auth.getUser();
       if(!user){setStatus("error");setError("Connexion Vydys requise");return}
+      userIdRef.current=user.id;
       setUserId(user.id);
       setStatus("ready");
       try{await supabase.rpc("mark_classroom_attendance",{p_session_id:access.session_id,p_event:"join"})}catch{}
@@ -279,6 +289,7 @@ export default function ClassroomLiveRoom({access}:{access:any}){
         try{state.pc.close()}catch{}
       });
       publicationsRef.current.clear();
+      userIdRef.current="";
       subscriptionsRef.current.forEach(pc=>{try{pc.close()}catch{}});
       subscriptionsRef.current.clear();
     };
@@ -309,7 +320,7 @@ export default function ClassroomLiveRoom({access}:{access:any}){
 
     <div ref={stageRef} className="vydys-lite-stage">
       {status==="loading"&&<div className="video-loading"><span>V</span><strong>Vydys Live Lite</strong><small>Connexion à la salle…</small></div>}
-      {status==="ready"&&<div className="video-loading vydys-stage-placeholder"><span>V</span><strong>{isModerator?"Ouvrez votre caméra ou partagez votre écran":"En attente de la vidéo du formateur"}</strong><small>{isModerator?"Les étudiants ne peuvent pas publier de caméra.":"Vous pouvez écouter, regarder et utiliser votre micro."}</small></div>}
+      {status==="ready"&&!stageHasVideo&&<div className="video-loading vydys-stage-placeholder"><span>V</span><strong>{isModerator?"Ouvrez votre caméra ou partagez votre écran":"En attente de la vidéo du formateur"}</strong><small>{isModerator?"Les étudiants ne peuvent pas publier de caméra.":"Vous pouvez écouter, regarder et utiliser votre micro."}</small></div>}
       {status==="error"&&<div className="video-loading error"><span>!</span><strong>Vydys Live indisponible</strong><small>{error||"Réessayez dans quelques instants."}</small></div>}
     </div>
     <div ref={audioRef} className="vydys-live-audio-host"/>
