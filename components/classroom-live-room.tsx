@@ -314,13 +314,13 @@ export default function ClassroomLiveRoom({access}:{access:any}){
 
   return <div className="vydys-live-video-shell">
     <div className="vydys-live-video-top">
-      <div><span className={"live-dot "+status}></span><strong>Vydys Live Lite</strong><small>{isModerator?"Formateur / Modérateur":"Étudiant"} · Cloudflare SFU</small></div>
+      <div><span className={"live-dot "+status}></span><strong>Vydys Live Lite</strong><small>{isModerator?"Mode Formateur / Modérateur · caméra, micro et partage d’écran autorisés":"Mode Étudiant · micro uniquement"} · Cloudflare SFU</small></div>
       <div className="live-participant-count">● {participants} live</div>
     </div>
 
     <div ref={stageRef} className="vydys-lite-stage">
       {status==="loading"&&<div className="video-loading"><span>V</span><strong>Vydys Live Lite</strong><small>Connexion à la salle…</small></div>}
-      {status==="ready"&&!stageHasVideo&&<div className="video-loading vydys-stage-placeholder"><span>V</span><strong>{isModerator?"Ouvrez votre caméra ou partagez votre écran":"En attente de la vidéo du formateur"}</strong><small>{isModerator?"Les étudiants ne peuvent pas publier de caméra.":"Vous pouvez écouter, regarder et utiliser votre micro."}</small></div>}
+      {status==="ready"&&!stageHasVideo&&<div className="video-loading vydys-stage-placeholder"><span>V</span><strong>{isModerator?"Vous êtes connecté comme formateur":"En attente de la vidéo du formateur"}</strong><small>{isModerator?"Vous pouvez ouvrir votre caméra, votre micro ou partager votre écran. La caméra des étudiants reste désactivée.":"Vous pouvez écouter, regarder et utiliser votre micro."}</small></div>}
       {status==="error"&&<div className="video-loading error"><span>!</span><strong>Vydys Live indisponible</strong><small>{error||"Réessayez dans quelques instants."}</small></div>}
     </div>
     <div ref={audioRef} className="vydys-live-audio-host"/>
