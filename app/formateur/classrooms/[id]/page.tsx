@@ -17,6 +17,9 @@ export default function ClassroomManagePage(){
   const [assignments,setAssignments]=useState<any[]>([]);
   const [prices,setPrices]=useState<any[]>([]);
   const [currencies,setCurrencies]=useState<any[]>([]);
+  const [courses,setCourses]=useState<any[]>([]);
+  const [linkedCourseId,setLinkedCourseId]=useState("");
+  const [linkBusy,setLinkBusy]=useState(false);
   const [profiles,setProfiles]=useState<Record<string,any>>({});
   const [resourceTitle,setResourceTitle]=useState("");
   const [resourceUrl,setResourceUrl]=useState("");
@@ -32,7 +35,7 @@ export default function ClassroomManagePage(){
     const {data:{user}}=await supabase.auth.getUser();
     if(!user){window.location.href="/connexion";return}
 
-    const [{data:r},{data:s},{data:e},{data:a},{data:res},{data:ass},{data:pr},{data:cur}]=await Promise.all([
+    const [{data:r},{data:s},{data:e},{data:a},{data:res},{data:ass},{data:pr},{data:cur},{data:courseRows}]=await Promise.all([
       supabase.from("classrooms").select("*").eq("id",id).eq("instructor_id",user.id).maybeSingle(),
       supabase.from("classroom_sessions").select("*").eq("classroom_id",id).order("position"),
       supabase.from("classroom_enrollments").select("*").eq("classroom_id",id).order("enrolled_at"),
@@ -40,9 +43,15 @@ export default function ClassroomManagePage(){
       supabase.from("classroom_resources").select("*").eq("classroom_id",id).order("created_at",{ascending:false}),
       supabase.from("classroom_assignments").select("*").eq("classroom_id",id).order("created_at",{ascending:false}),
       supabase.from("classroom_prices").select("*").eq("classroom_id",id).order("currency"),
-      supabase.from("currency_catalog").select("code,name").eq("enabled",true).order("code")
+      supabase.from("currency_catalog").select("code,name").eq("enabled",true).order("code"),
+      supabase.from("courses").select("id,slug,title_fr,status,base_price_amount,base_currency").eq("instructor_id",user.id).order("created_at",{ascending:false})
     ]);
-    setRoom(r||false);if(r)setCapacityValue(String(r.capacity||""));setSessions(s||[]);setEnrollments(e||[]);setAttendance(a||[]);setResources(res||[]);setAssignments(ass||[]);setPrices(pr||[]);setCurrencies(cur||[]);
+    setRoom(r||false);
+    if(r){
+      setCapacityValue(String(r.capacity||""));
+      setLinkedCourseId(r.course_id||"");
+    }
+    setSessions(s||[]);setEnrollments(e||[]);setAttendance(a||[]);setResources(res||[]);setAssignments(ass||[]);setPrices(pr||[]);setCurrencies(cur||[]);setCourses(courseRows||[]);
     const ids=[...new Set((e||[]).map((x:any)=>x.user_id).filter(Boolean))];
     if(ids.length){
       const {data:ps}=await supabase.from("profiles").select("id,full_name,phone").in("id",ids);
@@ -89,6 +98,48 @@ export default function ClassroomManagePage(){
     const {data:{user}}=await supabase.auth.getUser();if(!user)return;
     const {error}=await supabase.from("classroom_assignments").insert({classroom_id:id,created_by:user.id,title:assignmentTitle,instructions:assignmentText,due_at:assignmentDue?new Date(assignmentDue).toISOString():null});
     if(error)setMessage(error.message);else{setAssignmentTitle("");setAssignmentText("");setAssignmentDue("");await load()}
+  }
+
+  async function saveCourseLink(e:FormEvent){
+    e.preventDefault();
+    if(linkBusy)return;
+    const next=linkedCourseId||null;
+    if(next&&next!==room.course_id){
+      const course=courses.find(x=>x.id===next);
+      const ok=window.confirm(t({
+        fr:"Fusionner cette Classroom avec « "+(course?.title_fr||"cette formation")+" » ? Les étudiants inscrits à l’un auront accès à l’autre sans second paiement.",
+        ar:"دمج هذا الفصل مع الدورة المحددة؟ سيحصل الطلاب المسجلون في أحدهما على الوصول إلى الآخر دون دفع ثانٍ.",
+        en:"Merge this Classroom with the selected course? Learners enrolled in either will access both without a second payment."
+      }));
+      if(!ok){setLinkedCourseId(room.course_id||"");return}
+    }
+    if(!next&&room.course_id){
+      const ok=window.confirm(t({
+        fr:"Dissocier la formation ? Les futurs inscrits ne seront plus synchronisés. Les accès déjà accordés sont conservés pour ne pas retirer un contenu déjà payé.",
+        ar:"إلغاء ربط الدورة؟ لن تتم مزامنة التسجيلات الجديدة، وسيتم الاحتفاظ بالوصول الممنوح سابقاً.",
+        en:"Unlink the course? Future enrollments will stop syncing. Existing granted access is kept so paid content is not removed."
+      }));
+      if(!ok){setLinkedCourseId(room.course_id||"");return}
+    }
+    setLinkBusy(true);setMessage("");
+    const {data:{user}}=await supabase.auth.getUser();
+    if(!user){setLinkBusy(false);return}
+    const {data:updated,error}=await supabase
+      .from("classrooms")
+      .update({course_id:next,updated_at:new Date().toISOString()})
+      .eq("id",id)
+      .eq("instructor_id",user.id)
+      .select("*")
+      .single();
+    setLinkBusy(false);
+    if(error){setMessage(error.message);setLinkedCourseId(room.course_id||"");return}
+    setRoom(updated);
+    setLinkedCourseId(updated.course_id||"");
+    setMessage(updated.course_id
+      ? t({fr:"Formation et Classroom fusionnées. Les inscriptions sont synchronisées.",ar:"تم دمج الدورة والفصل ومزامنة التسجيلات.",en:"Course and Classroom merged. Enrollments are synchronized."})
+      : t({fr:"Formation dissociée de la Classroom.",ar:"تم إلغاء ربط الدورة بالفصل.",en:"Course unlinked from Classroom."})
+    );
+    await load();
   }
 
   async function updateCapacity(e:FormEvent){
@@ -152,6 +203,31 @@ export default function ClassroomManagePage(){
       </article>
 
       <aside className="classroom-manage-side">
+        <article className="panel classroom-course-fusion">
+          <span className="eyebrow">{t({fr:"Parcours hybride",ar:"مسار هجين",en:"Hybrid learning"})}</span>
+          <h3>{t({fr:"Fusionner avec une formation",ar:"دمج مع دورة",en:"Merge with a course"})}</h3>
+          <p>{t({
+            fr:"Combinez modules, leçons, supports, quiz et exercices de votre formation avec les séances live de cette Classroom. Un seul accès étudiant, sans second paiement.",
+            ar:"ادمج الوحدات والدروس والموارد والاختبارات والتمارين مع الحصص المباشرة. وصول واحد للطالب دون دفع ثانٍ.",
+            en:"Combine course modules, lessons, resources, quizzes and assignments with this Classroom's live sessions. One learner access, no second payment."
+          })}</p>
+          <form onSubmit={saveCourseLink} className="classroom-fusion-form">
+            <select value={linkedCourseId} onChange={e=>setLinkedCourseId(e.target.value)}>
+              <option value="">{t({fr:"Aucune formation liée",ar:"لا توجد دورة مرتبطة",en:"No linked course"})}</option>
+              {courses.map(c=><option key={c.id} value={c.id}>{c.title_fr} · {c.status}</option>)}
+            </select>
+            <button type="submit" disabled={linkBusy}>{linkBusy?"...":t({fr:"Enregistrer la fusion",ar:"حفظ الدمج",en:"Save merge"})}</button>
+          </form>
+          {room.course_id&&<div className="fusion-active">
+            <strong>✓ {t({fr:"Parcours fusionné actif",ar:"المسار المدمج نشط",en:"Merged pathway active"})}</strong>
+            <small>{courses.find(c=>c.id===room.course_id)?.title_fr||room.course_id}</small>
+          </div>}
+          <small className="fusion-warning">{t({
+            fr:"Une formation ne peut être liée qu’à une seule Classroom à la fois. La capacité de la Classroom s’applique à l’ensemble du parcours fusionné.",
+            ar:"يمكن ربط الدورة بفصل واحد فقط في نفس الوقت، وتسري سعة الفصل على المسار المدمج بالكامل.",
+            en:"A course can be linked to one Classroom at a time. Classroom capacity applies to the entire merged pathway."
+          })}</small>
+        </article>
         <article className="panel classroom-capacity-editor"><h3>{t({fr:"Nombre de places",ar:"عدد المقاعد",en:"Capacity"})}</h3><p>{t({fr:"Vous pouvez modifier la capacité même après publication. Elle ne peut pas être inférieure au nombre d’inscrits.",ar:"يمكنك تعديل السعة حتى بعد النشر، ولا يمكن أن تقل عن عدد المسجلين.",en:"You can change capacity even after publication. It cannot be lower than current enrollments."})}</p><form onSubmit={updateCapacity} className="inline-price-form"><input type="number" min={Math.max(1,enrollments.length)} max="5000" value={capacityValue} onChange={e=>setCapacityValue(e.target.value)} required/><button>{t({fr:"Mettre à jour",ar:"تحديث",en:"Update"})}</button></form></article>
         <article className="panel"><h3>{t({fr:"Prix par devise",ar:"الأسعار حسب العملة",en:"Prices by currency"})}</h3><div className="classroom-price-chips">{prices.map(p=><span key={p.currency}><b>{p.currency}</b> {Number(p.amount).toLocaleString("fr-FR")}</span>)}</div>{canEdit&&<form onSubmit={addPrice} className="inline-price-form"><select value={priceCurrency} onChange={e=>setPriceCurrency(e.target.value)}>{currencies.map(c=><option key={c.code} value={c.code}>{c.code}</option>)}</select><input type="number" min="0" step="0.01" value={priceAmount} onChange={e=>setPriceAmount(e.target.value)} placeholder="0.00"/><button>{t({fr:"Ajouter",ar:"إضافة",en:"Add"})}</button></form>}</article>
         <article className="panel"><h3>{t({fr:"Étudiants",ar:"الطلاب",en:"Learners"})}</h3><div className="classroom-learner-list">{enrollments.slice(0,12).map(e=><div key={e.id}><span>{(profiles[e.user_id]?.full_name||"V").slice(0,2).toUpperCase()}</span><div><strong>{profiles[e.user_id]?.full_name||t({fr:"Étudiant",ar:"طالب",en:"Student"})}</strong><small>{profiles[e.user_id]?.phone||""}</small></div></div>)}{enrollments.length===0&&<p>{t({fr:"Aucun étudiant inscrit.",ar:"لا يوجد طلاب مسجلون.",en:"No learners enrolled."})}</p>}</div></article>
