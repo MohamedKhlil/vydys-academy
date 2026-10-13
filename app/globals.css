@@ -3907,3 +3907,715 @@ label{color:#27344b}
     border-radius:14px;
   }
 }
+
+
+/* ========================================================================== */
+/* VYDYS FULL VISUAL AUDIT — TRAINER + ADMIN                                  */
+/* ========================================================================== */
+
+/* Trainer dashboard */
+.builder-head-actions,
+.dash-actions,
+.classroom-card-actions,
+.review-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center;
+}
+.subscription-warning{
+  border-left:4px solid #f0a52b!important;
+  background:#fffaf0!important;
+}
+.admin-payments,
+.sales-history,
+.dash-main,
+.dash-side,
+.builder-section,
+.builder-outline,
+.assignment-review,
+.trainer-form{
+  border-radius:18px!important;
+}
+.admin-section-head,
+.section-head.compact{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:14px;
+}
+.admin-section-head h2,
+.section-head.compact h2{
+  margin:0;
+  letter-spacing:-.04em;
+}
+.payment-review-list,
+.application-list,
+.project-review-grid,
+.admin-marketplace-list,
+.support-admin-list{
+  display:grid;
+  gap:10px;
+}
+.payment-review{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  gap:14px;
+  align-items:center;
+  padding:14px!important;
+}
+.payment-review-main{
+  min-width:0;
+  display:grid;
+  gap:4px;
+}
+.payment-review-main strong{
+  color:#17243a;
+}
+.proof-thumb{
+  width:58px!important;
+  height:58px!important;
+  border-radius:11px!important;
+  border:1px solid #d9e3ee!important;
+  object-fit:cover;
+}
+.review-actions{
+  justify-content:flex-end;
+}
+.approve,.reject{
+  min-height:36px;
+  padding:0 11px;
+  border-radius:10px!important;
+  font-size:8px!important;
+  font-weight:900!important;
+}
+.approve{
+  background:#eaf9f2!important;
+  color:#13704d!important;
+  border:1px solid #bde5d3!important;
+}
+.reject{
+  background:#fff0f3!important;
+  color:#a92f49!important;
+  border:1px solid #f0c2ce!important;
+}
+.trainer-course-row{
+  min-height:56px;
+}
+.course-rating-mini{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  padding:4px 7px;
+  border-radius:999px;
+  background:#fff7df;
+  color:#836000;
+  font-size:7px;
+  font-weight:850;
+}
+.launch-fee-link{
+  color:#1264ff!important;
+  font-weight:850;
+}
+
+/* Course creation / builder */
+.trainer-form{
+  padding:22px!important;
+}
+.form-grid{
+  gap:14px!important;
+}
+.checkbox-field,
+.checkbox-line{
+  display:flex!important;
+  align-items:flex-start!important;
+  gap:9px!important;
+  padding:10px 11px!important;
+  border:1px solid #e0e7ef!important;
+  border-radius:11px!important;
+  background:#fbfcfe!important;
+}
+.international-price-note,
+.pricing-help,
+.billing-note,
+.provider-security-note,
+.provider-webhook-note{
+  padding:11px 12px;
+  border:1px solid #dce6f1;
+  border-radius:11px;
+  background:#f7faff;
+  color:#607188;
+  font-size:8px;
+  line-height:1.55;
+}
+.builder-status{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin:10px 0;
+}
+.builder-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 310px;
+  gap:18px;
+  align-items:start;
+}
+.builder-section{
+  padding:20px!important;
+}
+.builder-outline{
+  position:sticky;
+  top:96px;
+  padding:18px!important;
+}
+.inline-form{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:8px;
+  margin-bottom:12px;
+}
+.builder-list{
+  display:grid;
+  gap:9px;
+}
+.builder-list>*,
+.outline-module,
+.submission-row{
+  border:1px solid #e0e8f1;
+  border-radius:12px;
+  background:#fbfdff;
+  padding:11px;
+}
+.builder-form{
+  display:grid;
+  gap:10px;
+  padding:14px;
+  border:1px solid #dce5ef;
+  border-radius:13px;
+  background:#fff;
+}
+.question-form{
+  background:#f9fbfe!important;
+}
+.option-editor{
+  display:grid;
+  gap:7px;
+}
+.skill-map-section{
+  margin-top:18px;
+}
+.skill-map-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+
+/* Pricing and launch */
+.course-pricing-layout,
+.launch-fee-layout,
+.subscription-pay-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 360px;
+  gap:20px;
+  align-items:start;
+}
+.course-price-list,
+.method-list,
+.provider-list{
+  display:grid;
+  gap:8px;
+}
+.course-price-list>*,
+.method-row,
+.provider-connected-card{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+  padding:11px 12px;
+  border:1px solid #e0e7ef;
+  border-radius:12px;
+  background:#fff;
+}
+.launch-fee-summary{
+  position:sticky;
+  top:96px;
+  background:
+    radial-gradient(circle at 90% 0,rgba(18,100,255,.08),transparent 30%),
+    #fff!important;
+}
+.launch-fee-big{
+  font-size:36px!important;
+  letter-spacing:-.06em!important;
+}
+.launch-paid-state{
+  border:1px solid #bee7d4!important;
+  background:#effbf5!important;
+}
+.payment-methods.four{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+}
+.payment-methods.four>*{
+  border-radius:12px!important;
+}
+.auto-billing-options,
+.platform-provider-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:9px;
+}
+.auto-billing-provider,
+.platform-provider-admin{
+  padding:14px!important;
+}
+.provider-logo{
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  border-radius:11px;
+  background:#f1f5fa;
+  border:1px solid #e0e7ef;
+}
+.payoneer-payment-card,
+.automatic-billing-card{
+  border-top:3px solid #1264ff!important;
+}
+
+/* Classroom studio */
+.classroom-studio-stats,
+.classroom-manage-kpis{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  margin-bottom:18px;
+}
+.classroom-studio-stats>*,
+.classroom-manage-kpis>*{
+  padding:15px!important;
+  border:1px solid #dfe7ef!important;
+  border-radius:14px!important;
+  background:#fff!important;
+}
+.classroom-payment-queue{
+  margin-bottom:18px;
+}
+.classroom-studio-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+.classroom-studio-card{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  padding:18px!important;
+}
+.classroom-card-top{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:flex-start;
+}
+.classroom-card-top h3{
+  margin:0;
+  font-size:19px;
+  line-height:1.15;
+}
+.classroom-card-metrics{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.classroom-card-metrics>*{
+  padding:9px 10px;
+  border-radius:10px;
+  background:#f6f9fd;
+  border:1px solid #e2e9f1;
+}
+.proof-modal-backdrop{
+  backdrop-filter:blur(8px);
+  background:rgba(4,9,18,.72)!important;
+}
+.proof-modal{
+  width:min(820px,calc(100% - 24px));
+  border-radius:20px!important;
+  overflow:hidden;
+  box-shadow:0 35px 100px rgba(0,0,0,.38)!important;
+}
+.proof-modal-head,
+.proof-modal-actions{
+  padding:13px 16px!important;
+  background:#fbfcfe!important;
+}
+.proof-modal-body{
+  padding:14px!important;
+  background:#eef3f8!important;
+}
+.classroom-builder-layout,
+.classroom-manage-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 340px;
+  gap:18px;
+  align-items:start;
+}
+.classroom-builder-side,
+.classroom-manage-side{
+  position:sticky;
+  top:96px;
+  display:grid;
+  gap:12px;
+}
+.classroom-weekdays{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+}
+.classroom-weekdays>*{
+  min-width:40px;
+  min-height:38px;
+  display:grid;
+  place-items:center;
+  border:1px solid #dce5ef;
+  border-radius:10px;
+  background:#fff;
+}
+.schedule-preview{
+  padding:13px;
+  border:1px solid #d6e3f3;
+  border-radius:12px;
+  background:#f4f8ff;
+}
+.classroom-toggle-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+.classroom-builder-summary{
+  border-top:3px solid #1264ff!important;
+}
+.classroom-session-list{
+  display:grid;
+  gap:8px;
+}
+.classroom-session-edit{
+  display:grid;
+  grid-template-columns:40px minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+  padding:11px;
+  border:1px solid #e0e7ef;
+  border-radius:12px;
+  background:#fbfcfe;
+}
+.session-number{
+  width:36px;
+  height:36px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  background:#071321;
+  color:#79aaff;
+  font-size:8px;
+  font-weight:950;
+}
+.classroom-course-fusion{
+  overflow:hidden;
+}
+.classroom-capacity-editor,
+.linked-classroom-price-note{
+  padding:17px!important;
+}
+.classroom-learner-list,
+.classroom-resource-list,
+.classroom-assignment-list{
+  display:grid;
+  gap:7px;
+}
+.classroom-learner-list>*,
+.classroom-resource-list>*,
+.classroom-assignment-list>*{
+  padding:9px 10px;
+  border:1px solid #e3eaf2;
+  border-radius:10px;
+  background:#fbfcfe;
+}
+.classroom-content-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-top:16px;
+}
+
+/* Trainer marketing and projects */
+.course-selector{
+  min-width:240px;
+  max-width:420px;
+}
+.coupon-list,
+.announcement-list{
+  display:grid;
+  gap:7px;
+}
+.coupon-row,
+.announcement-row{
+  padding:11px 12px;
+  border:1px solid #e1e8f0;
+  border-radius:11px;
+  background:#fbfcfe;
+}
+.project-review-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+}
+.project-review-card{
+  display:grid;
+  gap:12px;
+}
+.project-card-head,
+.project-student{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center;
+}
+.project-detail{
+  padding:10px;
+  border-radius:10px;
+  background:#f7f9fc;
+  color:#596b83;
+}
+.project-review-form{
+  display:grid;
+  gap:9px;
+}
+.feedback-box{
+  padding:11px 12px;
+  border-left:3px solid #1264ff;
+  border-radius:9px;
+  background:#f3f7ff;
+  color:#52647d;
+}
+
+/* Admin */
+.admin-nav-cards{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+}
+.admin-nav-card{
+  min-height:118px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  gap:12px;
+  padding:16px!important;
+}
+.admin-nav-card:hover{
+  transform:translateY(-2px);
+}
+.admin-ops-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  margin:14px 0;
+}
+.admin-op-stat{
+  padding:15px!important;
+}
+.risk-badge{
+  display:inline-flex;
+  align-items:center;
+  width:max-content;
+  padding:5px 8px;
+  border-radius:999px;
+  background:#fff4e7;
+  color:#8b570e;
+  font-size:7px;
+  font-weight:900;
+}
+.risk-reason{
+  color:#7a889a;
+  font-size:7px;
+  line-height:1.4;
+}
+.audit-table,
+.classroom-admin-table{
+  overflow:auto;
+  border:1px solid #dfe7ef;
+  border-radius:14px;
+  background:#fff;
+}
+.audit-row{
+  display:grid;
+  grid-template-columns:160px 160px minmax(240px,1fr) 150px;
+  gap:12px;
+  padding:12px 14px;
+  border-top:1px solid #edf1f5;
+}
+.audit-head{
+  background:#f6f8fb;
+  color:#7b899b;
+  font-size:8px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+}
+.application-card,
+.support-admin-card{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:14px;
+  align-items:center;
+  padding:16px!important;
+}
+.review-actions.vertical{
+  flex-direction:column;
+  align-items:stretch;
+  min-width:120px;
+}
+.admin-count-chip{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:28px;
+  min-height:28px;
+  padding:0 8px;
+  border-radius:999px;
+  background:#edf4ff;
+  color:#1264ff;
+  font-size:8px;
+  font-weight:900;
+}
+.finance-settings-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+.finance-zero-commission{
+  border-left:4px solid #18a36f!important;
+  background:#f1fbf6!important;
+}
+.classroom-fee-admin,
+.payoneer-admin-card,
+.admin-policy-card{
+  height:max-content;
+}
+.export-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+.export-card{
+  min-height:170px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+
+/* Consistent tags */
+.tag{
+  display:inline-flex!important;
+  align-items:center;
+  width:max-content;
+  max-width:100%;
+  min-height:25px;
+  padding:0 8px!important;
+  border-radius:999px!important;
+  background:#eef4fb!important;
+  color:#4e627c!important;
+  border:1px solid #dbe5ef!important;
+  font-size:7px!important;
+  font-weight:900!important;
+  white-space:nowrap;
+}
+.status.pending,
+.tag.pending{
+  background:#fff7e5!important;
+  color:#865e0c!important;
+  border-color:#f1dca7!important;
+}
+.tag.live{
+  background:#eaf9f2!important;
+  color:#14704e!important;
+  border-color:#bfe5d3!important;
+}
+
+@media(max-width:1080px){
+  .builder-grid,
+  .classroom-builder-layout,
+  .classroom-manage-grid,
+  .course-pricing-layout,
+  .launch-fee-layout,
+  .subscription-pay-grid{
+    grid-template-columns:1fr;
+  }
+  .builder-outline,
+  .classroom-builder-side,
+  .classroom-manage-side,
+  .launch-fee-summary{
+    position:static;
+  }
+  .admin-nav-cards,
+  .admin-ops-grid,
+  .classroom-studio-stats,
+  .classroom-manage-kpis{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+@media(max-width:760px){
+  .payment-review{
+    grid-template-columns:auto minmax(0,1fr);
+  }
+  .payment-review .review-actions{
+    grid-column:1/-1;
+    justify-content:stretch;
+  }
+  .payment-review .review-actions>*{
+    flex:1;
+  }
+  .skill-map-grid,
+  .project-review-grid,
+  .export-grid,
+  .classroom-studio-grid,
+  .classroom-content-grid,
+  .finance-settings-grid,
+  .auto-billing-options,
+  .platform-provider-grid{
+    grid-template-columns:1fr;
+  }
+  .classroom-toggle-grid{
+    grid-template-columns:1fr 1fr;
+  }
+  .application-card,
+  .support-admin-card{
+    grid-template-columns:1fr;
+  }
+  .review-actions.vertical{
+    flex-direction:row;
+  }
+  .audit-row{
+    min-width:760px;
+  }
+}
+@media(max-width:520px){
+  .admin-nav-cards,
+  .admin-ops-grid,
+  .classroom-studio-stats,
+  .classroom-manage-kpis,
+  .payment-methods.four,
+  .classroom-toggle-grid{
+    grid-template-columns:1fr;
+  }
+  .inline-form{
+    grid-template-columns:1fr;
+  }
+  .classroom-session-edit{
+    grid-template-columns:34px minmax(0,1fr);
+  }
+  .classroom-session-edit>*:last-child{
+    grid-column:1/-1;
+  }
+}
