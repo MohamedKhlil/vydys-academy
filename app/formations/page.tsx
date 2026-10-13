@@ -13,7 +13,7 @@ type Course={
 type Rating={course_id:string;average_rating:number|string;review_count:number};
 type Instructor={user_id:string;public_slug:string;display_name:string;headline:string|null};
 type CoursePrice={course_id:string;currency:string;amount:number|string};
-type CourseModule={id:string;course_id:string;title_fr:string;title_ar:string;title_en:string;module_position:number};
+type CourseModule={id:string;course_id:string;title_fr:string;title_ar:string;title_en:string;position:number};
 type LiveSummary={has_live_classroom?:boolean;session_count?:number;session_duration_minutes?:number;title_fr?:string;title_ar?:string;title_en?:string};
 
 export default function FormationsPage(){
@@ -39,13 +39,13 @@ export default function FormationsPage(){
       supabase.from("course_rating_summary").select("course_id,average_rating,review_count"),
       supabase.from("instructor_profiles").select("user_id,public_slug,display_name,headline").eq("is_public",true),
       supabase.from("course_prices").select("course_id,currency,amount").eq("is_active",true),
-      supabase.rpc("get_public_course_modules"),
+      supabase.from("course_modules").select("id,course_id,title_fr,title_ar,title_en,position").order("position"),
       supabase.auth.getUser()
     ]);
     setCourses((c||[]) as Course[]);setPriceRows((pr||[]) as CoursePrice[]);
     const mm:Record<string,CourseModule[]>={};
     ((mods||[]) as CourseModule[]).forEach(m=>{if(!mm[m.course_id])mm[m.course_id]=[];mm[m.course_id].push(m)});
-    Object.values(mm).forEach(rows=>rows.sort((a,b)=>a.module_position-b.module_position));
+    Object.values(mm).forEach(rows=>rows.sort((a,b)=>a.position-b.position));
     setModulesByCourse(mm);
     const availableCurrencies=Array.from(new Set((c||[]).map((x:any)=>String(x.base_currency||"MRU").toUpperCase())));
     if(availableCurrencies.length===1)setDisplayCurrency(availableCurrencies[0]);
