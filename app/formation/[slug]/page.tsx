@@ -17,6 +17,7 @@ export default function FormationDetailPage(){
   const [ratings,setRatings]=useState<any>({average_rating:0,review_count:0});
   const [reviews,setReviews]=useState<any[]>([]);
   const [linkedClassroom,setLinkedClassroom]=useState<any>(null);
+  const [hybridSummary,setHybridSummary]=useState<any>(null);
   const [enrolled,setEnrolled]=useState(false);
   const [rating,setRating]=useState(5);
   const [reviewText,setReviewText]=useState("");
@@ -41,8 +42,12 @@ export default function FormationDetailPage(){
       supabase.from("course_prices").select("currency,amount").eq("course_id",c.id).eq("is_active",true).order("currency")
     ]);
     if(rs)setRatings(rs);setReviews(rv||[]);setPrices(cp||[]);
-    const {data:linkedRoom}=await supabase.from("classrooms").select("id,slug,title_fr,title_ar,title_en,status,start_date,session_count,session_duration_minutes,timezone").eq("course_id",c.id).maybeSingle();
+    const [{data:linkedRoom},{data:liveSummary}]=await Promise.all([
+      supabase.from("classrooms").select("id,slug,title_fr,title_ar,title_en,status,start_date,session_count,session_duration_minutes,timezone").eq("course_id",c.id).maybeSingle(),
+      supabase.rpc("get_public_course_live_summary",{p_course_id:c.id})
+    ]);
     setLinkedClassroom(linkedRoom||null);
+    setHybridSummary(liveSummary||null);
     if(c.instructor_id){
       const [{data:i},{data:m}]=await Promise.all([
         supabase.from("instructor_profiles").select("*").eq("user_id",c.instructor_id).single(),
@@ -157,9 +162,9 @@ export default function FormationDetailPage(){
       <h1 className="course-detail-title">{title}</h1><p className="course-detail-copy">{desc}</p>
       <div className="rating-line big"><span className="stars">★★★★★</span><strong>{Number(ratings.average_rating||0).toFixed(1)}</strong><span>{ratings.review_count} {t({fr:"avis",ar:"تقييم",en:"reviews"})}</span></div>
       {instructor&&<Link href={"/formateur/"+instructor.public_slug} className="instructor-box"><div className="avatar">{instructor.display_name?.slice(0,2).toUpperCase()}</div><div><small>{t({fr:"Formateur",ar:"المدرب",en:"Instructor"})}</small><strong>{instructor.display_name}</strong><span>{instructor.headline}</span></div></Link>}
-      {linkedClassroom&&<article className="course-linked-classroom panel">
-        <div><span className="eyebrow">{t({fr:"Formation hybride",ar:"دورة هجينة",en:"Hybrid course"})}</span><h3>{lang==="ar"?(linkedClassroom.title_ar||linkedClassroom.title_fr):lang==="en"?(linkedClassroom.title_en||linkedClassroom.title_fr):linkedClassroom.title_fr}</h3><p>{linkedClassroom.session_count} {t({fr:"séances live incluses",ar:"حصص مباشرة مشمولة",en:"live sessions included"})} · {linkedClassroom.session_duration_minutes} min</p></div>
-        <Link className="btn btn-ghost" href={"/classroom/"+linkedClassroom.slug}>{t({fr:"Voir la Classroom",ar:"عرض الفصل",en:"View Classroom"})}</Link>
+      {(linkedClassroom||hybridSummary?.has_live_classroom)&&<article className="course-linked-classroom panel">
+        <div><span className="eyebrow">{t({fr:"Formation hybride · 1 seul paiement",ar:"دورة هجينة · دفعة واحدة",en:"Hybrid course · one payment"})}</span><h3>{lang==="ar"?((linkedClassroom||hybridSummary)?.title_ar||(linkedClassroom||hybridSummary)?.title_fr):lang==="en"?((linkedClassroom||hybridSummary)?.title_en||(linkedClassroom||hybridSummary)?.title_fr):(linkedClassroom||hybridSummary)?.title_fr}</h3><p><strong>{(linkedClassroom||hybridSummary)?.session_count} {t({fr:"séances live incluses",ar:"حصص مباشرة مشمولة",en:"live sessions included"})}</strong> · {(linkedClassroom||hybridSummary)?.session_duration_minutes} min · {t({fr:"cours, supports et exercices inclus",ar:"الدروس والموارد والتمارين مشمولة",en:"lessons, resources and assignments included"})}</p></div>
+        {enrolled&&linkedClassroom?<Link className="btn btn-ghost" href={"/classroom/"+linkedClassroom.slug}>{t({fr:"Ouvrir ma Classroom",ar:"فتح فصلي",en:"Open my Classroom"})}</Link>:<span className="hybrid-included-chip">{t({fr:"Inclus avec l’inscription",ar:"مشمول مع التسجيل",en:"Included with enrollment"})}</span>}
       </article>}
 
       <section className="reviews-section"><h2>{t({fr:"Avis des étudiants",ar:"آراء الطلاب",en:"Student reviews"})}</h2>
@@ -168,9 +173,9 @@ export default function FormationDetailPage(){
       </section>
     </div>
 
-    <aside className="panel course-checkout"><div className="international-course-price"><small>{t({fr:"Prix principal",ar:"السعر الأساسي",en:"Base price"})}</small><h2>{baseAmount===0?t({fr:"GRATUIT",ar:"مجاني",en:"FREE"}):formatMoney(baseAmount,baseCurrency)}</h2>{prices.length>1&&<span>{prices.length} {t({fr:"devises configurées",ar:"عملات مهيأة",en:"currencies configured"})}</span>}</div>
+    <aside className="panel course-checkout"><div className="international-course-price"><small>{t({fr:"Prix unique du parcours",ar:"السعر الموحد للمسار",en:"Single pathway price"})}</small><h2>{baseAmount===0?t({fr:"GRATUIT",ar:"مجاني",en:"FREE"}):formatMoney(baseAmount,baseCurrency)}</h2>{hybridSummary?.has_live_classroom&&<span className="hybrid-price-note">✓ {t({fr:"Formation complète + Classroom live incluses",ar:"الدورة كاملة + الفصل المباشر مشمولان",en:"Full course + live Classroom included"})}</span>}{prices.length>1&&<span>{prices.length} {t({fr:"devises configurées",ar:"عملات مهيأة",en:"currencies configured"})}</span>}</div>
       {enrolled?<><p className="status">{t({fr:"Vous êtes inscrit à cette formation.",ar:"أنت مسجل في هذه الدورة.",en:"You are enrolled in this course."})}</p><Link className="btn full" href={"/apprendre/"+course.slug}>{t({fr:"Accéder à ma formation",ar:"الدخول إلى الدورة",en:"Go to my course"})}</Link>{linkedClassroom&&<Link className="btn btn-ghost full" href={"/classroom/"+linkedClassroom.slug}>◉ {t({fr:"Accéder à la Classroom live",ar:"الدخول إلى الفصل المباشر",en:"Open live Classroom"})}</Link>}</>:baseAmount===0?<><p>{t({fr:"Cette formation est gratuite. Aucun moyen de paiement n’est nécessaire.",ar:"هذه الدورة مجانية ولا تحتاج إلى وسيلة دفع.",en:"This course is free. No payment method is required."})}</p><button className="btn full" onClick={enrollFree} disabled={busy}>{busy?"...":t({fr:"S’inscrire gratuitement",ar:"التسجيل مجاناً",en:"Enroll for free"})}</button></>:!course.instructor_id?<><p>{t({fr:"Formation officielle Vydys Academy.",ar:"دورة رسمية من Vydys Academy.",en:"Official Vydys Academy course."})}</p><Link className="btn full" href="/paiement">{t({fr:"S'inscrire",ar:"سجّل",en:"Enroll"})}</Link></>:<>
-        <p>{t({fr:"Votre paiement va directement au formateur. Les méthodes mauritaniennes sont validées manuellement ; les providers internationaux sont confirmés automatiquement.",ar:"يذهب الدفع مباشرة إلى المدرب. الطرق الموريتانية تُراجع يدوياً والمزودون الدوليون يؤكدون الدفع تلقائياً.",en:"Your payment goes directly to the instructor. Mauritanian methods are reviewed manually; international providers confirm automatically."})}</p>
+        <p>{hybridSummary?.has_live_classroom?t({fr:"Un seul paiement de la formation donne accès aux modules, leçons, supports, exercices et aux 10 séances live de la Classroom. Aucun second paiement Classroom.",ar:"دفعة واحدة للدورة تمنح الوصول إلى الوحدات والدروس والموارد والتمارين والحصص المباشرة، دون دفع ثانٍ للفصل.",en:"One course payment unlocks modules, lessons, resources, assignments and the live Classroom sessions. No second Classroom payment."}):t({fr:"Votre paiement va directement au formateur. Les méthodes mauritaniennes sont validées manuellement ; les providers internationaux sont confirmés automatiquement.",ar:"يذهب الدفع مباشرة إلى المدرب. الطرق الموريتانية تُراجع يدوياً والمزودون الدوليون يؤكدون الدفع تلقائياً.",en:"Your payment goes directly to the instructor. Mauritanian methods are reviewed manually; international providers confirm automatically."})}</p>
         {methods.length===0?<p className="manual-note">{t({fr:"Le formateur n'a pas encore configuré de moyen de paiement.",ar:"لم يضف المدرب وسيلة دفع بعد.",en:"The instructor has not configured a payment method yet."})}</p>:<form onSubmit={buy}>
           <div className="checkout-methods">{methods.map(m=>{
             const cur=m.payment_mode==="automatic"?(checkoutCurrency||baseCurrency):String(m.currency||"MRU").toUpperCase();
