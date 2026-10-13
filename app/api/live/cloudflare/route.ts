@@ -65,6 +65,10 @@ export async function POST(req:NextRequest){
   if(accessError||!access)return jsonError(accessError?.message||"access_denied",403);
 
   try{
+    if(access.session_status!=="live"){
+      return jsonError("session_not_live",409);
+    }
+
     if(action==="create_session"){
       const data=await cf("/sessions/new",{method:"POST"},"create_session");
       return NextResponse.json({session_id:data.sessionId,role:access.role});
