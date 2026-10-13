@@ -142,7 +142,9 @@ export default function ConnexionPage(){
         window.location.href =
           profile?.role==="direction" || profile?.role==="admin"
             ? "/admin"
-            : "/dashboard";
+            : profile?.role==="instructor"
+              ? "/formateur"
+              : "/dashboard";
       }
     }catch(err){
       setMessage(err instanceof Error ? err.message : "Erreur");
