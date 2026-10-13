@@ -6143,3 +6143,26 @@ label{color:#27344b}
     flex-direction:column;
   }
 }
+
+
+/* Shared AI Tutor / Instructor Copilot workspace */
+.ai-page{min-height:72vh}
+.ai-page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:16px}
+.ai-page-head h1{margin:4px 0 0;font-size:clamp(32px,4vw,46px);letter-spacing:-.055em}
+.ai-quota{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 10px;border:1px solid #d7e3f1;border-radius:999px;background:#f4f8ff;color:#56708f;font-size:8px;font-weight:850}
+.ai-course-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;padding:10px 12px;border:1px solid #dce5ef;border-radius:12px;background:#fff}
+.ai-page .ai-layout{display:grid;grid-template-columns:240px minmax(0,1fr);gap:12px;min-height:610px}
+.ai-page .ai-history{overflow:auto}
+.ai-page .ai-chat{display:grid;grid-template-rows:minmax(0,1fr) auto;overflow:hidden}
+.ai-empty{min-height:360px;display:grid;place-items:center;align-content:center;gap:13px;text-align:center;color:#74849a}
+.ai-orb{width:68px;height:68px;display:grid;place-items:center;border-radius:22px;background:linear-gradient(145deg,#1264ff,#0753d5);color:#fff;font-size:24px;font-weight:950;box-shadow:0 14px 36px rgba(18,100,255,.22)}
+.ai-suggestions{display:flex;flex-wrap:wrap;justify-content:center;gap:7px}
+.ai-suggestions button{min-height:34px;padding:0 9px;border:1px solid #dce5ef;border-radius:999px;background:#fff;color:#536781;font-size:7px;font-weight:800}
+.ai-suggestions button:hover{border-color:#a9c4ed;background:#f3f7ff;color:#1264ff}
+.ai-composer{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:11px;border-top:1px solid #e0e7ef;background:#fbfcfe}
+.ai-composer textarea{min-height:52px!important;max-height:150px;resize:vertical}
+@media(max-width:760px){
+  .ai-page-head{align-items:flex-start;flex-direction:column}
+  .ai-page .ai-layout{grid-template-columns:1fr}
+  .ai-page .ai-history{max-height:180px}
+}
