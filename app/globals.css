@@ -1418,3 +1418,23 @@ input,select,textarea{max-width:100%}
   .live-topbar-actions{width:100%;flex-wrap:wrap}
   .live-open-btn,.live-close-btn{flex:1;min-width:150px}
 }
+
+
+@media(max-width:760px){
+  .live-classroom-topbar{
+    height:auto;
+    min-height:66px;
+    align-items:flex-start;
+    flex-direction:column;
+    gap:8px;
+    padding:10px 12px;
+  }
+  .live-classroom-topbar>div:last-child{
+    display:flex!important;
+  }
+  .live-topbar-actions{
+    width:100%;
+    justify-content:flex-start;
+  }
+  .live-secure{display:none}
+}
