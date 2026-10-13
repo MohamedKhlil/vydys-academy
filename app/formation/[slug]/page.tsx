@@ -173,7 +173,18 @@ export default function FormationDetailPage(){
 
           {method?.payment_mode==="automatic"&&prices.length>1&&<label className="form-field"><span>{t({fr:"Devise du checkout",ar:"عملة الدفع",en:"Checkout currency"})}</span><select value={checkoutCurrency} onChange={e=>setCheckoutCurrency(e.target.value)}>{prices.map(p=><option key={p.currency} value={p.currency}>{p.currency} · {formatMoney(Number(p.amount),p.currency)}</option>)}</select></label>}
 
-          {method&&payable!=null&&<><div className="amount-box"><span>{t({fr:"Montant exact",ar:"المبلغ المحدد",en:"Exact amount"})}</span><strong>{formatMoney(payable,selectedCurrency)}</strong>{methodDiscount>0&&<small>{t({fr:"Réduction moyen de paiement",ar:"خصم وسيلة الدفع",en:"Payment method discount"})}: -{methodDiscount}%</small>}{coupon?.valid&&<small>{t({fr:"Coupon",ar:"قسيمة",en:"Coupon"})} {coupon.code}: -{coupon.discount_percent}%</small>}</div>
+          {method&&payable!=null&&<>{method.payment_mode==="manual"?<div className="settlement-highlight">
+            <div className="settlement-account">
+              <span>{t({fr:"Compte de règlement",ar:"حساب الدفع",en:"Payment account"})}</span>
+              <strong>{method.account_number||"—"}</strong>
+              <small>{String(method.label||method.method).toUpperCase()}</small>
+            </div>
+            <div className="settlement-amount">
+              <span>{t({fr:"Montant exact à envoyer",ar:"المبلغ الدقيق للإرسال",en:"Exact amount to send"})}</span>
+              <strong>{formatMoney(payable,selectedCurrency)}</strong>
+            </div>
+          </div>:<div className="amount-box"><span>{t({fr:"Montant exact",ar:"المبلغ المحدد",en:"Exact amount"})}</span><strong>{formatMoney(payable,selectedCurrency)}</strong></div>}
+          {(methodDiscount>0||coupon?.valid)&&<div className="payment-discount-summary">{methodDiscount>0&&<small>{t({fr:"Réduction moyen de paiement",ar:"خصم وسيلة الدفع",en:"Payment method discount"})}: -{methodDiscount}%</small>}{coupon?.valid&&<small>{t({fr:"Coupon",ar:"قسيمة",en:"Coupon"})} {coupon.code}: -{coupon.discount_percent}%</small>}</div>}
           <div className="coupon-box"><input value={couponCode} onChange={e=>setCouponCode(e.target.value.toUpperCase())} placeholder={t({fr:"Code promo",ar:"رمز الخصم",en:"Promo code"})}/><button type="button" onClick={applyCoupon}>{t({fr:"Appliquer",ar:"تطبيق",en:"Apply"})}</button></div>
           {method.payment_mode==="manual"?<>
             {method.instructions&&<p className="payment-instructor-instructions">{method.instructions}</p>}
