@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { useLanguage } from "../../../components/language-provider";
 import { supabase } from "../../../lib/supabase";
 import WhatsAppBubble from "../../../components/whatsapp-bubble";
+import CourseShare from "../../../components/course-share";
 
 export default function FormationDetailPage(){
   const params=useParams<{slug:string}>();
@@ -39,7 +40,7 @@ export default function FormationDetailPage(){
     setCourse(c);
     const [{data:rs},{data:rv},{data:cp},{data:mods}]=await Promise.all([
       supabase.from("course_rating_summary").select("*").eq("course_id",c.id).single(),
-      supabase.from("course_reviews").select("id,rating,review_text,created_at").eq("course_id",c.id).order("created_at",{ascending:false}),
+      supabase.from("course_reviews").select("id,rating,review_text,created_at").eq("course_id",c.id).eq("moderation_status","visible").order("created_at",{ascending:false}),
       supabase.from("course_prices").select("currency,amount").eq("course_id",c.id).eq("is_active",true).order("currency"),
       supabase.from("course_modules").select("id,title_fr,title_ar,title_en,position").eq("course_id",c.id).order("position")
     ]);
@@ -160,9 +161,9 @@ export default function FormationDetailPage(){
 
   return <section className="section page-top"><div className="container">
     <div className="course-detail-grid"><div>
-      <div className="course-title-row"><span className="tag">{course.category||t({fr:"Formation",ar:"دورة",en:"Course"})}</span><button className={favorite?"favorite-inline active":"favorite-inline"} onClick={toggleFavorite}>♥ {favorite?t({fr:"Favori",ar:"مفضلة",en:"Saved"}):t({fr:"Ajouter aux favoris",ar:"إضافة للمفضلة",en:"Save"})}</button></div>
+      <div className="course-title-row"><span className="tag">{course.category||t({fr:"Formation",ar:"دورة",en:"Course"})}</span><div className="course-title-actions"><CourseShare title={title} slug={course.slug}/><button className={favorite?"favorite-inline active":"favorite-inline"} onClick={toggleFavorite}>♥ {favorite?t({fr:"Favori",ar:"مفضلة",en:"Saved"}):t({fr:"Ajouter aux favoris",ar:"إضافة للمفضلة",en:"Save"})}</button></div></div>
       <h1 className="course-detail-title">{title}</h1><p className="course-detail-copy">{desc}</p>
-      {Number(ratings.review_count||0)>0?<div className="rating-line big"><span className="stars">★★★★★</span><strong>{Number(ratings.average_rating||0).toFixed(1)}</strong><span>{ratings.review_count} {t({fr:"avis",ar:"تقييم",en:"reviews"})}</span></div>:<div className="course-new-badge">✦ {t({fr:"Nouvelle formation",ar:"دورة جديدة",en:"New course"})}</div>}
+      {Number(ratings.review_count||0)>0?<div className="rating-line big"><span className="stars">{[1,2,3,4,5].map(n=><span key={n} className={n<=Math.round(Number(ratings.average_rating||0))?"on":"off"}>★</span>)}</span><strong>{Number(ratings.average_rating||0).toFixed(1)}/5</strong><span>{ratings.review_count} {t({fr:"avis",ar:"تقييم",en:"reviews"})}</span></div>:<div className="course-new-badge">✦ {t({fr:"Nouvelle formation · pas encore notée",ar:"دورة جديدة · لم يتم تقييمها بعد",en:"New course · not rated yet"})}</div>}
       {instructor&&<Link href={"/formateur/"+instructor.public_slug} className="instructor-box"><div className="avatar">{instructor.display_name?.slice(0,2).toUpperCase()}</div><div><small>{t({fr:"Formateur",ar:"المدرب",en:"Instructor"})}</small><strong>{instructor.display_name}</strong><span>{instructor.headline}</span></div></Link>}
       {(linkedClassroom||hybridSummary?.has_live_classroom)&&<article className="course-linked-classroom panel">
         <div><span className="eyebrow">{t({fr:"Formation hybride · 1 seul paiement",ar:"دورة هجينة · دفعة واحدة",en:"Hybrid course · one payment"})}</span><h3>{lang==="ar"?((linkedClassroom||hybridSummary)?.title_ar||(linkedClassroom||hybridSummary)?.title_fr):lang==="en"?((linkedClassroom||hybridSummary)?.title_en||(linkedClassroom||hybridSummary)?.title_fr):(linkedClassroom||hybridSummary)?.title_fr}</h3><p><strong>{(linkedClassroom||hybridSummary)?.session_count} {t({fr:"séances live incluses",ar:"حصص مباشرة مشمولة",en:"live sessions included"})}</strong> · {(linkedClassroom||hybridSummary)?.session_duration_minutes} min · {t({fr:"cours, supports et exercices inclus",ar:"الدروس والموارد والتمارين مشمولة",en:"lessons, resources and assignments included"})}</p></div>
@@ -193,8 +194,8 @@ export default function FormationDetailPage(){
       </section>}
 
       <section className="reviews-section"><h2>{t({fr:"Avis des étudiants",ar:"آراء الطلاب",en:"Student reviews"})}</h2>
-        {reviews.length===0?<p>{t({fr:"Pas encore d'avis.",ar:"لا توجد تقييمات بعد.",en:"No reviews yet."})}</p>:reviews.map(r=><article className="review-card" key={r.id}><div className="rating-line"><span className="stars">★★★★★</span><strong>{r.rating}/5</strong></div><p>{r.review_text}</p><small>{t({fr:"Étudiant vérifié",ar:"طالب مسجل",en:"Verified student"})}</small></article>)}
-        {enrolled&&<article className="panel review-form"><h3>{t({fr:"Notez cette formation",ar:"قيّم هذه الدورة",en:"Rate this course"})}</h3><div className="rating-picker">{[1,2,3,4,5].map(n=><button key={n} className={n<=rating?"active":""} onClick={()=>setRating(n)}>★</button>)}</div><textarea rows={4} value={reviewText} onChange={e=>setReviewText(e.target.value)} placeholder={t({fr:"Votre avis...",ar:"رأيك...",en:"Your review..."})}/><button className="btn" onClick={submitReview}>{t({fr:"Publier mon avis",ar:"نشر التقييم",en:"Publish review"})}</button></article>}
+        {reviews.length===0?<p>{t({fr:"Pas encore d'avis. Soyez le premier étudiant inscrit à donner une note.",ar:"لا توجد تقييمات بعد. كن أول طالب مسجل يضيف تقييماً.",en:"No reviews yet. Be the first enrolled student to rate it."})}</p>:reviews.map(r=><article className="review-card" key={r.id}><div className="rating-line"><span className="stars">{[1,2,3,4,5].map(n=><span key={n} className={n<=Number(r.rating)?"on":"off"}>★</span>)}</span><strong>{r.rating}/5</strong></div>{r.review_text&&<p>{r.review_text}</p>}<small>✓ {t({fr:"Étudiant inscrit vérifié",ar:"طالب مسجل موثّق",en:"Verified enrolled student"})}</small></article>)}
+        {enrolled?<article className="panel review-form"><h3>{t({fr:"Notez cette formation",ar:"قيّم هذه الدورة",en:"Rate this course"})}</h3><p className="review-form-copy">{t({fr:"Choisissez de 1 à 5 étoiles et ajoutez un commentaire si vous le souhaitez.",ar:"اختر من نجمة إلى خمس نجوم وأضف تعليقاً إذا رغبت.",en:"Choose 1 to 5 stars and add a comment if you want."})}</p><div className="rating-picker" aria-label={t({fr:"Votre note",ar:"تقييمك",en:"Your rating"})}>{[1,2,3,4,5].map(n=><button type="button" aria-label={n+"/5"} key={n} className={n<=rating?"active":""} onClick={()=>setRating(n)}>★</button>)}</div><strong className="selected-rating">{rating}/5</strong><textarea rows={4} value={reviewText} onChange={e=>setReviewText(e.target.value)} placeholder={t({fr:"Votre avis (facultatif)...",ar:"رأيك (اختياري)...",en:"Your review (optional)..."})}/><button className="btn" onClick={submitReview}>{t({fr:"Publier ma note",ar:"نشر تقييمي",en:"Publish my rating"})}</button></article>:<div className="review-eligibility-note">✓ {t({fr:"Les notes sont réservées aux étudiants inscrits à cette formation afin de garantir des avis fiables.",ar:"التقييم متاح فقط للطلاب المسجلين في الدورة لضمان تقييمات موثوقة.",en:"Ratings are limited to enrolled students to keep reviews trustworthy."})}</div>}
       </section>
     </div>
 
