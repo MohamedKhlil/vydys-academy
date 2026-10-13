@@ -26,6 +26,20 @@ export function Header() {
     return()=>{active=false;listener.subscription.unsubscribe()}
   },[]);
 
+  useEffect(()=>{
+    if(!mobileOpen)return;
+    const previous=document.body.style.overflow;
+    document.body.style.overflow="hidden";
+    const onKey=(event:KeyboardEvent)=>{
+      if(event.key==="Escape")setMobileOpen(false);
+    };
+    window.addEventListener("keydown",onKey);
+    return()=>{
+      document.body.style.overflow=previous;
+      window.removeEventListener("keydown",onKey);
+    };
+  },[mobileOpen]);
+
   async function logout(){await supabase.auth.signOut();window.location.href="/"}
 
   const isManagement=role==="direction"||role==="admin";
@@ -91,13 +105,20 @@ export function Header() {
         {!signedIn&&<Link className="nav-account-link" href="/devenir-formateur">{t({fr:"Enseigner",ar:"درّس",en:"Teach"})}</Link>}
         {signedIn?<button className="btn btn-small nav-signin" onClick={logout}>{t({fr:"Sortir",ar:"خروج",en:"Sign out"})}</button>:<Link className="btn btn-small nav-signin" href="/connexion">{t({fr:"Se connecter",ar:"دخول",en:"Sign in"})}</Link>}
 
-        <button className="mobile-nav-toggle mobile-nav-toggle-v3" aria-label={t({fr:"Ouvrir le menu",ar:"فتح القائمة",en:"Open menu"})} aria-expanded={mobileOpen} onClick={()=>setMobileOpen(v=>!v)}>
+        <button
+          type="button"
+          className={"mobile-nav-toggle mobile-nav-toggle-v3 "+(mobileOpen?"open":"")}
+          aria-label={mobileOpen?t({fr:"Fermer le menu",ar:"إغلاق القائمة",en:"Close menu"}):t({fr:"Ouvrir le menu",ar:"فتح القائمة",en:"Open menu"})}
+          aria-expanded={mobileOpen}
+          aria-controls="vydys-mobile-menu"
+          onClick={()=>setMobileOpen(v=>!v)}
+        >
           <span></span><span></span><span></span>
         </button>
       </div>
     </div>
 
-    {mobileOpen&&<div className="mobile-nav-panel mobile-nav-panel-v3">
+    {mobileOpen&&<div id="vydys-mobile-menu" className="mobile-nav-panel mobile-nav-panel-v3" role="dialog" aria-modal="true">
       <div className="container mobile-menu-v3" onClick={e=>{if((e.target as HTMLElement).closest("a"))setMobileOpen(false)}}>
         <div className="mobile-menu-head"><div><img src="/vydys-icon.svg" alt=""/><div><strong>Vydys</strong><small>AI & Technology Learning System</small></div></div><button onClick={()=>setMobileOpen(false)}>×</button></div>
 
