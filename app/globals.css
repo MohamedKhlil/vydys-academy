@@ -5780,3 +5780,366 @@ label{color:#27344b}
     padding:17px!important;
   }
 }
+
+
+/* ========================================================================== */
+/* VYDYS FULL VISUAL AUDIT — HUB + PORTFOLIO + MARKETPLACE MANAGEMENT         */
+/* ========================================================================== */
+
+/* Hub */
+.vydys-hub{
+  min-height:75vh;
+  background:#f5f8fc;
+}
+.hub-hero{
+  position:relative;
+  overflow:hidden;
+  padding:70px 0 58px;
+  background:
+    radial-gradient(circle at 78% 30%,rgba(18,100,255,.20),transparent 24%),
+    radial-gradient(circle at 20% 80%,rgba(70,104,255,.08),transparent 24%),
+    #05070c;
+  color:#fff;
+}
+.hub-hero-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 390px;
+  gap:50px;
+  align-items:center;
+}
+.hub-hero h1{
+  max-width:760px;
+  margin:10px 0 16px;
+  font-size:clamp(44px,5vw,68px);
+  line-height:.96;
+  letter-spacing:-.06em;
+}
+.hub-search{
+  max-width:620px;
+  margin-top:20px;
+}
+.hub-search input{
+  min-height:54px!important;
+  background:rgba(255,255,255,.07)!important;
+  color:#fff!important;
+  border-color:#2a3d5c!important;
+  backdrop-filter:blur(12px);
+}
+.hub-search input::placeholder{
+  color:#8093b0!important;
+}
+.hub-orbit{
+  position:relative;
+  min-height:330px;
+  display:grid;
+  place-items:center;
+}
+.hub-core{
+  width:120px;
+  height:120px;
+  display:grid;
+  place-items:center;
+  border-radius:32px;
+  background:linear-gradient(145deg,#1264ff,#0b4bbd);
+  box-shadow:0 0 0 18px rgba(18,100,255,.08),0 25px 70px rgba(18,100,255,.25);
+  font-size:36px;
+  font-weight:950;
+}
+.orbit{
+  position:absolute;
+  display:grid;
+  place-items:center;
+  min-width:78px;
+  min-height:42px;
+  padding:0 10px;
+  border:1px solid #29466e;
+  border-radius:999px;
+  background:#0a1321;
+  color:#a8c6f5;
+  font-size:8px;
+  font-weight:850;
+}
+.orbit-a{top:35px;left:25px}
+.orbit-b{top:45px;right:5px}
+.orbit-c{bottom:38px;left:5px}
+.orbit-d{bottom:28px;right:35px}
+.hub-personal{
+  padding:54px 0 70px;
+}
+.hub-section-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:18px;
+  margin-bottom:16px;
+}
+.hub-section-head.dark{
+  color:#fff;
+}
+.hub-command-grid,
+.hub-reco-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+.hub-command-card,
+.hub-reco-card{
+  min-height:190px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding:20px!important;
+  border:1px solid #dfe7ef!important;
+  border-radius:17px!important;
+  background:#fff!important;
+}
+.hub-command-card.primary{
+  background:
+    radial-gradient(circle at 90% 0,rgba(18,100,255,.11),transparent 30%),
+    #fff!important;
+  border-color:#bfd3f1!important;
+}
+.hub-command-card:hover,
+.hub-reco-card:hover{
+  transform:translateY(-3px);
+  border-color:#afc8ed!important;
+  box-shadow:0 18px 45px rgba(8,28,62,.09);
+}
+.hub-command-label{
+  color:#1264ff;
+  font-size:7px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+.hub-progress{
+  margin-top:auto;
+  overflow:hidden;
+  border-radius:999px;
+  background:#e7edf4;
+}
+.hub-readiness{
+  margin:20px 0;
+  padding:20px;
+  border:1px solid #dce5ef;
+  border-radius:17px;
+  background:#fff;
+}
+.hub-reco-cover{
+  min-height:100px;
+  border-radius:12px;
+  background:linear-gradient(145deg,#071321,#16437f);
+}
+.hub-role-strip{
+  margin-top:24px;
+  padding:18px;
+  border-radius:16px;
+  background:#07101d;
+  color:#d9e8ff;
+}
+
+/* Skills passport */
+.skill-category{
+  margin-top:22px;
+}
+.skill-category>h2{
+  margin-bottom:10px;
+  font-size:20px;
+}
+.skill-passport-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+.skill-badge-card{
+  min-height:150px;
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+  padding:17px!important;
+}
+.skill-badge-card:hover{
+  transform:translateY(-2px);
+  border-color:#b7cff1!important;
+}
+.small-stat{
+  color:#718196;
+  font-size:8px;
+}
+
+/* Projects / portfolio */
+.project-layout{
+  display:grid;
+  grid-template-columns:380px minmax(0,1fr);
+  gap:18px;
+  align-items:start;
+}
+.project-layout>.trainer-form{
+  position:sticky;
+  top:96px;
+}
+.project-skill-picker{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+}
+.project-list{
+  display:grid;
+  gap:10px;
+}
+.project-card{
+  padding:18px!important;
+}
+.tech-stack,
+.project-links{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.tech-stack>*{
+  padding:5px 7px;
+  border-radius:999px;
+  background:#eef4fb;
+  color:#50657e;
+  font-size:7px;
+  font-weight:800;
+}
+.portfolio-form{
+  max-width:900px;
+}
+.stat-grid+.portfolio-form{
+  margin-top:18px;
+}
+
+/* Onboarding */
+.dashboard-shell .vydys-tools-grid{
+  margin-top:16px;
+}
+.dashboard-shell .vydys-tool-card{
+  position:relative;
+  overflow:hidden;
+}
+.dashboard-shell .vydys-tool-card:after{
+  content:"";
+  position:absolute;
+  right:-45px;
+  top:-45px;
+  width:100px;
+  height:100px;
+  border-radius:50%;
+  border:1px solid rgba(18,100,255,.07);
+  box-shadow:0 0 0 18px rgba(18,100,255,.025);
+  pointer-events:none;
+}
+
+/* Seller management */
+.marketplace-manage-list{
+  display:grid;
+  gap:10px;
+}
+.marketplace-manage-list>.panel{
+  padding:17px!important;
+}
+.marketplace-manage-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+}
+.marketplace-manage-head h3{
+  margin:0;
+  font-size:17px;
+}
+.listing-fee-status{
+  display:inline-flex;
+  align-items:center;
+  width:max-content;
+  padding:5px 8px;
+  border-radius:999px;
+  background:#fff7e5;
+  color:#865e0c;
+  border:1px solid #efdcae;
+  font-size:7px;
+  font-weight:900;
+}
+.listing-fee-form{
+  display:grid;
+  gap:9px;
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px solid #e6edf4;
+}
+.seller-method-form{
+  margin-top:12px;
+}
+.seller-method-list{
+  display:grid;
+  gap:7px;
+}
+.seller-method-list>*{
+  padding:9px 10px;
+  border:1px solid #e0e7ef;
+  border-radius:10px;
+  background:#fbfcfe;
+}
+
+/* Global hover restraint for touch screens */
+@media(hover:none){
+  .panel:hover,
+  .market-card:hover,
+  .classroom-market-card:hover,
+  .practice-tool-card:hover,
+  .practice-challenge-card:hover,
+  .hub-command-card:hover,
+  .hub-reco-card:hover,
+  .trainer-rank-card:hover{
+    transform:none!important;
+    box-shadow:inherit;
+  }
+}
+
+@media(max-width:960px){
+  .hub-hero-grid{
+    grid-template-columns:1fr;
+  }
+  .hub-orbit{
+    max-width:430px;
+    width:100%;
+    margin:auto;
+  }
+  .project-layout{
+    grid-template-columns:1fr;
+  }
+  .project-layout>.trainer-form{
+    position:static;
+  }
+}
+@media(max-width:760px){
+  .hub-hero{
+    padding:48px 0 42px;
+  }
+  .hub-hero h1{
+    font-size:clamp(38px,10vw,52px);
+  }
+  .hub-command-grid,
+  .hub-reco-grid,
+  .skill-passport-grid{
+    grid-template-columns:1fr 1fr;
+  }
+}
+@media(max-width:520px){
+  .hub-command-grid,
+  .hub-reco-grid,
+  .skill-passport-grid{
+    grid-template-columns:1fr;
+  }
+  .hub-orbit{
+    min-height:270px;
+  }
+  .hub-core{
+    width:100px;height:100px;border-radius:26px;
+  }
+  .marketplace-manage-head{
+    flex-direction:column;
+  }
+}
