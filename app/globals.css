@@ -1084,3 +1084,8 @@ input,select,textarea{max-width:100%}
   .mobile-install-actions .btn{width:100%}
   .whatsapp-bubble{bottom:calc(14px + env(safe-area-inset-bottom))}
 }
+
+
+.trainer-avatar{overflow:hidden}
+.trainer-avatar img{width:100%;height:100%;object-fit:cover;border-radius:inherit}
+@media(max-width:620px){.trainer-public-hero{padding:22px}.trainer-public-hero h1{font-size:36px}.trainer-avatar{width:72px;height:72px}}
