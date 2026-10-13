@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "../../components/language-provider";
 import { supabase } from "../../lib/supabase";
+import CourseShare from "../../components/course-share";
 
 type Course={
   id:string;slug:string;title_fr:string;title_ar:string;title_en:string;
@@ -182,7 +183,7 @@ export default function FormationsPage(){
 
             <div className="course-card-footer">
               <div className="course-price-stack"><small>{t({fr:"Prix unique",ar:"السعر الموحد",en:"Single price"})}</small><strong>{formatMoney(amount,cur)}</strong></div>
-              <Link className="btn btn-small course-open-btn" href={"/formation/"+c.slug}>{t({fr:"Découvrir",ar:"اكتشف",en:"Explore"})} →</Link>
+              <div className="course-card-actions"><CourseShare compact title={title} slug={c.slug}/><Link className="btn btn-small course-open-btn" href={"/formation/"+c.slug}>{t({fr:"Découvrir",ar:"اكتشف",en:"Explore"})} →</Link></div>
             </div>
           </div>
         </article>
