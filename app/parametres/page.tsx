@@ -10,12 +10,15 @@ export default function SettingsPage(){
   const [email,setEmail]=useState("");
   const [profile,setProfile]=useState<any>({full_name:"",username:"",phone:"",bio:"",website:"",avatar_url:"",preferred_language:"fr",preferred_currency:"USD",timezone:"Africa/Nouakchott",role:"student"});
   const [whatsappNumber,setWhatsappNumber]=useState("");
+  const [loginEmail,setLoginEmail]=useState("");
+  const [newPassword,setNewPassword]=useState("");
+  const [securityNotice,setSecurityNotice]=useState("");
   const [busy,setBusy]=useState(false);const [notice,setNotice]=useState("");
 
   useEffect(()=>{(async()=>{
     const {data:{user}}=await supabase.auth.getUser();
     if(!user){window.location.href="/connexion";return}
-    setUserId(user.id);setEmail(user.email||"");
+    setUserId(user.id);setEmail(user.email||"");setLoginEmail(user.email||"");
     const {data}=await supabase.from("profiles").select("full_name,username,phone,bio,website,avatar_url,preferred_language,preferred_currency,timezone,role").eq("id",user.id).maybeSingle();
     if(data){
       setProfile((p:any)=>({...p,...data}));
@@ -37,6 +40,33 @@ export default function SettingsPage(){
       if(waError){setBusy(false);setNotice(waError.message);return}
     }
     setBusy(false);setNotice(error?error.message:t({fr:"Profil mis à jour.",ar:"تم تحديث الملف.",en:"Profile updated."}));
+  }
+
+  async function saveSecurity(e:FormEvent){
+    e.preventDefault();
+    setSecurityNotice("");
+    const updates:any={};
+    if(loginEmail.trim()&&loginEmail.trim().toLowerCase()!==email.toLowerCase())updates.email=loginEmail.trim().toLowerCase();
+    if(newPassword)updates.password=newPassword;
+    if(!updates.email&&!updates.password){
+      setSecurityNotice(t({fr:"Aucune modification à enregistrer.",ar:"لا توجد تعديلات للحفظ.",en:"No changes to save."}));
+      return;
+    }
+    if(updates.password&&updates.password.length<8){
+      setSecurityNotice(t({fr:"Le mot de passe doit contenir au moins 8 caractères.",ar:"يجب أن تتكون كلمة المرور من 8 أحرف على الأقل.",en:"Password must contain at least 8 characters."}));
+      return;
+    }
+    setBusy(true);
+    const {data,error}=await supabase.auth.updateUser(updates);
+    setBusy(false);
+    if(error){setSecurityNotice(error.message);return}
+    if(data.user?.email)setEmail(data.user.email);
+    setNewPassword("");
+    setSecurityNotice(t({
+      fr:updates.email?"Modification enregistrée. Selon la sécurité email, vérifiez votre boîte pour confirmer la nouvelle adresse.":"Mot de passe mis à jour.",
+      ar:updates.email?"تم حفظ التعديل. قد تحتاج إلى تأكيد البريد الجديد من صندوق البريد.":"تم تحديث كلمة المرور.",
+      en:updates.email?"Change saved. Depending on email security, confirm the new address from your inbox.":"Password updated."
+    }));
   }
 
   async function uploadAvatar(file?:File){
@@ -76,6 +106,20 @@ export default function SettingsPage(){
         </div>
         {notice&&<p className="manual-note">{notice}</p>}
         <button className="btn" disabled={busy}>{busy?"...":t({fr:"Enregistrer",ar:"حفظ",en:"Save changes"})}</button>
+      </form>
+
+      <form className="panel settings-form account-security-card" onSubmit={saveSecurity}>
+        <div>
+          <span className="eyebrow">{t({fr:"Sécurité du compte",ar:"أمان الحساب",en:"Account security"})}</span>
+          <h2>{t({fr:"Email de connexion & mot de passe",ar:"بريد الدخول وكلمة المرور",en:"Login email & password"})}</h2>
+          <p>{t({fr:"Modifiez ici vos identifiants de connexion sans créer un nouveau compte.",ar:"عدّل بيانات الدخول هنا بدون إنشاء حساب جديد.",en:"Change your login credentials here without creating a new account."})}</p>
+        </div>
+        <div className="settings-grid">
+          <label className="wide"><span>{t({fr:"Email de connexion",ar:"بريد الدخول",en:"Login email"})}</span><input type="email" value={loginEmail} onChange={e=>setLoginEmail(e.target.value)} placeholder="khlil@vydys.com"/></label>
+          <label className="wide"><span>{t({fr:"Nouveau mot de passe",ar:"كلمة المرور الجديدة",en:"New password"})}</span><input type="password" autoComplete="new-password" value={newPassword} onChange={e=>setNewPassword(e.target.value)} placeholder={t({fr:"Laisser vide pour ne pas changer",ar:"اتركه فارغاً إذا لم ترغب بالتغيير",en:"Leave blank to keep current password"})}/></label>
+        </div>
+        {securityNotice&&<p className="manual-note">{securityNotice}</p>}
+        <button className="btn" disabled={busy}>{busy?"...":t({fr:"Mettre à jour mes accès",ar:"تحديث بيانات الدخول",en:"Update login"})}</button>
       </form>
     </div>
   </div></section>
