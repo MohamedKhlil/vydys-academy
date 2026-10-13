@@ -16,6 +16,7 @@ export default function ClassroomDetailPage(){
   const [methods,setMethods]=useState<any[]>([]);
   const [prices,setPrices]=useState<any[]>([]);
   const [stats,setStats]=useState<any>(null);
+  const [linkedCourse,setLinkedCourse]=useState<any>(null);
   const [enrolled,setEnrolled]=useState(false);
   const [resources,setResources]=useState<any[]>([]);
   const [assignments,setAssignments]=useState<any[]>([]);
@@ -40,13 +41,22 @@ export default function ClassroomDetailPage(){
       supabase.auth.getUser()
     ]);
     setSessions(s||[]);setInstructor(i||null);setMethods(m||[]);setPrices(p||[]);setStats(st||null);
+    if(r.course_id){
+      const {data:linked}=await supabase.from("courses").select("id,slug,title_fr,title_ar,title_en,description_fr,description_ar,description_en,status").eq("id",r.course_id).maybeSingle();
+      setLinkedCourse(linked||null);
+    }else setLinkedCourse(null);
     if(m?.[0])setSelectedMethod(m[0].id);
     const available=(p||[]).map((x:any)=>String(x.currency).toUpperCase());
     setCheckoutCurrency(available.includes(String(r.base_currency).toUpperCase())?String(r.base_currency).toUpperCase():(available[0]||String(r.base_currency).toUpperCase()));
 
     if(user){
-      const {data:e}=await supabase.from("classroom_enrollments").select("id").eq("classroom_id",r.id).eq("user_id",user.id).eq("status","active").maybeSingle();
-      const yes=Boolean(e);setEnrolled(yes);
+      const [{data:e},{data:courseEnrollment}]=await Promise.all([
+        supabase.from("classroom_enrollments").select("id").eq("classroom_id",r.id).eq("user_id",user.id).in("status",["active","completed"]).maybeSingle(),
+        r.course_id
+          ? supabase.from("enrollments").select("id").eq("course_id",r.course_id).eq("user_id",user.id).in("status",["active","completed"]).maybeSingle()
+          : Promise.resolve({data:null} as any)
+      ]);
+      const yes=Boolean(e||courseEnrollment);setEnrolled(yes);
       if(yes){
         const [{data:res},{data:ass}]=await Promise.all([
           supabase.from("classroom_resources").select("*").eq("classroom_id",r.id).order("created_at",{ascending:false}),
@@ -123,6 +133,23 @@ export default function ClassroomDetailPage(){
           {instructor&&<Link className="instructor-box" href={"/formateur/"+instructor.public_slug}><div className="avatar">{instructor.display_name?.slice(0,2).toUpperCase()}</div><div><small>{t({fr:"Formateur",ar:"المدرب",en:"Instructor"})}</small><strong>{instructor.display_name}</strong><span>{instructor.headline}</span></div></Link>}
         </div>
 
+        {linkedCourse&&<section className="classroom-hybrid-course panel">
+          <div className="hybrid-course-copy">
+            <span className="eyebrow">{t({fr:"Parcours hybride inclus",ar:"مسار هجين مشمول",en:"Hybrid pathway included"})}</span>
+            <h2>{lang==="ar"?(linkedCourse.title_ar||linkedCourse.title_fr):lang==="en"?(linkedCourse.title_en||linkedCourse.title_fr):linkedCourse.title_fr}</h2>
+            <p>{t({
+              fr:"Cette Classroom est fusionnée avec une formation Vydys : modules, leçons, supports, quiz et exercices sont inclus avec les séances live. Aucun second paiement.",
+              ar:"هذا الفصل مدمج مع دورة Vydys: الوحدات والدروس والموارد والاختبارات والتمارين مشمولة مع الحصص المباشرة دون دفع ثانٍ.",
+              en:"This Classroom is merged with a Vydys course: modules, lessons, resources, quizzes and assignments are included with the live sessions. No second payment."
+            })}</p>
+            <div className="hybrid-feature-list"><span>✓ {t({fr:"Cours & supports",ar:"دروس وموارد",en:"Lessons & resources"})}</span><span>✓ Quiz</span><span>✓ {t({fr:"Exercices / devoirs",ar:"تمارين وواجبات",en:"Assignments"})}</span><span>✓ Live Classroom</span></div>
+          </div>
+          <div className="hybrid-course-action">
+            <span className={"status "+(linkedCourse.status==="published"?"":"pending")}>{linkedCourse.status}</span>
+            {enrolled&&linkedCourse.status==="published"?<Link className="btn" href={"/apprendre/"+linkedCourse.slug}>{t({fr:"Accéder à la formation",ar:"الدخول إلى الدورة",en:"Open course"})}</Link>:<small>{enrolled?t({fr:"La formation sera accessible dès sa publication.",ar:"ستكون الدورة متاحة عند نشرها.",en:"The course will be available when published."}):t({fr:"Inclus avec votre inscription à la Classroom.",ar:"مشمولة مع التسجيل في الفصل.",en:"Included with Classroom enrollment."})}</small>}
+          </div>
+        </section>}
+
         <section className="classroom-schedule-public"><div className="section-head"><div><span className="eyebrow">{t({fr:"Programme live",ar:"البرنامج المباشر",en:"Live schedule"})}</span><h2>{t({fr:"Calendrier des séances",ar:"جدول الحصص",en:"Session calendar"})}</h2></div></div><div className="public-session-list">{sessions.map(s=><article key={s.id} className={next?.id===s.id?"next":""}><span>{String(s.position).padStart(2,"0")}</span><div><strong>{s.title||"Session "+s.position}</strong><small>{formatDate(s.starts_at)} · {room.session_duration_minutes} min</small></div>{enrolled&&<Link className={canJoin(s)?"btn btn-small":"btn btn-small btn-ghost"} href={"/classroom/"+room.slug+"/session/"+s.id}>{canJoin(s)?t({fr:"Rejoindre",ar:"دخول",en:"Join"}):t({fr:"Espace session",ar:"مساحة الحصة",en:"Session space"})}</Link>}</article>)}</div></section>
 
         {(room.program||room.prerequisites)&&<section className="classroom-info-grid">{room.program&&<article className="panel"><h2>{t({fr:"Programme",ar:"البرنامج",en:"Program"})}</h2><p className="preline">{room.program}</p></article>}{room.prerequisites&&<article className="panel"><h2>{t({fr:"Prérequis",ar:"المتطلبات",en:"Prerequisites"})}</h2><p className="preline">{room.prerequisites}</p></article>}</section>}
@@ -131,7 +158,7 @@ export default function ClassroomDetailPage(){
       </main>
 
       <aside className="panel classroom-enroll-card">
-        {enrolled?<><div className="enrolled-check">✓</div><h2>{t({fr:"Vous êtes inscrit",ar:"أنت مسجل",en:"You are enrolled"})}</h2>{next&&<><p>{t({fr:"Prochaine séance",ar:"الحصة القادمة",en:"Next session"})}</p><strong className="next-session-time">{formatDate(next.starts_at)}</strong><Link className="btn full" href={"/classroom/"+room.slug+"/session/"+next.id}>{canJoin(next)?t({fr:"Rejoindre maintenant",ar:"انضم الآن",en:"Join now"}):t({fr:"Ouvrir l’espace session",ar:"فتح مساحة الحصة",en:"Open session space"})}</Link></>}<Link className="btn btn-ghost full" href="/classroom">{t({fr:"Mes Classrooms",ar:"فصولي",en:"My Classrooms"})}</Link></>:<>
+        {enrolled?<><div className="enrolled-check">✓</div><h2>{t({fr:"Vous êtes inscrit",ar:"أنت مسجل",en:"You are enrolled"})}</h2>{linkedCourse&&linkedCourse.status==="published"&&<Link className="btn hybrid-access-btn full" href={"/apprendre/"+linkedCourse.slug}>📚 {t({fr:"Cours, supports & exercices",ar:"الدروس والموارد والتمارين",en:"Course, resources & exercises"})}</Link>}{next&&<><p>{t({fr:"Prochaine séance",ar:"الحصة القادمة",en:"Next session"})}</p><strong className="next-session-time">{formatDate(next.starts_at)}</strong><Link className="btn full" href={"/classroom/"+room.slug+"/session/"+next.id}>{canJoin(next)?t({fr:"Rejoindre maintenant",ar:"انضم الآن",en:"Join now"}):t({fr:"Ouvrir l’espace session",ar:"فتح مساحة الحصة",en:"Open session space"})}</Link></>}<Link className="btn btn-ghost full" href="/classroom">{t({fr:"Mes Classrooms",ar:"فصولي",en:"My Classrooms"})}</Link></>:<>
           <div className="classroom-price-head"><small>{t({fr:"Prix de la cohorte",ar:"سعر الدفعة",en:"Cohort price"})}</small><h2>{Number(room.base_price_amount)===0?t({fr:"GRATUIT",ar:"مجاني",en:"FREE"}):formatMoney(Number(room.base_price_amount),room.base_currency)}</h2></div>
           <div className="classroom-seats"><div><span>{t({fr:"Places disponibles",ar:"المقاعد المتاحة",en:"Available seats"})}</span><strong>{stats?.spots_left??room.capacity}/{room.capacity}</strong></div><div className="seat-bar"><span style={{width:`${Math.min(100,Math.max(0,((room.capacity-(stats?.spots_left??room.capacity))/room.capacity)*100))}%`}}></span></div></div>
           {stats?.is_full?<div className="classroom-full-state">{t({fr:"COMPLET",ar:"مكتمل",en:"FULL"})}</div>:Number(room.base_price_amount)===0?<button className="btn full" onClick={enrollFree} disabled={busy}>{busy?"...":t({fr:"S’inscrire gratuitement",ar:"التسجيل مجاناً",en:"Enroll for free"})}</button>:methods.length===0?<p className="manual-note">{t({fr:"Le formateur n’a pas encore configuré de moyen de paiement.",ar:"لم يضف المدرب وسيلة دفع بعد.",en:"The instructor has not configured a payment method yet."})}</p>:<form onSubmit={enroll}>
