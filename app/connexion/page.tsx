@@ -1,8 +1,8 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useLanguage } from "../../components/language-provider";
-import { supabase } from "../../lib/supabase";
+import { supabase, supabasePublishableKey, supabaseUrl } from "../../lib/supabase";
 
 export default function ConnexionPage(){
   const { t } = useLanguage();
@@ -16,6 +16,25 @@ export default function ConnexionPage(){
   const [accepted,setAccepted]=useState(false);
   const [magicEmail,setMagicEmail]=useState("");
   const [quickLoading,setQuickLoading]=useState<"google"|"magic"|null>(null);
+  const [googleEnabled,setGoogleEnabled]=useState<boolean|null>(null);
+
+  useEffect(()=>{
+    let active=true;
+    fetch(supabaseUrl+"/auth/v1/settings",{
+      headers:{apikey:supabasePublishableKey}
+    })
+      .then(async response=>{
+        if(!response.ok) throw new Error("Auth settings unavailable");
+        return response.json();
+      })
+      .then(settings=>{
+        if(active) setGoogleEnabled(Boolean(settings?.external?.google));
+      })
+      .catch(()=>{
+        if(active) setGoogleEnabled(false);
+      });
+    return()=>{active=false};
+  },[]);
 
   function authRedirect(){
     if(typeof window==="undefined") return "https://www.vydys.com/auth/complete";
@@ -24,6 +43,14 @@ export default function ConnexionPage(){
 
   async function signInGoogle(){
     setMessage("");
+    if(googleEnabled!==true){
+      setMessage(t({
+        fr:"Google est déjà intégré dans Vydys, mais son activation OAuth doit encore être finalisée côté Supabase.",
+        ar:"تم دمج Google في Vydys، لكن يجب إكمال تفعيل OAuth في Supabase.",
+        en:"Google is integrated in Vydys, but its OAuth activation still needs to be completed in Supabase."
+      }));
+      return;
+    }
     setQuickLoading("google");
     try{
       const {error}=await supabase.auth.signInWithOAuth({
@@ -128,10 +155,15 @@ export default function ConnexionPage(){
     <p>{mode==="login"?t({fr:"Connectez-vous à votre espace de formation.",ar:"سجّل الدخول إلى مساحة التدريب الخاصة بك.",en:"Sign in to your learning space."}):t({fr:"Créez votre compte étudiant.",ar:"أنشئ حساب الطالب الخاص بك.",en:"Create your student account."})}</p>
 
     <div className="auth-quick">
-      <button type="button" className="auth-provider-btn google" onClick={signInGoogle} disabled={quickLoading!==null||loading}>
+      <button type="button" className={"auth-provider-btn google"+(googleEnabled===false?" unavailable":"")} onClick={signInGoogle} disabled={quickLoading!==null||loading||googleEnabled===null}>
         <span className="auth-provider-icon google-icon">G</span>
-        <strong>{quickLoading==="google"?"...":t({fr:"Continuer avec Google",ar:"المتابعة باستخدام Google",en:"Continue with Google"})}</strong>
+        <strong>{quickLoading==="google"?"...":googleEnabled===null?t({fr:"Vérification Google...",ar:"جارٍ التحقق من Google...",en:"Checking Google..."}):googleEnabled===false?t({fr:"Google · activation à finaliser",ar:"Google · التفعيل غير مكتمل",en:"Google · activation pending"}):t({fr:"Continuer avec Google",ar:"المتابعة باستخدام Google",en:"Continue with Google"})}</strong>
       </button>
+      {googleEnabled===false&&<small className="auth-provider-status">{t({
+        fr:"Le bouton s’activera automatiquement dès que Google OAuth sera activé dans Supabase.",
+        ar:"سيتم تفعيل الزر تلقائياً بمجرد تفعيل Google OAuth في Supabase.",
+        en:"The button will activate automatically as soon as Google OAuth is enabled in Supabase."
+      })}</small>}
 
       <div className="auth-divider"><span>{t({fr:"ou",ar:"أو",en:"or"})}</span></div>
 
