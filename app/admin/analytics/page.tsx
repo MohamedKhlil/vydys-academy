@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useLanguage } from "../../../components/language-provider";
 import { supabase } from "../../../lib/supabase";
+import AdminVisitorAnalytics from "../../../components/admin-visitor-analytics";
 
 type PlatformStats = {
   totalUsers:number;
@@ -152,6 +153,8 @@ export default function AdminAnalyticsPage(){
     </div></div>
 
     {message&&<div className="manual-note">{message}</div>}
+
+    <AdminVisitorAnalytics />
 
     <div className="admin-data-section-head">
       <div><span className="tag">{t({fr:"Utilisateurs",ar:"المستخدمون",en:"Users"})}</span><h2>{t({fr:"Comptes de la plateforme",ar:"حسابات المنصة",en:"Platform accounts"})}</h2></div>
