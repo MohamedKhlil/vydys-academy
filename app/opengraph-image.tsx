@@ -34,13 +34,17 @@ export default function OpenGraphImage(){
 
       <div style={{display:"flex",width:"100%",height:"100%",flexDirection:"column",justifyContent:"space-between",position:"relative"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-          <img
-            src="https://www.vydys.com/vydys-logo-light.svg"
-            width="280"
-            height="79"
-            alt="Vydys Academy"
-            style={{objectFit:"contain"}}
-          />
+          <div style={{display:"flex",alignItems:"center",gap:"18px"}}>
+            <div style={{
+              width:"74px",height:"74px",display:"flex",alignItems:"center",justifyContent:"center",
+              borderRadius:"22px",background:"linear-gradient(145deg,#0e4fe8,#5aa0ff)",
+              boxShadow:"0 14px 38px rgba(45,123,255,.28)",fontSize:"48px",fontWeight:950,letterSpacing:"-5px"
+            }}>V</div>
+            <div style={{display:"flex",flexDirection:"column"}}>
+              <div style={{display:"flex",fontSize:"44px",fontWeight:950,letterSpacing:"6px"}}>VYDYS</div>
+              <div style={{display:"flex",fontSize:"12px",fontWeight:800,letterSpacing:"6px",color:"#69a7ff",marginTop:"2px"}}>ACADEMY</div>
+            </div>
+          </div>
           <div style={{
             display:"flex",alignItems:"center",gap:"10px",padding:"12px 18px",
             border:"1px solid rgba(118,171,255,.32)",borderRadius:"999px",
