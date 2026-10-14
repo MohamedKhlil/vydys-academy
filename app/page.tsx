@@ -12,7 +12,7 @@ export const metadata:Metadata={
     type:"website"
   },
   twitter:{
-    card:"summary",
+    card:"summary_large_image",
     title:"Vydys Academy — AI, Tech & Verified Skills",
     description:"Learn, practice, build and prove real technology skills."
   }
