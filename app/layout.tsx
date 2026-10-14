@@ -4,6 +4,7 @@ import { Header } from "../components/header";
 import { Footer } from "../components/footer";
 import { LanguageProvider } from "../components/language-provider";
 import MobileInstallPrompt from "../components/mobile-install-prompt";
+import SiteAnalyticsTracker from "../components/site-analytics-tracker";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.vydys.com"),
@@ -85,6 +86,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <main>{children}</main>
           <Footer />
           <MobileInstallPrompt />
+          <SiteAnalyticsTracker />
         </LanguageProvider>
       </body>
     </html>
