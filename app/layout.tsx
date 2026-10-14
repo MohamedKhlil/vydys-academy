@@ -16,12 +16,25 @@ export const metadata: Metadata = {
   openGraph: {
     siteName: "Vydys Academy",
     type: "website",
-    locale: "en_US",
-    alternateLocale: ["fr_FR", "ar_MR"],
+    locale: "fr_FR",
+    alternateLocale: ["en_US", "ar_MR"],
+    title: "Vydys Academy — Apprenez l’IA & la Tech",
+    description: "Formations, Classroom, AI Lab, Auto Learner et parcours pratiques pour développer des compétences réelles en IA et technologie.",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Vydys Academy — IA, Tech et compétences vérifiées"
+      }
+    ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     site: "@vydys",
+    title: "Vydys Academy — Apprenez l’IA & la Tech",
+    description: "Formations, Classroom, AI Lab, Auto Learner et parcours pratiques.",
+    images: ["/opengraph-image"],
   },
   icons: {
     icon: [
