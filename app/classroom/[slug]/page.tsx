@@ -218,8 +218,15 @@ export default function ClassroomDetailPage(){
           {stats?.is_full?<div className="classroom-full-state">{t({fr:"COMPLET",ar:"مكتمل",en:"FULL"})}</div>:Number(room.base_price_amount)===0?<button className="btn full" onClick={enrollFree} disabled={busy}>{busy?"...":t({fr:"S’inscrire gratuitement",ar:"التسجيل مجاناً",en:"Enroll for free"})}</button>:methods.length===0?<p className="manual-note">{t({fr:"Le formateur n’a pas encore configuré de moyen de paiement.",ar:"لم يضف المدرب وسيلة دفع بعد.",en:"The instructor has not configured a payment method yet."})}</p>:<form onSubmit={enroll}>
             <div className="checkout-methods">{methods.map(m=>{
               const cur=m.payment_mode==="automatic"?(checkoutCurrency||room.base_currency):String(m.currency||"MRU").toUpperCase();
-              const p=priceMap[cur] ?? (String(room.base_currency).toUpperCase()===cur?Number(room.base_price_amount):null);
-              return <button type="button" key={m.id} disabled={p==null} onClick={()=>setSelectedMethod(m.id)} className={selectedMethod===m.id?"checkout-method selected":"checkout-method"}><div><strong>{String(m.label||m.method).toUpperCase()}</strong><span>{m.payment_mode==="automatic"?t({fr:"Automatique",ar:"تلقائي",en:"Automatic"}):t({fr:"Validation manuelle",ar:"يدوي",en:"Manual approval"})}</span></div><b>{p!=null?formatMoney(Number(p)*(1-Number(m.discount_percent||0)/100),cur):"—"}</b></button>
+              const base=String(room.base_currency||"MRU").toUpperCase();
+              const offerBase=hasSplitPricing
+                ? (purchaseType==="single_session"?Number(room.single_session_price_amount):Number(room.bundle_price_amount))
+                : Number(room.base_price_amount);
+              const p=cur===base
+                ? offerBase
+                : (purchaseType==="bundle"?(priceMap[cur]??null):null);
+              const displayAmount=p==null?null:Math.round(Number(p)*(1-Number(m.discount_percent||0)/100)*100)/100;
+              return <button type="button" key={m.id} disabled={displayAmount==null} onClick={()=>setSelectedMethod(m.id)} className={selectedMethod===m.id?"checkout-method selected":"checkout-method"}><div><strong>{String(m.label||m.method).toUpperCase()}</strong><span>{m.payment_mode==="automatic"?t({fr:"Automatique",ar:"تلقائي",en:"Automatic"}):t({fr:"Validation manuelle",ar:"يدوي",en:"Manual approval"})}</span></div><b>{displayAmount!=null?formatMoney(displayAmount,cur):"—"}</b></button>
             })}</div>
             {method?.payment_mode==="automatic"&&prices.length>1&&<label className="form-field"><span>{t({fr:"Devise du checkout",ar:"عملة الدفع",en:"Checkout currency"})}</span><select value={checkoutCurrency} onChange={e=>setCheckoutCurrency(e.target.value)}>{prices.map(p=><option key={p.currency} value={p.currency}>{p.currency} · {formatMoney(Number(p.amount),p.currency)}</option>)}</select></label>}
             {method&&payable!=null&&<>{method.payment_mode==="manual"?<><div className="settlement-highlight">
