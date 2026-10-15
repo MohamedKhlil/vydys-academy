@@ -6945,3 +6945,36 @@ label{color:#27344b}
   .classroom-purchase-options{grid-template-columns:1fr}
   .purchase-option{min-height:112px}
 }
+
+
+/* Fix Classroom offer cards overflow on desktop */
+.classroom-enroll-card,
+.classroom-price-head,
+.classroom-purchase-options{
+  min-width:0;
+  max-width:100%;
+}
+.classroom-purchase-options{
+  width:100%;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+}
+.purchase-option{
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  box-sizing:border-box;
+  overflow:hidden;
+}
+.purchase-option>strong{
+  max-width:100%;
+  white-space:nowrap;
+  font-size:clamp(18px,1.55vw,22px);
+}
+.purchase-option>small{
+  max-width:100%;
+  overflow-wrap:anywhere;
+}
+@media(max-width:720px){
+  .classroom-purchase-options{grid-template-columns:1fr}
+  .purchase-option>strong{font-size:22px}
+}
