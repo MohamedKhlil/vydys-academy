@@ -22,6 +22,9 @@ export default function ClassroomDetailPage(){
   const [assignments,setAssignments]=useState<any[]>([]);
   const [selectedMethod,setSelectedMethod]=useState("");
   const [checkoutCurrency,setCheckoutCurrency]=useState("");
+  const [purchaseType,setPurchaseType]=useState<"bundle"|"single_session">("bundle");
+  const [selectedSessionId,setSelectedSessionId]=useState("");
+  const [sessionAccessIds,setSessionAccessIds]=useState<Set<string>>(new Set());
   const [proof,setProof]=useState<File|null>(null);
   const [reference,setReference]=useState("");
   const [busy,setBusy]=useState(false);
@@ -41,6 +44,7 @@ export default function ClassroomDetailPage(){
       supabase.auth.getUser()
     ]);
     setSessions(s||[]);setInstructor(i||null);setMethods(m||[]);setPrices(p||[]);setStats(st||null);
+    if(!selectedSessionId&&s?.[0]?.id)setSelectedSessionId(s[0].id);
     if(r.course_id){
       const {data:linked}=await supabase.from("courses").select("id,slug,title_fr,title_ar,title_en,description_fr,description_ar,description_en,status").eq("id",r.course_id).maybeSingle();
       setLinkedCourse(linked||null);
@@ -50,13 +54,15 @@ export default function ClassroomDetailPage(){
     setCheckoutCurrency(available.includes(String(r.base_currency).toUpperCase())?String(r.base_currency).toUpperCase():(available[0]||String(r.base_currency).toUpperCase()));
 
     if(user){
-      const [{data:e},{data:courseEnrollment}]=await Promise.all([
+      const [{data:e},{data:courseEnrollment},{data:singleOrders}]=await Promise.all([
         supabase.from("classroom_enrollments").select("id").eq("classroom_id",r.id).eq("user_id",user.id).in("status",["active","completed"]).maybeSingle(),
         r.course_id
           ? supabase.from("enrollments").select("id").eq("course_id",r.course_id).eq("user_id",user.id).in("status",["active","completed"]).maybeSingle()
-          : Promise.resolve({data:null} as any)
+          : Promise.resolve({data:null} as any),
+        supabase.from("classroom_orders").select("session_id").eq("classroom_id",r.id).eq("user_id",user.id).eq("status","paid").eq("purchase_type","single_session")
       ]);
       const yes=Boolean(e||courseEnrollment);setEnrolled(yes);
+      setSessionAccessIds(new Set((singleOrders||[]).map((x:any)=>x.session_id).filter(Boolean)));
       if(yes){
         const [{data:res},{data:ass}]=await Promise.all([
           supabase.from("classroom_resources").select("*").eq("classroom_id",r.id).order("created_at",{ascending:false}),
@@ -72,7 +78,11 @@ export default function ClassroomDetailPage(){
   const method=methods.find(m=>m.id===selectedMethod);
   const priceMap=useMemo(()=>Object.fromEntries(prices.map(p=>[String(p.currency).toUpperCase(),Number(p.amount)])),[prices]);
   const selectedCurrency=method?.payment_mode==="manual"?String(method.currency||"MRU").toUpperCase():(checkoutCurrency||String(room?.base_currency||"MRU").toUpperCase());
-  const rawPrice=priceMap[selectedCurrency] ?? (String(room?.base_currency||"").toUpperCase()===selectedCurrency?Number(room?.base_price_amount||0):null);
+  const baseCurrency=String(room?.base_currency||"MRU").toUpperCase();
+  const hasSplitPricing=Number(room?.single_session_price_amount||0)>0&&Number(room?.bundle_price_amount||0)>0;
+  const rawPrice=hasSplitPricing&&selectedCurrency===baseCurrency
+    ? (purchaseType==="single_session"?Number(room.single_session_price_amount):Number(room.bundle_price_amount))
+    : (priceMap[selectedCurrency] ?? (baseCurrency===selectedCurrency?Number(room?.base_price_amount||0):null));
   const payable=rawPrice==null?null:Math.round(rawPrice*(1-Number(method?.discount_percent||0)/100)*100)/100;
   const formatMoney=(amount:number,currency:string)=>new Intl.NumberFormat(lang==="ar"?"ar-MR":lang==="en"?"en-US":"fr-FR",{style:"currency",currency,maximumFractionDigits:2}).format(amount);
   const formatDate=(iso:string)=>new Intl.DateTimeFormat(lang==="ar"?"ar-MR":lang==="en"?"en-US":"fr-FR",{weekday:"short",day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit",timeZone:room?.timezone||"UTC"}).format(new Date(iso));
@@ -101,7 +111,14 @@ export default function ClassroomDetailPage(){
 
     if(method.payment_mode==="automatic"){
       setBusy(true);
-      const {data,error}=await supabase.functions.invoke("vydys-payments",{body:{action:"create_checkout",classroom_id:room.id,payment_method_id:method.id,currency:selectedCurrency}});
+      const {data,error}=await supabase.functions.invoke("vydys-payments",{body:{
+        action:"create_checkout",
+        classroom_id:room.id,
+        payment_method_id:method.id,
+        currency:selectedCurrency,
+        purchase_type:hasSplitPricing?purchaseType:"bundle",
+        session_id:hasSplitPricing&&purchaseType==="single_session"?selectedSessionId:undefined
+      }});
       setBusy(false);
       if(error||data?.error){setMessage(data?.detail||data?.error||error?.message||"Checkout error");return}
       if(data?.url)window.location.href=data.url;
@@ -114,7 +131,14 @@ export default function ClassroomDetailPage(){
     const path=`${user.id}/classrooms/${room.id}/${crypto.randomUUID()}-${safe}`;
     const {error:uploadError}=await supabase.storage.from("payment-proofs").upload(path,proof,{contentType:proof.type});
     if(uploadError){setBusy(false);setMessage(uploadError.message);return}
-    const {error}=await supabase.rpc("create_manual_classroom_order",{p_classroom_id:room.id,p_payment_method_id:method.id,p_transaction_reference:reference,p_proof_path:path});
+    const {error}=await supabase.rpc("create_manual_classroom_order",{
+      p_classroom_id:room.id,
+      p_payment_method_id:method.id,
+      p_transaction_reference:reference,
+      p_proof_path:path,
+      p_purchase_type:hasSplitPricing?purchaseType:"bundle",
+      p_session_id:hasSplitPricing&&purchaseType==="single_session"?selectedSessionId:null
+    });
     setBusy(false);
     if(error){setMessage(error.message);return}
     setMessage(t({fr:"Votre preuve a été envoyée au formateur. L’inscription sera activée après validation.",ar:"تم إرسال إثباتك للمدرب وسيتم تفعيل التسجيل بعد الاعتماد.",en:"Your proof was sent to the instructor. Enrollment activates after approval."}));
@@ -126,14 +150,16 @@ export default function ClassroomDetailPage(){
 
   const title=lang==="ar"?room.title_ar:lang==="en"?room.title_en:room.title_fr;
   const desc=lang==="ar"?room.description_ar:lang==="en"?room.description_en:room.description_fr;
+  const instructorName=instructor?.display_name||room.display_instructor_name;
+  const instructorHeadline=instructor?.headline||room.display_instructor_headline;
   const next=sessions.find(s=>new Date(s.ends_at).getTime()>Date.now());
   const canJoin=(s:any)=>Date.now()>=new Date(s.starts_at).getTime()-30*60000&&Date.now()<=new Date(s.ends_at).getTime()+90*60000;
 
   return <section className="section page-top classroom-detail-page"><div className="container">
     <div className="classroom-detail-layout">
       <main>
-        <div className="classroom-detail-hero"><div className="classroom-live-badge"><span></span> VYDYS CLASSROOM</div><h1>{title}</h1><p>{desc}</p><div className="classroom-detail-meta"><span>{room.session_count} {t({fr:"sessions live",ar:"حصص مباشرة",en:"live sessions"})}</span><span>{room.session_duration_minutes} min</span><span>{room.language.toUpperCase()}</span><span>{room.level}</span><span>{room.timezone}</span></div>
-          {instructor&&<Link className="instructor-box" href={"/formateur/"+instructor.public_slug}><div className="avatar">{instructor.display_name?.slice(0,2).toUpperCase()}</div><div><small>{t({fr:"Formateur",ar:"المدرب",en:"Instructor"})}</small><strong>{instructor.display_name}</strong><span>{instructor.headline}</span></div></Link>}
+        <div className="classroom-detail-hero"><div className="classroom-live-badge"><span></span> VYDYS CLASSROOM</div><h1>{title}</h1><p>{desc}</p><div className="classroom-detail-meta"><span>{room.session_count} {t({fr:"sessions live",ar:"حصص مباشرة",en:"live sessions"})}</span><span>{room.session_duration_minutes} min</span><span>{room.language.toUpperCase()}</span><span>{room.level==="intermediate"?t({fr:"Intermédiaire / Avancé",ar:"متوسط / متقدم",en:"Intermediate / Advanced"}):room.level}</span>{room.level==="intermediate"&&<span className="not-beginner-badge">⚠ {t({fr:"Pas pour débutants",ar:"غير مناسب للمبتدئين",en:"Not for beginners"})}</span>}<span>{room.timezone}</span></div>
+          {instructor?<Link className="instructor-box" href={"/formateur/"+instructor.public_slug}><div className="avatar">{instructorName?.slice(0,2).toUpperCase()}</div><div><small>{t({fr:"Formateur",ar:"المدرب",en:"Instructor"})}</small><strong>{instructorName}</strong><span>{instructorHeadline}</span></div></Link>:instructorName&&<div className="instructor-box"><div className="avatar">{instructorName.slice(0,2).toUpperCase()}</div><div><small>{t({fr:"Formateur",ar:"المدرب",en:"Instructor"})}</small><strong>{instructorName}</strong><span>{instructorHeadline}</span></div></div>}
         </div>
 
         {linkedCourse&&<section className="classroom-hybrid-course panel">
@@ -153,7 +179,7 @@ export default function ClassroomDetailPage(){
           </div>
         </section>}
 
-        <section className="classroom-schedule-public"><div className="section-head"><div><span className="eyebrow">{t({fr:"Programme live",ar:"البرنامج المباشر",en:"Live schedule"})}</span><h2>{t({fr:"Calendrier des séances",ar:"جدول الحصص",en:"Session calendar"})}</h2></div></div><div className="public-session-list">{sessions.map(s=><article key={s.id} className={next?.id===s.id?"next":""}><span>{String(s.position).padStart(2,"0")}</span><div><strong>{s.title||"Session "+s.position}</strong><small>{formatDate(s.starts_at)} · {room.session_duration_minutes} min</small></div>{enrolled&&<Link className={canJoin(s)?"btn btn-small":"btn btn-small btn-ghost"} href={"/classroom/"+room.slug+"/session/"+s.id}>{canJoin(s)?t({fr:"Rejoindre",ar:"دخول",en:"Join"}):t({fr:"Espace session",ar:"مساحة الحصة",en:"Session space"})}</Link>}</article>)}</div></section>
+        <section className="classroom-schedule-public"><div className="section-head"><div><span className="eyebrow">{t({fr:"Programme live",ar:"البرنامج المباشر",en:"Live schedule"})}</span><h2>{t({fr:"Calendrier des séances",ar:"جدول الحصص",en:"Session calendar"})}</h2></div></div><div className="public-session-list">{sessions.map(s=>{const hasAccess=enrolled||sessionAccessIds.has(s.id);return <article key={s.id} className={next?.id===s.id?"next":""}><span>{String(s.position).padStart(2,"0")}</span><div><strong>{s.title||"Session "+s.position}</strong><small>{formatDate(s.starts_at)} · {room.session_duration_minutes} min</small></div>{hasAccess?<Link className={canJoin(s)?"btn btn-small":"btn btn-small btn-ghost"} href={"/classroom/"+room.slug+"/session/"+s.id}>{canJoin(s)?t({fr:"Rejoindre",ar:"دخول",en:"Join"}):t({fr:"Espace session",ar:"مساحة الحصة",en:"Session space"})}</Link>:hasSplitPricing&&<button type="button" className="btn btn-small btn-ghost" onClick={()=>{setPurchaseType("single_session");setSelectedSessionId(s.id);window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"})}}>{t({fr:"Choisir cette séance",ar:"اختر هذه الجلسة",en:"Choose session"})}</button>}</article>})}</div></section>
 
         {(room.program||room.prerequisites)&&<section className="classroom-info-grid">{room.program&&<article className="panel"><h2>{t({fr:"Programme",ar:"البرنامج",en:"Program"})}</h2><p className="preline">{room.program}</p></article>}{room.prerequisites&&<article className="panel"><h2>{t({fr:"Prérequis",ar:"المتطلبات",en:"Prerequisites"})}</h2><p className="preline">{room.prerequisites}</p></article>}</section>}
 
@@ -171,7 +197,23 @@ export default function ClassroomDetailPage(){
           })}</p>
           {linkedCourse.status==="published"&&<Link className="btn full" href={"/formation/"+linkedCourse.slug}>{t({fr:"Voir la formation & s’inscrire",ar:"عرض الدورة والتسجيل",en:"View course & enroll"})}</Link>}
         </div>:<>
-          <div className="classroom-price-head"><small>{t({fr:"Prix de la cohorte",ar:"سعر الدفعة",en:"Cohort price"})}</small><h2>{Number(room.base_price_amount)===0?t({fr:"GRATUIT",ar:"مجاني",en:"FREE"}):formatMoney(Number(room.base_price_amount),room.base_currency)}</h2></div>
+          <div className="classroom-price-head">
+            <small>{hasSplitPricing?t({fr:"Choisissez votre formule",ar:"اختر عرضك",en:"Choose your option"}):t({fr:"Prix de la cohorte",ar:"سعر الدفعة",en:"Cohort price"})}</small>
+            {hasSplitPricing?<div className="classroom-purchase-options">
+              <button type="button" className={purchaseType==="single_session"?"purchase-option selected":"purchase-option"} onClick={()=>setPurchaseType("single_session")}>
+                <span>{t({fr:"Paiement par séance",ar:"الدفع لكل جلسة",en:"Pay per session"})}</span>
+                <strong>{formatMoney(Number(room.single_session_price_amount),room.base_currency)}</strong>
+                <small>{t({fr:"par séance · 6 000 MRU pour les 3",ar:"لكل جلسة · 6,000 MRU للجلسات الثلاث",en:"per session · 6,000 MRU for all 3"})}</small>
+              </button>
+              <button type="button" className={purchaseType==="bundle"?"purchase-option selected featured":"purchase-option featured"} onClick={()=>setPurchaseType("bundle")}>
+                <b>{t({fr:"OFFRE SPÉCIALE",ar:"عرض خاص",en:"SPECIAL OFFER"})}</b>
+                <span>{t({fr:"Pack 3 séances",ar:"باقة 3 جلسات",en:"3-session pack"})}</span>
+                <strong>{formatMoney(Number(room.bundle_price_amount),room.base_currency)}</strong>
+                <small><s>{formatMoney(Number(room.single_session_price_amount)*Number(room.bundle_session_count||room.session_count),room.base_currency)}</s> · {t({fr:"Économisez 1 000 MRU",ar:"وفّر 1,000 MRU",en:"Save 1,000 MRU"})}</small>
+              </button>
+            </div>:<h2>{Number(room.base_price_amount)===0?t({fr:"GRATUIT",ar:"مجاني",en:"FREE"}):formatMoney(Number(room.base_price_amount),room.base_currency)}</h2>}
+            {hasSplitPricing&&purchaseType==="single_session"&&<label className="form-field classroom-session-selector"><span>{t({fr:"Séance à acheter",ar:"الجلسة المراد شراؤها",en:"Session to purchase"})}</span><select value={selectedSessionId} onChange={e=>setSelectedSessionId(e.target.value)}>{sessions.map(s=><option key={s.id} value={s.id}>{String(s.position).padStart(2,"0")} · {s.title||"Session "+s.position} · {formatDate(s.starts_at)}</option>)}</select></label>}
+          </div>
           <div className="classroom-seats"><div><span>{t({fr:"Places disponibles",ar:"المقاعد المتاحة",en:"Available seats"})}</span><strong>{stats?.spots_left??room.capacity}/{room.capacity}</strong></div><div className="seat-bar"><span style={{width:`${Math.min(100,Math.max(0,((room.capacity-(stats?.spots_left??room.capacity))/room.capacity)*100))}%`}}></span></div></div>
           {stats?.is_full?<div className="classroom-full-state">{t({fr:"COMPLET",ar:"مكتمل",en:"FULL"})}</div>:Number(room.base_price_amount)===0?<button className="btn full" onClick={enrollFree} disabled={busy}>{busy?"...":t({fr:"S’inscrire gratuitement",ar:"التسجيل مجاناً",en:"Enroll for free"})}</button>:methods.length===0?<p className="manual-note">{t({fr:"Le formateur n’a pas encore configuré de moyen de paiement.",ar:"لم يضف المدرب وسيلة دفع بعد.",en:"The instructor has not configured a payment method yet."})}</p>:<form onSubmit={enroll}>
             <div className="checkout-methods">{methods.map(m=>{
