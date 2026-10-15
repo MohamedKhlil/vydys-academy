@@ -6842,3 +6842,106 @@ label{color:#27344b}
   .analytics-bars{gap:2px;overflow:hidden}
   .analytics-bar-day small{font-size:5px}
 }
+
+
+/* Classroom split pricing & advanced-level notice */
+.not-beginner-badge{
+  border-color:#efc4a2!important;
+  background:#fff6ed!important;
+  color:#a85a18!important;
+  font-weight:900!important;
+}
+.classroom-purchase-options{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+  margin:12px 0;
+}
+.purchase-option{
+  position:relative;
+  min-height:126px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:center;
+  gap:5px;
+  padding:14px;
+  border:1px solid #dce5ef;
+  border-radius:14px;
+  background:#fff;
+  color:#21344d;
+  text-align:left;
+  cursor:pointer;
+}
+.purchase-option:hover{border-color:#9fbbe2;background:#f8fbff}
+.purchase-option.selected{
+  border-color:#1264ff;
+  box-shadow:0 0 0 2px rgba(18,100,255,.10);
+  background:#f4f8ff;
+}
+.purchase-option.featured{
+  background:linear-gradient(145deg,#071422,#0a2a5a);
+  color:#fff;
+  border-color:#1d477d;
+}
+.purchase-option.featured.selected{
+  border-color:#68a5ff;
+  box-shadow:0 0 0 2px rgba(104,165,255,.18),0 16px 34px rgba(7,20,34,.16);
+}
+.purchase-option>b{
+  display:inline-flex;
+  padding:4px 7px;
+  border-radius:999px;
+  background:#1769ff;
+  color:#fff;
+  font-size:7px;
+  letter-spacing:.06em;
+}
+.purchase-option>span{
+  font-size:9px;
+  font-weight:850;
+}
+.purchase-option>strong{
+  font-size:22px;
+  letter-spacing:-.04em;
+}
+.purchase-option>small{
+  color:#72839a;
+  font-size:7px;
+  line-height:1.45;
+}
+.purchase-option.featured>small{color:#b9cce4}
+.classroom-session-selector{
+  margin:10px 0 2px;
+}
+.classroom-special-offer{
+  margin-top:10px;
+  padding:11px 12px;
+  border:1px solid #b8d0f2;
+  border-radius:12px;
+  background:#f3f8ff;
+  display:grid;
+  gap:3px;
+}
+.classroom-special-offer>span{
+  font-size:7px;
+  font-weight:900;
+  color:#1264ff;
+  letter-spacing:.06em;
+}
+.classroom-special-offer>strong{font-size:15px}
+.classroom-special-offer>small{font-size:8px;color:#71839b}
+.classroom-offer-chip{
+  display:inline-flex;
+  padding:4px 7px;
+  border-radius:999px;
+  background:#eef5ff;
+  color:#1264ff;
+  font-size:7px;
+  font-weight:900;
+  white-space:nowrap;
+}
+@media(max-width:560px){
+  .classroom-purchase-options{grid-template-columns:1fr}
+  .purchase-option{min-height:112px}
+}
