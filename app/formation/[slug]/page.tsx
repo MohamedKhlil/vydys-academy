@@ -52,7 +52,7 @@ export default function FormationDetailPage(){
     ]);
     if(rs)setRatings(rs);setReviews(rv||[]);setPrices(cp||[]);setModules(mods||[]);
     const [{data:linkedRoom},{data:liveSummary}]=await Promise.all([
-      supabase.from("classrooms").select("id,slug,title_fr,title_ar,title_en,status,visibility,start_date,session_count,session_duration_minutes,timezone").eq("course_id",c.id).maybeSingle(),
+      supabase.from("classrooms").select("id,slug,course_id,title_fr,title_ar,title_en,status,visibility,start_date,session_count,session_duration_minutes,timezone").eq("course_id",c.id).maybeSingle(),
       supabase.rpc("get_public_course_live_summary",{p_course_id:c.id})
     ]);
     setLinkedClassroom(linkedRoom||null);
