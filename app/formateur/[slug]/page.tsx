@@ -1,46 +1,57 @@
-"use client";
-
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import { useLanguage } from "../../../components/language-provider";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
-import WhatsAppBubble from "../../../components/whatsapp-bubble";
+import PublicTrainerClient from "./formateur-client";
 
-export default function PublicTrainerPage(){
-  const {slug}=useParams<{slug:string}>();
-  const {lang,t}=useLanguage();
-  const [trainer,setTrainer]=useState<any>(null);
-  const [courses,setCourses]=useState<any[]>([]);
-  const [ratings,setRatings]=useState<Record<string,any>>({});
+export const revalidate=300;
+type Props={params:Promise<{slug:string}>};
+const base="https://www.vydys.com";
 
-  useEffect(()=>{(async()=>{
-    const {data:i}=await supabase.from("instructor_profiles").select("*").eq("public_slug",slug).eq("is_public",true).single();
-    if(!i){setTrainer(false);return}
-    const {data:publicProfile}=await supabase.from("public_profiles").select("full_name,username,avatar_url,bio,reputation_score,followers_count").eq("user_id",i.user_id).maybeSingle();
-    setTrainer({...i,...(publicProfile||{})});
-    const [{data:c},{data:r}]=await Promise.all([
-      supabase.from("courses").select("id,slug,title_fr,title_ar,title_en,description_fr,description_ar,description_en,base_price_mru,category").eq("instructor_id",i.user_id).eq("status","published"),
-      supabase.from("course_rating_summary").select("*")
-    ]);
-    setCourses(c||[]);const map:Record<string,any>={};(r||[]).forEach((x:any)=>map[x.course_id]=x);setRatings(map);
-  })()},[slug]);
+async function fetchPublicTrainer(slug:string){
+  if(!/^[a-z0-9][a-z0-9-]{0,180}$/.test(slug))return {trainer:null,courses:[] as any[],error:false};
+  const {data:instructor,error}=await supabase.from("instructor_profiles")
+    .select("user_id,public_slug,display_name,headline,bio,expertise,is_public")
+    .eq("public_slug",slug).eq("is_public",true).maybeSingle();
+  if(!instructor)return {trainer:null,courses:[] as any[],error:!!error};
 
-  if(trainer===null)return <section className="section page-top"><div className="container">...</div></section>;
-  if(trainer===false)return <section className="section page-top"><div className="container"><article className="panel"><h1>{t({fr:"Formateur introuvable",ar:"المدرب غير موجود",en:"Instructor not found"})}</h1></article></div></section>;
+  const [{data:profile},{data:courses}]=await Promise.all([
+    supabase.from("public_profiles").select("full_name,username,avatar_url,bio,reputation_score,followers_count")
+      .eq("user_id",instructor.user_id).maybeSingle(),
+    supabase.from("courses")
+      .select("id,slug,title_fr,title_ar,title_en,description_fr,description_ar,description_en,base_price_mru,category")
+      .eq("instructor_id",instructor.user_id).eq("status","published")
+  ]);
+  return {trainer:{...instructor,...(profile||{})},courses:courses||[],error:false};
+}
 
-  return <section className="section page-top"><div className="container">
-    <div className="trainer-public-hero">
-      <div className="avatar trainer-avatar">{trainer.avatar_url?<img src={trainer.avatar_url} alt={trainer.display_name}/>:trainer.display_name?.slice(0,2).toUpperCase()}</div>
-      <div>
-        <span className="eyebrow">{t({fr:"Formateur Vydys",ar:"مدرب Vydys",en:"Vydys Instructor"})}</span>
-        <h1>{trainer.display_name}</h1>
-        <h3>{trainer.headline}</h3>
-        <p>{trainer.bio}</p>
-        <div className="pill-row">{String(trainer.expertise||"").split("·").map((x:string)=>x.trim()).filter(Boolean).map((x:string)=><span key={x}>{x}</span>)}<span>{courses.length} {t({fr:"formations",ar:"دورات",en:"courses"})}</span>{trainer.followers_count>0&&<span>{trainer.followers_count} {t({fr:"abonnés",ar:"متابعون",en:"followers"})}</span>}</div>
-      </div>
-    </div>
-    <h2 className="subhead">{t({fr:"Formations publiées",ar:"الدورات المنشورة",en:"Published courses"})}</h2>
-    <div className="market-grid">{courses.map(c=>{const title=lang==="ar"?c.title_ar:lang==="en"?c.title_en:c.title_fr;const desc=lang==="ar"?c.description_ar:lang==="en"?c.description_en:c.description_fr;const rs=ratings[c.id];return <article className="market-card" key={c.id}><div className="course-cover"><span>V</span></div><div className="market-card-body"><div className="rating-line"><span className="stars">★★★★★</span><strong>{Number(rs?.average_rating||0).toFixed(1)}</strong><small>({rs?.review_count||0})</small></div><h2>{title}</h2><p>{desc}</p><div className="course-card-footer"><strong>{c.base_price_mru.toLocaleString("fr-FR")} MRU</strong><Link className="btn btn-small" href={"/formation/"+c.slug}>{t({fr:"Voir",ar:"عرض",en:"View"})}</Link></div></div></article>})}</div>
-  </div><WhatsAppBubble number={trainer?.whatsapp_number} message={"Bonjour, je souhaite plus d'informations sur les formations de "+trainer.display_name+"."}/></section>
+export async function generateMetadata({params}:Props):Promise<Metadata>{
+  const {slug}=await params;
+  const {trainer,error}=await fetchPublicTrainer(slug);
+  if(!trainer)return {title:error?"Formateur · Vydys":"Formateur introuvable",robots:error?undefined:{index:false,follow:false}};
+  const title=trainer.display_name||trainer.full_name||"Formateur Vydys";
+  const description=String(trainer.headline||trainer.bio||"Découvrez ses formations et séances sur Vydys Academy.").replace(/\s+/g," ").slice(0,240);
+  const url="/formateur/"+encodeURIComponent(slug);
+  return {
+    title,
+    description,
+    alternates:{canonical:url},
+    openGraph:{title,description,url,type:"profile"},
+    twitter:{card:"summary_large_image",title,description}
+  };
+}
+
+export default async function PublicTrainerPage({params}:Props){
+  const {slug}=await params;
+  const {trainer,courses,error}=await fetchPublicTrainer(slug);
+  if(!trainer&&!error)notFound();
+  const person=trainer?{
+    "@context":"https://schema.org","@type":"Person",
+    name:trainer.display_name||trainer.full_name,
+    url:base+"/formateur/"+encodeURIComponent(slug),
+    description:String(trainer.headline||trainer.bio||"").slice(0,400)
+  }:null;
+  return <>
+    {person&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(person).replace(/</g,"\\u003c")}} />}
+    <PublicTrainerClient initialTrainer={trainer||null} initialCourses={courses}/>
+  </>;
 }

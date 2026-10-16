@@ -54,3 +54,23 @@ test("PWA has a standalone manifest and a safe offline page",()=>{
   assert.ok(manifest.icons?.length);
   assert.match(source("public/offline.html"),/Connexion momentanément indisponible/);
 });
+
+test("Published instructor profiles remain indexable without exposing the private studio",()=>{
+  const robots=source("app/robots.ts");
+  const trainer=source("app/formateur/[slug]/page.tsx");
+  assert.ok(!robots.includes('"/formateur/"'),"Public trainer profiles must not be blocked");
+  assert.ok(robots.includes('"/formateur$"'),"Private instructor root must be excluded");
+  assert.ok(robots.includes('"/formateur/classrooms"'));
+  assert.ok(robots.includes('"/formateur/paiements"'));
+  assert.ok(trainer.includes("generateMetadata"));
+  assert.ok(trainer.includes("initialTrainer="));
+  assert.ok(trainer.includes('.eq("is_public",true)'));
+});
+
+test("Course content and checkout status are server-ready without a misleading payment error",()=>{
+  const detail=source("app/formation/[slug]/page.tsx");
+  const interactive=source("app/formation/[slug]/formation-client.tsx");
+  assert.ok(detail.includes("initialModules="));
+  assert.ok(interactive.includes("detailsLoaded"));
+  assert.ok(interactive.includes("Loading payment methods"));
+});
