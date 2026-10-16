@@ -66,3 +66,11 @@ test("Published instructor profiles remain indexable without exposing the privat
   assert.ok(trainer.includes("initialTrainer="));
   assert.ok(trainer.includes('.eq("is_public",true)'));
 });
+
+test("Course content and checkout status are server-ready without a misleading payment error",()=>{
+  const detail=source("app/formation/[slug]/page.tsx");
+  const interactive=source("app/formation/[slug]/formation-client.tsx");
+  assert.ok(detail.includes("initialModules="));
+  assert.ok(interactive.includes("detailsLoaded"));
+  assert.ok(interactive.includes("Loading payment methods"));
+});
