@@ -74,3 +74,10 @@ test("Course content and checkout status are server-ready without a misleading p
   assert.ok(interactive.includes("detailsLoaded"));
   assert.ok(interactive.includes("Loading payment methods"));
 });
+
+test("Private instructor studio routes are excluded from crawler indexing",()=>{
+  const robots=source("app/robots.ts");
+  for(const route of ["/formateur/marketing","/formateur/nouvelle-formation","/formateur/projets"]){
+    assert.ok(robots.includes('"'+route+'"'),"Missing crawler exclusion for "+route);
+  }
+});
