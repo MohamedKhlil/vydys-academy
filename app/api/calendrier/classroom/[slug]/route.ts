@@ -14,7 +14,8 @@ export async function GET(_request: Request, context: { params: Promise<{ slug: 
 
   const { data: room, error: roomError } = await supabase
     .from("classrooms")
-    .select("id,slug,title_fr,title_ar,title_en,status,visibility")
+    .select("id,slug,course_id,title_fr,title_ar,title_en,status,visibility")
+    .is("course_id", null)
     .eq("slug", slug)
     .eq("status", "published")
     .eq("visibility", "public")
