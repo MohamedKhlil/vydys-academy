@@ -54,3 +54,15 @@ test("PWA has a standalone manifest and a safe offline page",()=>{
   assert.ok(manifest.icons?.length);
   assert.match(source("public/offline.html"),/Connexion momentanément indisponible/);
 });
+
+test("Published instructor profiles remain indexable without exposing the private studio",()=>{
+  const robots=source("app/robots.ts");
+  const trainer=source("app/formateur/[slug]/page.tsx");
+  assert.doesNotMatch(robots, /"\\/formateur\\/"/);
+  assert.match(robots, /"\\/formateur\\$"/);
+  assert.match(robots, /"\\/formateur\\/classrooms"/);
+  assert.match(robots, /"\\/formateur\\/paiements"/);
+  assert.match(trainer, /generateMetadata/);
+  assert.match(trainer, /initialTrainer=/);
+  assert.match(trainer, /\\.eq\\("is_public",true\\)/);
+});
