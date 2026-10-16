@@ -45,11 +45,11 @@ export default function DashboardPage(){
     // Include published Classrooms linked to enrolled courses and directly purchased Classrooms.
     const activeCourseIds=(e||[]).filter((x:any)=>["active","completed"].includes(x.status)).map((x:any)=>x.course_id);
     const [{data:courseRooms},{data:directClassroomEnrollment}]=await Promise.all([
-      activeCourseIds.length ? supabase.from("classrooms").select("id,slug,title_fr,title_ar,title_en,status,visibility").in("course_id",activeCourseIds).eq("status","published") : Promise.resolve({data:[]} as any),
+      activeCourseIds.length ? supabase.from("classrooms").select("id,slug,course_id,title_fr,title_ar,title_en,status,visibility").in("course_id",activeCourseIds).eq("status","published") : Promise.resolve({data:[]} as any),
       supabase.from("classroom_enrollments").select("classroom_id").eq("user_id",user.id).in("status",["active","completed"])
     ]);
     const directIds=(directClassroomEnrollment||[]).map((row:any)=>row.classroom_id);
-    const {data:directRooms}=directIds.length ? await supabase.from("classrooms").select("id,slug,title_fr,title_ar,title_en,status,visibility").in("id",directIds).eq("status","published") : {data:[]};
+    const {data:directRooms}=directIds.length ? await supabase.from("classrooms").select("id,slug,course_id,title_fr,title_ar,title_en,status,visibility").in("id",directIds).eq("status","published") : {data:[]};
     const uniqueRooms=Array.from(new Map([...(courseRooms||[]),...(directRooms||[])].map((room:any)=>[room.id,room])).values()) as any[];
     setCalendarRooms(uniqueRooms);
     if(uniqueRooms.length){
