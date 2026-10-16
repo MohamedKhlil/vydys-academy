@@ -6,6 +6,7 @@
  */
 export type CalendarRoom = {
   id?: string;
+  course_id?: string | null;
   slug: string;
   title_fr?: string | null;
   title_en?: string | null;
