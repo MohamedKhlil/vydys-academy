@@ -42,6 +42,11 @@ export default async function FormationPage({params}:Props){
   const {slug}=await params;
   const {data:course,error}=await getPublicCourse(slug);
   if(!course&&!error)notFound();
+  const {data:courseModules}=course
+    ? await supabase.from("course_modules")
+        .select("id,title_fr,title_ar,title_en,position")
+        .eq("course_id",course.id).order("position")
+    : {data:[]};
 
   const jsonLd=course?{
     "@context":"https://schema.org",
@@ -54,6 +59,6 @@ export default async function FormationPage({params}:Props){
 
   return <>
     {jsonLd&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(jsonLd).replace(/</g,"\\u003c")}} />}
-    <FormationDetailClient initialCourse={course||null}/>
+    <FormationDetailClient initialCourse={course||null} initialModules={courseModules||[]}/>
   </>;
 }
