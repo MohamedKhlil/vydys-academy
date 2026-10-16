@@ -58,11 +58,11 @@ test("PWA has a standalone manifest and a safe offline page",()=>{
 test("Published instructor profiles remain indexable without exposing the private studio",()=>{
   const robots=source("app/robots.ts");
   const trainer=source("app/formateur/[slug]/page.tsx");
-  assert.doesNotMatch(robots, /"\\/formateur\\/"/);
-  assert.match(robots, /"\\/formateur\\$"/);
-  assert.match(robots, /"\\/formateur\\/classrooms"/);
-  assert.match(robots, /"\\/formateur\\/paiements"/);
-  assert.match(trainer, /generateMetadata/);
-  assert.match(trainer, /initialTrainer=/);
-  assert.match(trainer, /\\.eq\\("is_public",true\\)/);
+  assert.ok(!robots.includes('"/formateur/"'),"Public trainer profiles must not be blocked");
+  assert.ok(robots.includes('"/formateur$"'),"Private instructor root must be excluded");
+  assert.ok(robots.includes('"/formateur/classrooms"'));
+  assert.ok(robots.includes('"/formateur/paiements"'));
+  assert.ok(trainer.includes("generateMetadata"));
+  assert.ok(trainer.includes("initialTrainer="));
+  assert.ok(trainer.includes('.eq("is_public",true)'));
 });
