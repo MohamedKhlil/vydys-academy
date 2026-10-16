@@ -22,7 +22,7 @@ export default function ClassroomCalendarActions({ room, sessions, compact = fal
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
   const [showHelp, setShowHelp] = useState(false);
   const selected = activeEvents.find(event => event.uid === selectedUid) || activeEvents[0];
-  const canSubscribe = room.visibility === "public" && room.status === "published";
+  const canSubscribe = room.visibility === "public" && room.status === "published" && !room.course_id;
   const feedUrl = publicCalendarFeedUrl(room);
 
   async function copyFeed() {
