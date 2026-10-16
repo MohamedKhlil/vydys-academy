@@ -4,12 +4,16 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "../../components/language-provider";
 import { supabase } from "../../lib/supabase";
+import ClassroomCalendarActions from "../../components/classroom-calendar-actions";
+import { buildClassroomCalendarEvents, downloadIcs } from "../../lib/calendar-events";
 
 export default function DashboardPage(){
   const {t,lang}=useLanguage();
   const [loading,setLoading]=useState(true);
   const [name,setName]=useState("");
   const [enrollments,setEnrollments]=useState<any[]>([]);
+  const [calendarRooms,setCalendarRooms]=useState<any[]>([]);
+  const [calendarSessions,setCalendarSessions]=useState<Record<string,any[]>>({});
   const [progress,setProgress]=useState<any[]>([]);
   const [lessons,setLessons]=useState<any[]>([]);
   const [certificates,setCertificates]=useState<any[]>([]);
@@ -38,6 +42,22 @@ export default function DashboardPage(){
       const {data:l}=await supabase.from("course_lessons").select("id,course_id").in("course_id",courseIds);
       setLessons(l||[]);
     }
+    // Include published Classrooms linked to enrolled courses and directly purchased Classrooms.
+    const activeCourseIds=(e||[]).filter((x:any)=>["active","completed"].includes(x.status)).map((x:any)=>x.course_id);
+    const [{data:courseRooms},{data:directClassroomEnrollment}]=await Promise.all([
+      activeCourseIds.length ? supabase.from("classrooms").select("id,slug,title_fr,title_ar,title_en,status,visibility").in("course_id",activeCourseIds).eq("status","published") : Promise.resolve({data:[]} as any),
+      supabase.from("classroom_enrollments").select("classroom_id").eq("user_id",user.id).in("status",["active","completed"])
+    ]);
+    const directIds=(directClassroomEnrollment||[]).map((row:any)=>row.classroom_id);
+    const {data:directRooms}=directIds.length ? await supabase.from("classrooms").select("id,slug,title_fr,title_ar,title_en,status,visibility").in("id",directIds).eq("status","published") : {data:[]};
+    const uniqueRooms=Array.from(new Map([...(courseRooms||[]),...(directRooms||[])].map((room:any)=>[room.id,room])).values()) as any[];
+    setCalendarRooms(uniqueRooms);
+    if(uniqueRooms.length){
+      const {data:sessionRows}=await supabase.from("classroom_sessions").select("id,classroom_id,position,title,starts_at,ends_at,status,updated_at").in("classroom_id",uniqueRooms.map(room=>room.id)).order("position");
+      const group:Record<string,any[]>={};
+      (sessionRows||[]).forEach((session:any)=>{(group[session.classroom_id] ||= []).push(session)});
+      setCalendarSessions(group);
+    }else setCalendarSessions({});
     setLoading(false);
   })()},[]);
 
@@ -49,6 +69,7 @@ export default function DashboardPage(){
   },[enrollments,certificates]);
 
   const nextEnrollment=useMemo(()=>enrollments.find(e=>e.status!=="completed")||enrollments[0]||null,[enrollments]);
+  const allCalendarEvents=useMemo(()=>calendarRooms.flatMap(room=>buildClassroomCalendarEvents(room,calendarSessions[room.id]||[])).filter(event=>!event.cancelled),[calendarRooms,calendarSessions]);
 
   function title(c:any){return lang==="ar"?(c?.title_ar||c?.title_fr):lang==="en"?(c?.title_en||c?.title_fr):c?.title_fr}
   function desc(c:any){return lang==="ar"?(c?.description_ar||c?.description_fr):lang==="en"?(c?.description_en||c?.description_fr):c?.description_fr}
@@ -83,6 +104,11 @@ export default function DashboardPage(){
         <div style={{display:"flex",gap:10,flexWrap:"wrap"}}><Link className="btn" href="/formations">{t({fr:"Explorer les formations",ar:"استكشف الدورات",en:"Browse courses"})}</Link><Link className="btn btn-ghost" href="/practice">Practice Hub</Link></div>
       </>}
     </article>
+
+    {allCalendarEvents.length>0&&<section className="panel" style={{marginBottom:20}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}><div><span className="eyebrow">{t({fr:"Agenda des formations",ar:"تقويم التكوينات",en:"Training calendar"})}</span><h2 style={{margin:"6px 0"}}>{t({fr:"Mes prochaines séances Classroom",ar:"حصصي القادمة",en:"My Classroom sessions"})}</h2><p>{t({fr:"Ajoutez les cours à Google Agenda, Outlook ou au calendrier de votre téléphone.",ar:"أضف الحصص إلى تقويم Google أو Outlook أو هاتفك.",en:"Add your classes to Google Calendar, Outlook, or your phone."})}</p></div><button type="button" className="btn" onClick={()=>downloadIcs(allCalendarEvents,"vydys-mes-formations","Vydys Academy — Mes formations")}>↓ {t({fr:"Tous mes cours (.ics)",ar:"كل دروسي (.ics)",en:"All my classes (.ics)"})}</button></div>
+      {calendarRooms.map(room=><ClassroomCalendarActions key={room.id} room={room} sessions={calendarSessions[room.id]||[]} compact />)}
+    </section>}
 
     <div className="stat-grid">
       <article className="panel stat"><span>{t({fr:"Mes formations",ar:"دوراتي",en:"My courses"})}</span><strong>{stats.total}</strong></article>
