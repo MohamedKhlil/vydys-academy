@@ -4,11 +4,14 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "../../../components/language-provider";
 import { supabase } from "../../../lib/supabase";
+import ClassroomCalendarActions from "../../../components/classroom-calendar-actions";
+import { buildClassroomCalendarEvents, downloadIcs } from "../../../lib/calendar-events";
 
 export default function InstructorClassroomsPage(){
   const {t}=useLanguage();
   const [allowed,setAllowed]=useState<boolean|null>(null);
   const [rooms,setRooms]=useState<any[]>([]);
+  const [sessionsByRoom,setSessionsByRoom]=useState<Record<string,any[]>>({});
   const [enrollments,setEnrollments]=useState<any[]>([]);
   const [orders,setOrders]=useState<any[]>([]);
   const [profiles,setProfiles]=useState<Record<string,any>>({});
@@ -31,6 +34,16 @@ export default function InstructorClassroomsPage(){
       setMessage(rError?.message||eError?.message||oError?.message||t({fr:"Impossible de charger vos Classrooms.",ar:"تعذر تحميل الفصول.",en:"Unable to load your Classrooms."}));
     }else setMessage("");
     setRooms(r||[]);setEnrollments(e||[]);setOrders(o||[]);
+    const roomIds=(r||[]).map((item:any)=>item.id);
+    if(roomIds.length){
+      const {data:calendarSessions,error:calendarError}=await supabase.from("classroom_sessions")
+        .select("id,classroom_id,position,title,starts_at,ends_at,status,updated_at")
+        .in("classroom_id",roomIds).order("position");
+      if(calendarError)setMessage(calendarError.message);
+      const indexed:Record<string,any[]>={};
+      (calendarSessions||[]).forEach((session:any)=>{(indexed[session.classroom_id] ||= []).push(session)});
+      setSessionsByRoom(indexed);
+    }else setSessionsByRoom({});
     const proofMap:Record<string,string>={};
     await Promise.all((o||[]).map(async(order:any)=>{
       if(!order.proof_path)return;
@@ -51,6 +64,8 @@ export default function InstructorClassroomsPage(){
     const m:Record<string,number>={};enrollments.forEach(e=>m[e.classroom_id]=(m[e.classroom_id]||0)+1);return m;
   },[enrollments]);
 
+  const allCalendarEvents=useMemo(()=>rooms.flatMap(room=>buildClassroomCalendarEvents(room,sessionsByRoom[room.id]||[])).filter(event=>!event.cancelled),[rooms,sessionsByRoom]);
+
   async function approve(order:any){
     setMessage("");
     const {error}=await supabase.rpc("approve_manual_classroom_order",{p_order_id:order.id});
@@ -67,7 +82,7 @@ export default function InstructorClassroomsPage(){
   if(!allowed)return <section className="dashboard-shell"><div className="container"><article className="panel"><h1>{t({fr:"Accès formateur requis",ar:"يلزم حساب مدرب",en:"Instructor access required"})}</h1></article></div></section>;
 
   return <section className="dashboard-shell classroom-studio-page"><div className="container">
-    <div className="dash-header"><div><span className="eyebrow">Vydys Classroom Studio</span><h1>{t({fr:"Vos cohortes live",ar:"فصولك المباشرة",en:"Your live cohorts"})}</h1><p>{t({fr:"Créez une cohorte, programmez les séances, gérez les inscriptions, la présence, les devoirs et les ressources.",ar:"أنشئ دفعة وبرمج الحصص وأدر التسجيل والحضور والواجبات والموارد.",en:"Create cohorts, schedule sessions, manage enrollment, attendance, assignments and resources."})}</p></div><Link className="btn" href="/formateur/classrooms/new">+ {t({fr:"Nouvelle Classroom",ar:"فصل جديد",en:"New Classroom"})}</Link></div>
+    <div className="dash-header"><div><span className="eyebrow">Vydys Classroom Studio</span><h1>{t({fr:"Vos cohortes live",ar:"فصولك المباشرة",en:"Your live cohorts"})}</h1><p>{t({fr:"Créez une cohorte, programmez les séances, gérez les inscriptions, la présence, les devoirs et les ressources.",ar:"أنشئ دفعة وبرمج الحصص وأدر التسجيل والحضور والواجبات والموارد.",en:"Create cohorts, schedule sessions, manage enrollment, attendance, assignments and resources."})}</p></div><div style={{display:"flex",gap:8,flexWrap:"wrap"}}>{allCalendarEvents.length>0&&<button className="btn btn-ghost" type="button" onClick={()=>downloadIcs(allCalendarEvents,"vydys-calendrier-formateur","Vydys Academy — Mon planning formateur")}>↓ {t({fr:"Mon calendrier (.ics)",ar:"تقويم المدرب (.ics)",en:"My calendar (.ics)"})}</button>}<Link className="btn" href="/formateur/classrooms/new">+ {t({fr:"Nouvelle Classroom",ar:"فصل جديد",en:"New Classroom"})}</Link></div></div>
 
     {message&&<p className="manual-note">{message}</p>}
 
@@ -108,6 +123,7 @@ export default function InstructorClassroomsPage(){
         <h2>{room.title_fr}</h2>
         <p>{room.session_count} {t({fr:"sessions",ar:"حصص",en:"sessions"})} · {room.capacity} {t({fr:"places",ar:"مقعد",en:"seats"})} · {room.session_duration_minutes} min</p>
         <div className="classroom-card-metrics"><span><strong>{enrolledByRoom[room.id]||0}</strong>{t({fr:" inscrits",ar:" مسجل",en:" enrolled"})}</span><span>{room.course_id?<strong>{t({fr:"Inclus formation",ar:"مشمول في الدورة",en:"Included with course"})}</strong>:<><strong>{Number(room.base_price_amount).toLocaleString("fr-FR")}</strong> {room.base_currency}</>}</span></div>
+        <ClassroomCalendarActions room={room} sessions={sessionsByRoom[room.id]||[]} compact />
         <div className="classroom-card-actions"><Link className="btn btn-small" href={"/formateur/classrooms/"+room.id}>{t({fr:"Gérer",ar:"إدارة",en:"Manage"})}</Link>{room.status==="approved_pending_fee"&&<Link className="btn btn-small btn-ghost" href={"/formateur/classrooms/"+room.id+"/launch"}>{t({fr:"Payer lancement",ar:"دفع الإطلاق",en:"Pay launch"})}</Link>}{room.status==="published"&&<Link className="btn btn-small btn-ghost" href={"/classroom/"+room.slug}>{room.course_id?t({fr:"Ouvrir Classroom",ar:"فتح الفصل",en:"Open Classroom"}):t({fr:"Voir public",ar:"عرض",en:"View public"})}</Link>}</div>
       </article>)}
     </div>
