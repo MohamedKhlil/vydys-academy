@@ -13,7 +13,7 @@ import ClassroomCalendarActions from "../../../components/classroom-calendar-act
 const isRegistrationClosed=(deadline?:string|null)=>Boolean(deadline && new Date().toISOString().slice(0,10)>deadline);
 const displayDeadline=(deadline:string,lang:string)=>new Intl.DateTimeFormat(lang==="ar"?"ar-MR":lang==="en"?"en-GB":"fr-FR",{day:"numeric",month:"long",year:"numeric",timeZone:"UTC"}).format(new Date(deadline+"T12:00:00Z"));
 
-export default function FormationDetailClient({ initialCourse }: { initialCourse: any }){
+export default function FormationDetailClient({ initialCourse, initialModules }: { initialCourse: any; initialModules: any[] }){
   const params=useParams<{slug:string}>();
   const {lang,t}=useLanguage();
   const [course,setCourse]=useState<any>(initialCourse);
@@ -22,7 +22,8 @@ export default function FormationDetailClient({ initialCourse }: { initialCourse
   const [prices,setPrices]=useState<any[]>([]);
   const [ratings,setRatings]=useState<any>({average_rating:0,review_count:0});
   const [reviews,setReviews]=useState<any[]>([]);
-  const [modules,setModules]=useState<any[]>([]);
+  const [modules,setModules]=useState<any[]>(initialModules);
+  const [detailsLoaded,setDetailsLoaded]=useState(false);
   const [linkedClassroom,setLinkedClassroom]=useState<any>(null);
   const [linkedClassroomSessions,setLinkedClassroomSessions]=useState<any[]>([]);
   const [hybridSummary,setHybridSummary]=useState<any>(null);
@@ -42,7 +43,7 @@ export default function FormationDetailClient({ initialCourse }: { initialCourse
 
   async function load(){
     const {data:c}=await supabase.from("courses").select("*").eq("slug",params.slug).eq("status","published").single();
-    if(!c){setCourse(false);return}
+    if(!c){setCourse(false);setDetailsLoaded(true);return}
     setCourse(c);
     const [{data:rs},{data:rv},{data:cp},{data:mods}]=await Promise.all([
       supabase.from("course_rating_summary").select("*").eq("course_id",c.id).single(),
@@ -83,6 +84,7 @@ export default function FormationDetailClient({ initialCourse }: { initialCourse
       const available=(cp||[]).map((x:any)=>String(x.currency).toUpperCase());
       setCheckoutCurrency(available.includes(preferred)?preferred:String(c.base_currency||"MRU").toUpperCase());
     }else setCheckoutCurrency(String(c.base_currency||"MRU").toUpperCase());
+    setDetailsLoaded(true);
   }
   useEffect(()=>{load()},[params.slug]);
 
@@ -223,7 +225,7 @@ export default function FormationDetailClient({ initialCourse }: { initialCourse
     <aside className="panel course-checkout"><div className="international-course-price"><small>{t({fr:"Prix unique du parcours",ar:"السعر الموحد للمسار",en:"Single pathway price"})}</small><h2>{baseAmount===0?t({fr:"GRATUIT",ar:"مجاني",en:"FREE"}):formatMoney(baseAmount,baseCurrency)}</h2>{hybridSummary?.has_live_classroom&&<span className="hybrid-price-note">✓ {t({fr:"Formation complète + Classroom live incluses",ar:"الدورة كاملة + الفصل المباشر مشمولان",en:"Full course + live Classroom included"})}</span>}{prices.length>1&&<span>{prices.length} {t({fr:"devises configurées",ar:"عملات مهيأة",en:"currencies configured"})}</span>}</div>
       {enrolled?<><p className="status">{t({fr:"Vous êtes inscrit à cette formation.",ar:"أنت مسجل في هذه الدورة.",en:"You are enrolled in this course."})}</p><Link className="btn full" href={"/apprendre/"+course.slug}>{t({fr:"Accéder à ma formation",ar:"الدخول إلى الدورة",en:"Go to my course"})}</Link>{linkedClassroom&&<Link className="btn btn-ghost full" href={"/classroom/"+linkedClassroom.slug}>◉ {t({fr:"Accéder à la Classroom live",ar:"الدخول إلى الفصل المباشر",en:"Open live Classroom"})}</Link>}</>:registrationClosed?<p className="manual-note" role="status">{t({fr:"Les inscriptions à cette formation sont désormais clôturées. Les étudiants déjà inscrits conservent leur accès.",ar:"أُغلق التسجيل في هذه الدورة. يحتفظ الطلاب المسجلون مسبقاً بحق الوصول.",en:"Enrollment for this course is closed. Previously enrolled students keep their access."})}</p>:baseAmount===0?<><p>{t({fr:"Cette formation est gratuite. Aucun moyen de paiement n’est nécessaire.",ar:"هذه الدورة مجانية ولا تحتاج إلى وسيلة دفع.",en:"This course is free. No payment method is required."})}</p><button className="btn full" onClick={enrollFree} disabled={busy}>{busy?"...":t({fr:"S’inscrire gratuitement",ar:"التسجيل مجاناً",en:"Enroll for free"})}</button></>:!course.instructor_id?<><p>{t({fr:"Formation officielle Vydys Academy.",ar:"دورة رسمية من Vydys Academy.",en:"Official Vydys Academy course."})}</p><Link className="btn full" href="/paiement">{t({fr:"S'inscrire",ar:"سجّل",en:"Enroll"})}</Link></>:<>
         <p>{hybridSummary?.has_live_classroom?t({fr:"Un seul paiement de la formation donne accès aux modules, leçons, supports, exercices et aux 10 séances live de la Classroom. Aucun second paiement Classroom.",ar:"دفعة واحدة للدورة تمنح الوصول إلى الوحدات والدروس والموارد والتمارين والحصص المباشرة، دون دفع ثانٍ للفصل.",en:"One course payment unlocks modules, lessons, resources, assignments and the live Classroom sessions. No second Classroom payment."}):t({fr:"Votre paiement va directement au formateur. Les méthodes mauritaniennes sont validées manuellement ; les providers internationaux sont confirmés automatiquement.",ar:"يذهب الدفع مباشرة إلى المدرب. الطرق الموريتانية تُراجع يدوياً والمزودون الدوليون يؤكدون الدفع تلقائياً.",en:"Your payment goes directly to the instructor. Mauritanian methods are reviewed manually; international providers confirm automatically."})}</p>
-        {methods.length===0?<p className="manual-note">{t({fr:"Le formateur n'a pas encore configuré de moyen de paiement.",ar:"لم يضف المدرب وسيلة دفع بعد.",en:"The instructor has not configured a payment method yet."})}</p>:<form onSubmit={buy}>
+        {!detailsLoaded?<p className="manual-note" role="status">{t({fr:"Chargement des moyens de paiement...",ar:"جار تحميل طرق الدفع...",en:"Loading payment methods..."})}</p>:methods.length===0?<p className="manual-note">{t({fr:"Le formateur n'a pas encore configuré de moyen de paiement.",ar:"لم يضف المدرب وسيلة دفع بعد.",en:"The instructor has not configured a payment method yet."})}</p>:<form onSubmit={buy}>
           <div className="checkout-methods">{methods.map(m=>{
             const cur=m.payment_mode==="automatic"?(checkoutCurrency||baseCurrency):String(m.currency||"MRU").toUpperCase();
             const p=priceFor(cur);const available=p!=null;
