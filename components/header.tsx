@@ -1,15 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useLanguage } from "./language-provider";
 import { supabase } from "../lib/supabase";
 
 export function Header() {
   const { lang, setLang, t } = useLanguage();
+  const pathname=usePathname();
+  const mobileToggleRef=useRef<HTMLButtonElement>(null);
+  const mobileDialogRef=useRef<HTMLDivElement>(null);
   const [role,setRole]=useState<string|null>(null);
   const [signedIn,setSignedIn]=useState(false);
   const [mobileOpen,setMobileOpen]=useState(false);
+
+  useEffect(()=>{setMobileOpen(false)},[pathname]);
 
   useEffect(()=>{
     let active=true;
@@ -30,13 +36,28 @@ export function Header() {
     if(!mobileOpen)return;
     const previous=document.body.style.overflow;
     document.body.style.overflow="hidden";
+    const menu=mobileDialogRef.current;
+    const focusable=()=>Array.from(menu?.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])')||[])
+      .filter(node=>node.getClientRects().length>0);
+    focusable()[0]?.focus();
+
     const onKey=(event:KeyboardEvent)=>{
-      if(event.key==="Escape")setMobileOpen(false);
+      if(event.key==="Escape"){event.preventDefault();setMobileOpen(false);return}
+      if(event.key!=="Tab")return;
+      const items=focusable();
+      if(!items.length){event.preventDefault();return}
+      const first=items[0],last=items[items.length-1];
+      if(event.shiftKey && (document.activeElement===first||!menu?.contains(document.activeElement))){
+        event.preventDefault();last.focus();
+      }else if(!event.shiftKey && (document.activeElement===last||!menu?.contains(document.activeElement))){
+        event.preventDefault();first.focus();
+      }
     };
     window.addEventListener("keydown",onKey);
     return()=>{
       document.body.style.overflow=previous;
       window.removeEventListener("keydown",onKey);
+      mobileToggleRef.current?.focus();
     };
   },[mobileOpen]);
 
@@ -109,6 +130,7 @@ export function Header() {
 
         <button
           type="button"
+          ref={mobileToggleRef}
           className={"mobile-nav-toggle mobile-nav-toggle-v3 "+(mobileOpen?"open":"")}
           aria-label={mobileOpen?t({fr:"Fermer le menu",ar:"إغلاق القائمة",en:"Close menu"}):t({fr:"Ouvrir le menu",ar:"فتح القائمة",en:"Open menu"})}
           aria-expanded={mobileOpen}
@@ -120,9 +142,9 @@ export function Header() {
       </div>
     </div>
 
-    {mobileOpen&&<div id="vydys-mobile-menu" className="mobile-nav-panel mobile-nav-panel-v3" role="dialog" aria-modal="true">
+    {mobileOpen&&<div ref={mobileDialogRef} id="vydys-mobile-menu" className="mobile-nav-panel mobile-nav-panel-v3" role="dialog" aria-modal="true" aria-label={t({fr:"Menu de navigation",ar:"قائمة التنقل",en:"Navigation menu"})}>
       <div className="container mobile-menu-v3" onClick={e=>{if((e.target as HTMLElement).closest("a"))setMobileOpen(false)}}>
-        <div className="mobile-menu-head"><div><img src="/vydys-icon.svg" alt=""/><div><strong>Vydys</strong><small>AI & Technology Learning System</small></div></div><button onClick={()=>setMobileOpen(false)}>×</button></div>
+        <div className="mobile-menu-head"><div><img src="/vydys-icon.svg" alt=""/><div><strong>Vydys</strong><small>AI & Technology Learning System</small></div></div><button type="button" onClick={()=>setMobileOpen(false)} aria-label={t({fr:"Fermer le menu",ar:"إغلاق القائمة",en:"Close menu"})}>×</button></div>
 
         <div className="mobile-menu-section">
           <small>{t({fr:"Découvrir",ar:"اكتشف",en:"Discover"})}</small>
