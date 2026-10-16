@@ -41,9 +41,10 @@ export default function FormationsClient({ initialCourses, initialModules }: { i
   const [currency,setCurrency]=useState("all");
   const [minRating,setMinRating]=useState("0");
   const [sort,setSort]=useState("top");
+  const [loadError,setLoadError]=useState("");
 
   async function load(){
-    const [{data:c},{data:r},{data:i},{data:pr},{data:mods},{data:{user}}]=await Promise.all([
+    const [{data:c,error:courseError},{data:r},{data:i},{data:pr},{data:mods,error:moduleError},{data:{user}}]=await Promise.all([
       supabase.from("courses").select("id,slug,title_fr,title_ar,title_en,description_fr,description_ar,description_en,base_price_mru,base_price_amount,base_currency,category,instructor_id,cover_url,registration_deadline").eq("status","published"),
       supabase.from("course_rating_summary").select("course_id,average_rating,review_count"),
       supabase.from("instructor_profiles").select("user_id,public_slug,display_name,headline").eq("is_public",true),
@@ -51,12 +52,16 @@ export default function FormationsClient({ initialCourses, initialModules }: { i
       supabase.from("course_modules").select("id,course_id,title_fr,title_ar,title_en,position").order("position"),
       supabase.auth.getUser()
     ]);
-    setCourses((c||[]) as Course[]);setPriceRows((pr||[]) as CoursePrice[]);
+    if(courseError||moduleError){
+      setLoadError((courseError||moduleError)?.message||"Catalog temporarily unavailable.");
+    }else setLoadError("");
+    if(!courseError)setCourses((c||[]) as Course[]);
+    setPriceRows((pr||[]) as CoursePrice[]);
     const mm:Record<string,CourseModule[]>={};
     ((mods||[]) as CourseModule[]).forEach(m=>{if(!mm[m.course_id])mm[m.course_id]=[];mm[m.course_id].push(m)});
     Object.values(mm).forEach(rows=>rows.sort((a,b)=>a.position-b.position));
-    setModulesByCourse(mm);
-    const availableCurrencies=Array.from(new Set((c||[]).map((x:any)=>String(x.base_currency||"MRU").toUpperCase())));
+    if(!moduleError)setModulesByCourse(mm);
+    const availableCurrencies=Array.from(new Set((courseError?initialCourses:(c||[])).map((x:any)=>String(x.base_currency||"MRU").toUpperCase())));
     if(availableCurrencies.length===1)setDisplayCurrency(availableCurrencies[0]);
     const liveRows=await Promise.all((c||[]).map(async(course:any)=>{
       const {data}=await supabase.rpc("get_public_course_live_summary",{p_course_id:course.id});
@@ -148,6 +153,8 @@ export default function FormationsClient({ initialCourses, initialModules }: { i
       <select value={sort} onChange={e=>setSort(e.target.value)}><option value="top">{t({fr:"Recommandées",ar:"الموصى بها",en:"Recommended"})}</option><option value="reviews">{t({fr:"Plus d'avis",ar:"الأكثر تقييماً",en:"Most reviewed"})}</option></select>
     </div></div>
 
+    {loadError&&<div role="alert" className="panel" style={{padding:14,marginBottom:16}}><p>{t({fr:"Certaines informations n’ont pas pu être actualisées. Le catalogue affiché peut être temporairement incomplet.",ar:"تعذر تحديث بعض البيانات. قد تكون قائمة الدورات غير مكتملة مؤقتاً.",en:"Some data could not be refreshed. The catalog may be temporarily incomplete."})}</p><button type="button" className="btn btn-small" onClick={()=>void load()}>{t({fr:"Réessayer",ar:"إعادة المحاولة",en:"Retry"})}</button></div>}
+
     <div className="formations-results-bar"><div><strong>{shown.length}</strong><span>{shown.length>1?t({fr:"formations disponibles",ar:"دورات متاحة",en:"courses available"}):t({fr:"formation disponible",ar:"دورة متاحة",en:"course available"})}</span></div><small>{t({fr:"Modules et contenu visibles avant inscription",ar:"الوحدات والمحتوى ظاهرة قبل التسجيل",en:"Modules and curriculum visible before enrollment"})}</small></div>
 
     <div className="market-grid formations-market-grid">
@@ -167,7 +174,7 @@ export default function FormationsClient({ initialCourses, initialModules }: { i
               {live?.has_live_classroom&&<span className="live">● {live.session_count} LIVE</span>}
               {index<3&&rating>0&&<span className="top">{t({fr:"Top formation",ar:"من الأفضل",en:"Top course"})}</span>}
             </div>
-            <button className={favorites.has(c.id)?"favorite-btn active":"favorite-btn"} onClick={()=>toggleFavorite(c.id)} aria-label="favorite">♥</button>
+            <button className={favorites.has(c.id)?"favorite-btn active":"favorite-btn"} onClick={()=>toggleFavorite(c.id)} aria-label={favorites.has(c.id)?t({fr:"Retirer des favoris",ar:"إزالة من المفضلة",en:"Remove from favorites"}):t({fr:"Ajouter aux favoris",ar:"أضف إلى المفضلة",en:"Add to favorites"})}>♥</button>
           </div>
           <div className="market-card-body course-market-body">
             <div className="course-card-meta-row">
