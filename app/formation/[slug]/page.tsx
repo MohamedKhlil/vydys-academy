@@ -8,6 +8,10 @@ import { supabase } from "../../../lib/supabase";
 import WhatsAppBubble from "../../../components/whatsapp-bubble";
 import CourseShare from "../../../components/course-share";
 
+// Mauritania uses UTC throughout the year: enrollment stays open until 23:59 on the deadline day.
+const isRegistrationClosed=(deadline?:string|null)=>Boolean(deadline && new Date().toISOString().slice(0,10)>deadline);
+const displayDeadline=(deadline:string,lang:string)=>new Intl.DateTimeFormat(lang==="ar"?"ar-MR":lang==="en"?"en-GB":"fr-FR",{day:"numeric",month:"long",year:"numeric",timeZone:"UTC"}).format(new Date(deadline+"T12:00:00Z"));
+
 export default function FormationDetailPage(){
   const params=useParams<{slug:string}>();
   const {lang,t}=useLanguage();
@@ -102,6 +106,9 @@ export default function FormationDetailPage(){
   }
 
   async function enrollFree(){
+    if(isRegistrationClosed(course?.registration_deadline)){
+      setMessage(t({fr:"Les inscriptions pour cette formation sont clôturées.",ar:"أُغلق التسجيل في هذه الدورة.",en:"Enrollment for this course is closed."}));return;
+    }
     setMessage("");setBusy(true);
     const {data:{user}}=await supabase.auth.getUser();
     if(!user){window.location.href="/connexion";return}
@@ -114,6 +121,9 @@ export default function FormationDetailPage(){
 
   async function buy(e:FormEvent){
     e.preventDefault();setMessage("");
+    if(isRegistrationClosed(course?.registration_deadline)){
+      setMessage(t({fr:"Les inscriptions pour cette formation sont clôturées.",ar:"أُغلق التسجيل في هذه الدورة.",en:"Enrollment for this course is closed."}));return;
+    }
     const {data:{user}}=await supabase.auth.getUser();
     if(!user){window.location.href="/connexion";return}
     if(!course.instructor_id){window.location.href="/paiement";return}
@@ -158,11 +168,14 @@ export default function FormationDetailPage(){
   const desc=lang==="ar"?course.description_ar:lang==="en"?course.description_en:course.description_fr;
   const baseCurrency=String(course.base_currency||"MRU").toUpperCase();
   const baseAmount=Number(course.base_price_amount??course.base_price_mru??0);
+  const registrationClosed=isRegistrationClosed(course.registration_deadline);
 
   return <section className="section page-top"><div className="container">
     <div className="course-detail-grid"><div>
       <div className="course-title-row"><span className="tag">{course.category||t({fr:"Formation",ar:"دورة",en:"Course"})}</span><div className="course-title-actions"><CourseShare title={title} slug={course.slug}/><button className={favorite?"favorite-inline active":"favorite-inline"} onClick={toggleFavorite}>♥ {favorite?t({fr:"Favori",ar:"مفضلة",en:"Saved"}):t({fr:"Ajouter aux favoris",ar:"إضافة للمفضلة",en:"Save"})}</button></div></div>
-      <h1 className="course-detail-title">{title}</h1><p className="course-detail-copy">{desc}</p>
+      <h1 className="course-detail-title">{title}</h1>
+      {course.registration_deadline&&<p className="status" style={{fontWeight:700,margin:"0.75rem 0"}}>◷ {registrationClosed?t({fr:"Inscriptions clôturées depuis le ",ar:"أُغلق التسجيل منذ ",en:"Enrollment closed on "}):t({fr:"Date limite d’inscription : ",ar:"آخر أجل للتسجيل: ",en:"Enrollment deadline: "})}{displayDeadline(course.registration_deadline,lang)}{!registrationClosed&&t({fr:" inclus · 23h59 (Mauritanie)",ar:" شاملاً · الساعة 23:59 بتوقيت موريتانيا",en:" inclusive · 11:59 PM (Mauritania)"})}</p>}
+      <p className="course-detail-copy">{desc}</p>
       {Number(ratings.review_count||0)>0?<div className="rating-line big"><span className="stars">{[1,2,3,4,5].map(n=><span key={n} className={n<=Math.round(Number(ratings.average_rating||0))?"on":"off"}>★</span>)}</span><strong>{Number(ratings.average_rating||0).toFixed(1)}/5</strong><span>{ratings.review_count} {t({fr:"avis",ar:"تقييم",en:"reviews"})}</span></div>:<div className="course-new-badge">✦ {t({fr:"Nouvelle formation · pas encore notée",ar:"دورة جديدة · لم يتم تقييمها بعد",en:"New course · not rated yet"})}</div>}
       {instructor&&<Link href={"/formateur/"+instructor.public_slug} className="instructor-box"><div className="avatar">{instructor.display_name?.slice(0,2).toUpperCase()}</div><div><small>{t({fr:"Formateur",ar:"المدرب",en:"Instructor"})}</small><strong>{instructor.display_name}</strong><span>{instructor.headline}</span></div></Link>}
       {(linkedClassroom||hybridSummary?.has_live_classroom)&&<article className="course-linked-classroom panel">
@@ -200,7 +213,7 @@ export default function FormationDetailPage(){
     </div>
 
     <aside className="panel course-checkout"><div className="international-course-price"><small>{t({fr:"Prix unique du parcours",ar:"السعر الموحد للمسار",en:"Single pathway price"})}</small><h2>{baseAmount===0?t({fr:"GRATUIT",ar:"مجاني",en:"FREE"}):formatMoney(baseAmount,baseCurrency)}</h2>{hybridSummary?.has_live_classroom&&<span className="hybrid-price-note">✓ {t({fr:"Formation complète + Classroom live incluses",ar:"الدورة كاملة + الفصل المباشر مشمولان",en:"Full course + live Classroom included"})}</span>}{prices.length>1&&<span>{prices.length} {t({fr:"devises configurées",ar:"عملات مهيأة",en:"currencies configured"})}</span>}</div>
-      {enrolled?<><p className="status">{t({fr:"Vous êtes inscrit à cette formation.",ar:"أنت مسجل في هذه الدورة.",en:"You are enrolled in this course."})}</p><Link className="btn full" href={"/apprendre/"+course.slug}>{t({fr:"Accéder à ma formation",ar:"الدخول إلى الدورة",en:"Go to my course"})}</Link>{linkedClassroom&&<Link className="btn btn-ghost full" href={"/classroom/"+linkedClassroom.slug}>◉ {t({fr:"Accéder à la Classroom live",ar:"الدخول إلى الفصل المباشر",en:"Open live Classroom"})}</Link>}</>:baseAmount===0?<><p>{t({fr:"Cette formation est gratuite. Aucun moyen de paiement n’est nécessaire.",ar:"هذه الدورة مجانية ولا تحتاج إلى وسيلة دفع.",en:"This course is free. No payment method is required."})}</p><button className="btn full" onClick={enrollFree} disabled={busy}>{busy?"...":t({fr:"S’inscrire gratuitement",ar:"التسجيل مجاناً",en:"Enroll for free"})}</button></>:!course.instructor_id?<><p>{t({fr:"Formation officielle Vydys Academy.",ar:"دورة رسمية من Vydys Academy.",en:"Official Vydys Academy course."})}</p><Link className="btn full" href="/paiement">{t({fr:"S'inscrire",ar:"سجّل",en:"Enroll"})}</Link></>:<>
+      {enrolled?<><p className="status">{t({fr:"Vous êtes inscrit à cette formation.",ar:"أنت مسجل في هذه الدورة.",en:"You are enrolled in this course."})}</p><Link className="btn full" href={"/apprendre/"+course.slug}>{t({fr:"Accéder à ma formation",ar:"الدخول إلى الدورة",en:"Go to my course"})}</Link>{linkedClassroom&&<Link className="btn btn-ghost full" href={"/classroom/"+linkedClassroom.slug}>◉ {t({fr:"Accéder à la Classroom live",ar:"الدخول إلى الفصل المباشر",en:"Open live Classroom"})}</Link>}</>:registrationClosed?<p className="manual-note" role="status">{t({fr:"Les inscriptions à cette formation sont désormais clôturées. Les étudiants déjà inscrits conservent leur accès.",ar:"أُغلق التسجيل في هذه الدورة. يحتفظ الطلاب المسجلون مسبقاً بحق الوصول.",en:"Enrollment for this course is closed. Previously enrolled students keep their access."})}</p>:baseAmount===0?<><p>{t({fr:"Cette formation est gratuite. Aucun moyen de paiement n’est nécessaire.",ar:"هذه الدورة مجانية ولا تحتاج إلى وسيلة دفع.",en:"This course is free. No payment method is required."})}</p><button className="btn full" onClick={enrollFree} disabled={busy}>{busy?"...":t({fr:"S’inscrire gratuitement",ar:"التسجيل مجاناً",en:"Enroll for free"})}</button></>:!course.instructor_id?<><p>{t({fr:"Formation officielle Vydys Academy.",ar:"دورة رسمية من Vydys Academy.",en:"Official Vydys Academy course."})}</p><Link className="btn full" href="/paiement">{t({fr:"S'inscrire",ar:"سجّل",en:"Enroll"})}</Link></>:<>
         <p>{hybridSummary?.has_live_classroom?t({fr:"Un seul paiement de la formation donne accès aux modules, leçons, supports, exercices et aux 10 séances live de la Classroom. Aucun second paiement Classroom.",ar:"دفعة واحدة للدورة تمنح الوصول إلى الوحدات والدروس والموارد والتمارين والحصص المباشرة، دون دفع ثانٍ للفصل.",en:"One course payment unlocks modules, lessons, resources, assignments and the live Classroom sessions. No second Classroom payment."}):t({fr:"Votre paiement va directement au formateur. Les méthodes mauritaniennes sont validées manuellement ; les providers internationaux sont confirmés automatiquement.",ar:"يذهب الدفع مباشرة إلى المدرب. الطرق الموريتانية تُراجع يدوياً والمزودون الدوليون يؤكدون الدفع تلقائياً.",en:"Your payment goes directly to the instructor. Mauritanian methods are reviewed manually; international providers confirm automatically."})}</p>
         {methods.length===0?<p className="manual-note">{t({fr:"Le formateur n'a pas encore configuré de moyen de paiement.",ar:"لم يضف المدرب وسيلة دفع بعد.",en:"The instructor has not configured a payment method yet."})}</p>:<form onSubmit={buy}>
           <div className="checkout-methods">{methods.map(m=>{
