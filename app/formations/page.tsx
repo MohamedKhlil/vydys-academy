@@ -9,13 +9,17 @@ import CourseShare from "../../components/course-share";
 type Course={
   id:string;slug:string;title_fr:string;title_ar:string;title_en:string;
   description_fr:string|null;description_ar:string|null;description_en:string|null;
-  base_price_mru:number;base_price_amount:number;base_currency:string;category:string|null;instructor_id:string|null;cover_url:string|null;
+  base_price_mru:number;base_price_amount:number;base_currency:string;category:string|null;instructor_id:string|null;cover_url:string|null;registration_deadline:string|null;
 };
 type Rating={course_id:string;average_rating:number|string;review_count:number};
 type Instructor={user_id:string;public_slug:string;display_name:string;headline:string|null};
 type CoursePrice={course_id:string;currency:string;amount:number|string};
 type CourseModule={id:string;course_id:string;title_fr:string;title_ar:string;title_en:string;position:number};
 type LiveSummary={has_live_classroom?:boolean;session_count?:number;session_duration_minutes?:number;title_fr?:string;title_ar?:string;title_en?:string};
+
+// Vydys courses close at the end of the deadline day in Nouakchott (UTC+00).
+const isRegistrationClosed=(deadline:string|null|undefined)=>Boolean(deadline && new Date().toISOString().slice(0,10)>deadline);
+const displayDeadline=(deadline:string,lang:string)=>new Intl.DateTimeFormat(lang==="ar"?"ar-MR":lang==="en"?"en-GB":"fr-FR",{day:"numeric",month:"long",year:"numeric",timeZone:"UTC"}).format(new Date(deadline+"T12:00:00Z"));
 
 export default function FormationsPage(){
   const {lang,t}=useLanguage();
@@ -36,7 +40,7 @@ export default function FormationsPage(){
 
   async function load(){
     const [{data:c},{data:r},{data:i},{data:pr},{data:mods},{data:{user}}]=await Promise.all([
-      supabase.from("courses").select("id,slug,title_fr,title_ar,title_en,description_fr,description_ar,description_en,base_price_mru,base_price_amount,base_currency,category,instructor_id,cover_url").eq("status","published"),
+      supabase.from("courses").select("id,slug,title_fr,title_ar,title_en,description_fr,description_ar,description_en,base_price_mru,base_price_amount,base_currency,category,instructor_id,cover_url,registration_deadline").eq("status","published"),
       supabase.from("course_rating_summary").select("course_id,average_rating,review_count"),
       supabase.from("instructor_profiles").select("user_id,public_slug,display_name,headline").eq("is_public",true),
       supabase.from("course_prices").select("course_id,currency,amount").eq("is_active",true),
@@ -149,7 +153,7 @@ export default function FormationsPage(){
         const rating=Number(ratings[c.id]?.average_rating||0);const reviews=ratings[c.id]?.review_count||0;
         const instructor=c.instructor_id?instructors[c.instructor_id]:null;const shownPrice=displayPrice(c);const cur=shownPrice.currency;const amount=shownPrice.amount;
         const modules=modulesByCourse[c.id]||[];
-        const live=liveByCourse[c.id];
+        const live=liveByCourse[c.id];const registrationClosed=isRegistrationClosed(c.registration_deadline);
         const moduleTitle=(m:CourseModule)=>lang==="ar"?(m.title_ar||m.title_fr):lang==="en"?(m.title_en||m.title_fr):m.title_fr;
         return <article className="market-card course-market-card" key={c.id}>
           <div className="course-cover course-market-cover">
@@ -181,6 +185,7 @@ export default function FormationsPage(){
 
             {instructor?<Link className="trainer-link course-trainer-row" href={"/formateur/"+instructor.public_slug}><span className="course-trainer-avatar">{instructor.display_name?.slice(0,2).toUpperCase()}</span><span><strong>{instructor.display_name}</strong><small>{live?.has_live_classroom?t({fr:"Formateur · sessions live incluses",ar:"مدرب · حصص مباشرة مشمولة",en:"Instructor · live sessions included"}):instructor.headline||""}</small></span></Link>:null}
 
+            {c.registration_deadline&&<p className="course-registration-deadline" style={{fontSize:".9rem",fontWeight:650,margin:"0.6rem 0"}}><span aria-hidden="true">◷ </span>{registrationClosed?t({fr:"Inscriptions clôturées le ",ar:"أُغلق التسجيل في ",en:"Enrollment closed on "}):t({fr:"Fin des inscriptions : ",ar:"آخر أجل للتسجيل: ",en:"Enrollment deadline: "})}{displayDeadline(c.registration_deadline,lang)}</p>}
             <div className="course-card-footer">
               <div className="course-price-stack"><small>{t({fr:"Prix unique",ar:"السعر الموحد",en:"Single price"})}</small><strong>{formatMoney(amount,cur)}</strong></div>
               <div className="course-card-actions"><CourseShare compact title={title} slug={c.slug}/><Link className="btn btn-small course-open-btn" href={"/formation/"+c.slug}>{t({fr:"Découvrir",ar:"اكتشف",en:"Explore"})} →</Link></div>
