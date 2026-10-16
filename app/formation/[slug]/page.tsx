@@ -7,6 +7,7 @@ import { useLanguage } from "../../../components/language-provider";
 import { supabase } from "../../../lib/supabase";
 import WhatsAppBubble from "../../../components/whatsapp-bubble";
 import CourseShare from "../../../components/course-share";
+import ClassroomCalendarActions from "../../../components/classroom-calendar-actions";
 
 // Mauritania uses UTC throughout the year: enrollment stays open until 23:59 on the deadline day.
 const isRegistrationClosed=(deadline?:string|null)=>Boolean(deadline && new Date().toISOString().slice(0,10)>deadline);
@@ -23,6 +24,7 @@ export default function FormationDetailPage(){
   const [reviews,setReviews]=useState<any[]>([]);
   const [modules,setModules]=useState<any[]>([]);
   const [linkedClassroom,setLinkedClassroom]=useState<any>(null);
+  const [linkedClassroomSessions,setLinkedClassroomSessions]=useState<any[]>([]);
   const [hybridSummary,setHybridSummary]=useState<any>(null);
   const [enrolled,setEnrolled]=useState(false);
   const [rating,setRating]=useState(5);
@@ -50,10 +52,14 @@ export default function FormationDetailPage(){
     ]);
     if(rs)setRatings(rs);setReviews(rv||[]);setPrices(cp||[]);setModules(mods||[]);
     const [{data:linkedRoom},{data:liveSummary}]=await Promise.all([
-      supabase.from("classrooms").select("id,slug,title_fr,title_ar,title_en,status,start_date,session_count,session_duration_minutes,timezone").eq("course_id",c.id).maybeSingle(),
+      supabase.from("classrooms").select("id,slug,title_fr,title_ar,title_en,status,visibility,start_date,session_count,session_duration_minutes,timezone").eq("course_id",c.id).maybeSingle(),
       supabase.rpc("get_public_course_live_summary",{p_course_id:c.id})
     ]);
     setLinkedClassroom(linkedRoom||null);
+    if(linkedRoom){
+      const {data:linkedSessions}=await supabase.from("classroom_sessions").select("id,position,title,starts_at,ends_at,status,updated_at").eq("classroom_id",linkedRoom.id).order("position");
+      setLinkedClassroomSessions(linkedSessions||[]);
+    }else setLinkedClassroomSessions([]);
     setHybridSummary(liveSummary||null);
     if(c.instructor_id){
       const [{data:i},{data:m}]=await Promise.all([
@@ -182,6 +188,8 @@ export default function FormationDetailPage(){
         <div><span className="eyebrow">{t({fr:"Formation hybride · 1 seul paiement",ar:"دورة هجينة · دفعة واحدة",en:"Hybrid course · one payment"})}</span><h3>{lang==="ar"?((linkedClassroom||hybridSummary)?.title_ar||(linkedClassroom||hybridSummary)?.title_fr):lang==="en"?((linkedClassroom||hybridSummary)?.title_en||(linkedClassroom||hybridSummary)?.title_fr):(linkedClassroom||hybridSummary)?.title_fr}</h3><p><strong>{(linkedClassroom||hybridSummary)?.session_count} {t({fr:"séances live incluses",ar:"حصص مباشرة مشمولة",en:"live sessions included"})}</strong> · {(linkedClassroom||hybridSummary)?.session_duration_minutes} min · {t({fr:"cours, supports et exercices inclus",ar:"الدروس والموارد والتمارين مشمولة",en:"lessons, resources and assignments included"})}</p></div>
         {enrolled&&linkedClassroom?<Link className="btn btn-ghost" href={"/classroom/"+linkedClassroom.slug}>{t({fr:"Ouvrir ma Classroom",ar:"فتح فصلي",en:"Open my Classroom"})}</Link>:<span className="hybrid-included-chip">{t({fr:"Inclus avec l’inscription",ar:"مشمول مع التسجيل",en:"Included with enrollment"})}</span>}
       </article>}
+
+      {linkedClassroom&&linkedClassroomSessions.length>0&&<ClassroomCalendarActions room={linkedClassroom} sessions={linkedClassroomSessions} compact />}
 
       {modules.length>0&&<section className="course-public-curriculum">
         <div className="course-curriculum-head">
