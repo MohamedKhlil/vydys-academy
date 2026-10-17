@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "./language-provider";
 import type { PublicTalentRow } from "../app/talents/page";
+import { trackGrowthEvent } from "../lib/growth-events";
 
 export default function TalentsDirectory({rows,unavailable}:{rows:PublicTalentRow[];unavailable:boolean}){
   const {lang,t}=useLanguage();
   const [query,setQuery]=useState("");
+  useEffect(()=>{void trackGrowthEvent("talents_viewed")},[]);
   const [availableOnly,setAvailableOnly]=useState(false);
   const [country,setCountry]=useState("");
 
