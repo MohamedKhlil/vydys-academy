@@ -30,6 +30,7 @@ type Profile = {
   learning_interests: string[];
   experience_level: string | null;
   onboarding_completed_at: string | null;
+  timezone: string | null;
 };
 
 const interestTerms: Record<string, string[]> = {
@@ -104,7 +105,7 @@ export default function StudentRetentionHub({
         supabase.from("student_reminder_preferences")
           .select("classroom_reminders,study_reminders").eq("user_id",userId).maybeSingle(),
         supabase.from("profiles")
-          .select("learning_goal,learning_interests,experience_level,onboarding_completed_at")
+          .select("learning_goal,learning_interests,experience_level,onboarding_completed_at,timezone")
           .eq("id",userId).maybeSingle(),
         supabase.from("courses")
           .select("id,slug,category,title_fr,title_ar,title_en,description_fr,description_ar,description_en,base_currency,base_price_amount,registration_deadline,published_at")
@@ -124,7 +125,8 @@ export default function StudentRetentionHub({
         learning_goal:student.learning_goal||null,
         learning_interests:Array.isArray(student.learning_interests)?student.learning_interests:[],
         experience_level:student.experience_level||null,
-        onboarding_completed_at:student.onboarding_completed_at||null
+        onboarding_completed_at:student.onboarding_completed_at||null,
+        timezone:student.timezone||null
       });
       setCatalogError(Boolean(courseError));
       const list=(published||[]) as CatalogCourse[];
@@ -186,6 +188,13 @@ export default function StudentRetentionHub({
   }
 
   const locale=lang==="ar"?"ar-MR":lang==="en"?"en-GB":"fr-FR";
+  const sessionTimezone=useMemo(()=>{
+    try{
+      const candidate=profile?.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||"Africa/Nouakchott";
+      new Intl.DateTimeFormat("en",{timeZone:candidate}).format(new Date());
+      return candidate;
+    }catch{return "Africa/Nouakchott"}
+  },[profile?.timezone]);
 
   return <div className="retention-hub">
     {upcoming&&<section className="retention-next-session panel">
@@ -193,8 +202,8 @@ export default function StudentRetentionHub({
         <span className="eyebrow">{t({fr:"Votre prochaine Classroom",ar:"حصتك المباشرة القادمة",en:"Your next live class"})}</span>
         <h2>{upcoming.summary}</h2>
         <p>{new Intl.DateTimeFormat(locale,{
-          weekday:"long",day:"numeric",month:"long",hour:"2-digit",minute:"2-digit",timeZone:"Africa/Nouakchott"
-        }).format(upcoming.start)} · {t({fr:"Heure de Nouakchott",ar:"بتوقيت نواكشوط",en:"Nouakchott time"})}</p>
+          weekday:"long",day:"numeric",month:"long",hour:"2-digit",minute:"2-digit",timeZone:sessionTimezone
+        }).format(upcoming.start)} · {sessionTimezone.replace(/_/g," ")}</p>
       </div>
       <Link className="btn" href={upcoming.url.replace("https://www.vydys.com","")}>
         {t({fr:"Voir la séance",ar:"عرض الحصة",en:"View session"})} →
