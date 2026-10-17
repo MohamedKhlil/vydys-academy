@@ -254,7 +254,7 @@ export default function StudentRetentionHub({
       </div>}
     </section>
 
-    <section className="retention-reminder-settings panel" aria-labelledby="student-reminders-heading">
+    <section id="learning-reminders" className="retention-reminder-settings panel" aria-labelledby="student-reminders-heading">
       <div className="retention-header">
         <div>
           <span className="eyebrow">{t({fr:"Rester motivé",ar:"حافظ على حماسك",en:"Stay on track"})}</span>
