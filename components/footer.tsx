@@ -31,6 +31,7 @@ export function Footer() {
           <Link href="/formations">{t({fr:"Formations",ar:"الدورات",en:"Courses"})}</Link>
           <Link href="/classroom">Classroom</Link>
           <Link href="/formateurs">{t({fr:"Formateurs",ar:"المدربون",en:"Instructors"})}</Link>
+          <Link href="/talents">Vydys Talents</Link>
           <Link href="/practice">Practice Hub</Link>
           <Link href="/skill-engine">Skill Engine</Link>
         </div>
