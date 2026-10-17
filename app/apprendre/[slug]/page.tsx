@@ -52,7 +52,20 @@ export default function LearnCoursePage(){
     setProgress((p||[]).map((x:any)=>x.lesson_id));setAttempts(at||[]);setSubmissions(sub||[]);
     if(cert?.certificate_code)setCertificate(cert.certificate_code);
     setAnnouncements(ann||[]);
-    if(!activeLesson&&l?.[0])setActiveLesson(l[0]);
+    // Resume the student's next unfinished lesson, or a specific valid lesson
+    // selected from the dashboard. Only IDs belonging to this entitled course
+    // can be opened; the URL never bypasses enrollment checks.
+    const moduleOrder=new Map((m||[]).map((module:any)=>[module.id,Number(module.position)||0]));
+    const ordered=[...(l||[])].sort((a:any,b:any)=>
+      (Number(moduleOrder.get(a.module_id))||0)-(Number(moduleOrder.get(b.module_id))||0)
+      || (Number(a.position)||0)-(Number(b.position)||0));
+    const completedIds=new Set((p||[]).map((entry:any)=>entry.lesson_id));
+    const requestedId=new URLSearchParams(window.location.search).get("lesson");
+    const deepLinked=requestedId?ordered.find((lesson:any)=>lesson.id===requestedId):null;
+    const upcoming=ordered.find((lesson:any)=>!completedIds.has(lesson.id));
+    if(!activeLesson||!ordered.some((lesson:any)=>lesson.id===activeLesson.id)){
+      setActiveLesson(deepLinked||upcoming||ordered[0]||null);
+    }
   }
   useEffect(()=>{load()},[slug]);
 
