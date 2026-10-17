@@ -5,6 +5,7 @@ import { useLanguage } from "../../../components/language-provider";
 import { supabase } from "../../../lib/supabase";
 import AdminVisitorAnalytics from "../../../components/admin-visitor-analytics";
 import AdminGrowthRetention from "../../../components/admin-growth-retention";
+import AdminActivationFunnel from "../../../components/admin-activation-funnel";
 import "../../admin-growth.css";
 
 type PlatformStats = {
@@ -157,6 +158,7 @@ export default function AdminAnalyticsPage(){
     {message&&<div className="manual-note">{message}</div>}
 
     <AdminGrowthRetention />
+    <AdminActivationFunnel />
     <AdminVisitorAnalytics />
 
     <div className="admin-data-section-head">
