@@ -6,7 +6,7 @@ const allowedTargets = [
   "/dashboard", "/formations", "/formation", "/practice",
   "/skill-engine", "/hub", "/ai-tutor", "/ai-lab",
   "/auto-learner", "/competences", "/portfolio",
-  "/classroom", "/onboarding", "/recherche"
+  "/classroom", "/onboarding", "/recherche", "/carriere", "/talents", "/talent"
 ] as const;
 
 export function safeStudentReturnPath(value: string | null | undefined): string {
