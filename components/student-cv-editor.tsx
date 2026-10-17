@@ -18,7 +18,7 @@ const emptyExperience={id:"",job_title:"",organization:"",employment_type:"",sta
 const fromMonth=(date:string|null|undefined)=>date?.slice(0,7)||"";
 const toMonth=(date:string)=>date?date+"-01":null;
 
-export default function StudentCvEditor({userId}:{userId:string}){
+export default function StudentCvEditor({userId,onChanged}:{userId:string;onChanged?:()=>void}){
   const {t}=useLanguage();
   const [education,setEducation]=useState<Education[]>([]);
   const [experience,setExperience]=useState<Experience[]>([]);
@@ -84,7 +84,7 @@ export default function StudentCvEditor({userId}:{userId:string}){
     const {error}=educationForm.id
       ?await supabase.from("student_education").update(payload).eq("id",educationForm.id).eq("user_id",userId)
       :await supabase.from("student_education").insert(payload);
-    if(!error){setEducationForm({...emptyEducation});await load()}
+    if(!error){setEducationForm({...emptyEducation});await load();onChanged?.()}
     setNotice(error?error.message:t({fr:"Diplôme enregistré.",ar:"تم حفظ الشهادة الدراسية.",en:"Education saved."}));
     setSaving(false);
   }
@@ -108,7 +108,7 @@ export default function StudentCvEditor({userId}:{userId:string}){
     const {error}=experienceForm.id
       ?await supabase.from("student_experience").update(payload).eq("id",experienceForm.id).eq("user_id",userId)
       :await supabase.from("student_experience").insert(payload);
-    if(!error){setExperienceForm({...emptyExperience});await load()}
+    if(!error){setExperienceForm({...emptyExperience});await load();onChanged?.()}
     setNotice(error?error.message:t({fr:"Expérience enregistrée.",ar:"تم حفظ الخبرة.",en:"Experience saved."}));
     setSaving(false);
   }
@@ -122,7 +122,7 @@ export default function StudentCvEditor({userId}:{userId:string}){
     })))return;
     setSaving(true);setNotice("");
     const {error}=await supabase.from(table).delete().eq("id",id).eq("user_id",userId);
-    if(!error)await load();
+    if(!error){await load();onChanged?.()}
     setNotice(error?error.message:t({fr:"Information supprimée.",ar:"تم حذف المعلومة.",en:"Entry removed."}));
     setSaving(false);
   }
