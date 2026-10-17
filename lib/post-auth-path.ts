@@ -21,6 +21,9 @@ export function safeStudentReturnPath(value: string | null | undefined): string 
   try {
     const target=new URL(value,"https://www.vydys.com");
     if(target.origin!=="https://www.vydys.com" || target.username || target.password)return "";
-    return target.pathname + target.search;
+    // URL parsing normalizes encoded dot segments, so re-check the final route.
+    const normalized=target.pathname;
+    if(!allowedTargets.some(prefix=>normalized===prefix || normalized.startsWith(prefix+"/")))return "";
+    return normalized + target.search;
   } catch { return "" }
 }
