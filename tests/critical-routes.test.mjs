@@ -120,7 +120,7 @@ test("Growth journeys are transparent about illustrative content and paid course
   const homepage=source("components/home-page-client.tsx");
   const section=source("components/home-page-client.tsx");
   assert.match(homepage,/Preview of a published Vydys course/);
-  assert.match(homepage,/href="\/connexion\?mode=register/);
+  assert.match(homepage,/joinHref="\/connexion\?mode=register/);
   assert.match(section,/Paid courses clearly priced/);
   assert.match(section,/\/devenir-formateur/);
 });
