@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useLanguage } from "../../../components/language-provider";
 import { supabase } from "../../../lib/supabase";
+import { safeStudentReturnPath } from "../../../lib/post-auth-path";
 
 const wait=(ms:number)=>new Promise(resolve=>setTimeout(resolve,ms));
 
@@ -75,7 +76,7 @@ export default function AuthCompletePage(){
         }
 
         const requested=params.get("next")||"";
-        const safeNext=requested.startsWith("/")&&!requested.startsWith("//")?requested:"";
+        const safeNext=safeStudentReturnPath(requested);
         const role=profile?.role||"student";
         const destination=
           role==="direction"||role==="admin"
