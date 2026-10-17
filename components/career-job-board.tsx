@@ -22,12 +22,12 @@ export default function CareerJobBoard({jobs,unavailable}:{jobs:CareerListing[];
  const [remote,setRemote]=useState(false);
  const [country,setCountry]=useState("all");
  useEffect(()=>{void trackGrowthEvent("jobs_viewed")},[]);
- const countryList=useMemo(()=>Array.from(new Set(jobs.map(j=>j.country||j.career_companies?.country||"").filter(Boolean))).sort(),[jobs]);
+ const countryList=useMemo(()=>Array.from(new Set(jobs.map(j=>j.country||j.career_companies?.[0]?.country||"").filter(Boolean))).sort(),[jobs]);
  const filtered=useMemo(()=>jobs.filter(j=>{
    if(type!=="all"&&j.employment_type!==type)return false;
    if(remote&&!j.remote_allowed)return false;
-   if(country!=="all"&&(j.country||j.career_companies?.country||"")!==country)return false;
-   const haystack=[j.title,j.description,j.career_companies?.company_name,...(j.required_skills||[])].filter(Boolean).join(" ").toLowerCase();
+   if(country!=="all"&&(j.country||j.career_companies?.[0]?.country||"")!==country)return false;
+   const haystack=[j.title,j.description,j.career_companies?.[0]?.company_name,...(j.required_skills||[])].filter(Boolean).join(" ").toLowerCase();
    return haystack.includes(search.trim().toLowerCase());
  }),[jobs,search,type,country,remote]);
 
@@ -63,8 +63,8 @@ export default function CareerJobBoard({jobs,unavailable}:{jobs:CareerListing[];
       <p>{t({fr:"Seules les offres d'entreprises approuvées sont publiées. Les étudiants peuvent déjà préparer leur CV.",ar:"لا تُنشر إلا عروض الشركات المعتمدة. ويمكن للطلاب إعداد سيرتهم الذاتية الآن.",en:"Only approved companies can publish offers. You can prepare your CV in the meantime."})}</p>
       <Link className="btn" href="/portfolio">{t({fr:"Compléter mon CV",ar:"أكمل سيرتي",en:"Complete my CV"})}</Link></div>
       :<div className="career-cards">{filtered.map(j=><article key={j.id} className="career-card">
-        <div className="career-company-mark" aria-hidden="true">{(j.career_companies?.company_name||"V").slice(0,2).toUpperCase()}</div>
-        <div className="career-card-body"><small>{j.career_companies?.company_name||"Vydys Employer"}</small><h3>{j.title}</h3>
+        <div className="career-company-mark" aria-hidden="true">{(j.career_companies?.[0]?.company_name||"V").slice(0,2).toUpperCase()}</div>
+        <div className="career-card-body"><small>{j.career_companies?.[0]?.company_name||"Vydys Employer"}</small><h3>{j.title}</h3>
           <div className="career-tags"><span>{t(labels[j.employment_type as keyof typeof labels]||labels.full_time)}</span>
           {j.remote_allowed&&<span>{t({fr:"Télétravail",ar:"عن بعد",en:"Remote"})}</span>}
           {(j.city||j.country)&&<span>{[j.city,j.country].filter(Boolean).join(" · ")}</span>}</div>
