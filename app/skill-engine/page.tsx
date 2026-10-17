@@ -37,7 +37,7 @@ export default function SkillEnginePage(){
   async function load(){
     setLoading(true);
     const {data:{user}}=await supabase.auth.getUser();
-    if(!user){window.location.href="/connexion";return}
+    if(!user){window.location.href="/connexion?next=%2Fskill-engine";return}
     setUserId(user.id);
     const {data:p}=await supabase.from("profiles").select("role").eq("id",user.id).single();
     const ok=p?.role==="student";setAllowed(ok);
