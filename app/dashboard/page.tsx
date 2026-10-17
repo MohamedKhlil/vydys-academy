@@ -6,10 +6,13 @@ import { useLanguage } from "../../components/language-provider";
 import { supabase } from "../../lib/supabase";
 import ClassroomCalendarActions from "../../components/classroom-calendar-actions";
 import { buildClassroomCalendarEvents, downloadIcs } from "../../lib/calendar-events";
+import StudentRetentionHub from "../../components/student-retention-hub";
 
 export default function DashboardPage(){
   const {t,lang}=useLanguage();
   const [loading,setLoading]=useState(true);
+  const [studentId,setStudentId]=useState("");
+  const [modulePositions,setModulePositions]=useState<Record<string,number>>({});
   const [name,setName]=useState("");
   const [enrollments,setEnrollments]=useState<any[]>([]);
   const [calendarRooms,setCalendarRooms]=useState<any[]>([]);
@@ -26,6 +29,7 @@ export default function DashboardPage(){
     const {data:p}=await supabase.from("profiles").select("role,full_name,onboarding_completed_at").eq("id",user.id).single();
     if(p?.role==="direction"||p?.role==="admin"){window.location.href="/admin";return}
     if(p?.role==="instructor"){window.location.href="/formateur";return}
+    setStudentId(user.id);
     setName(p?.full_name||"");
     setOnboardingDone(Boolean(p?.onboarding_completed_at));
 
@@ -39,7 +43,17 @@ export default function DashboardPage(){
 
     const courseIds=(e||[]).map((x:any)=>x.course_id);
     if(courseIds.length){
-      const {data:l}=await supabase.from("course_lessons").select("id,course_id").in("course_id",courseIds);
+      const [{data:l},{data:m}]=await Promise.all([
+        supabase.from("course_lessons")
+          .select("id,course_id,module_id,position,title_fr,title_ar,title_en")
+          .in("course_id",courseIds),
+        supabase.from("course_modules")
+          .select("id,position")
+          .in("course_id",courseIds)
+      ]);
+      const indexes:Record<string,number>={};
+      (m||[]).forEach((mod:any)=>{indexes[mod.id]=Number(mod.position)||0});
+      setModulePositions(indexes);
       setLessons(l||[]);
     }
     // Include published Classrooms linked to enrolled courses and directly purchased Classrooms.
@@ -68,11 +82,18 @@ export default function DashboardPage(){
     return {total,completed,certs};
   },[enrollments,certificates]);
 
-  const nextEnrollment=useMemo(()=>enrollments.find(e=>e.status!=="completed")||enrollments[0]||null,[enrollments]);
+  const nextEnrollment=useMemo(()=>enrollments.find(e=>e.status==="active")||null,[enrollments]);
   const allCalendarEvents=useMemo(()=>calendarRooms.flatMap(room=>buildClassroomCalendarEvents(room,calendarSessions[room.id]||[])).filter(event=>!event.cancelled),[calendarRooms,calendarSessions]);
 
   function title(c:any){return lang==="ar"?(c?.title_ar||c?.title_fr):lang==="en"?(c?.title_en||c?.title_fr):c?.title_fr}
   function desc(c:any){return lang==="ar"?(c?.description_ar||c?.description_fr):lang==="en"?(c?.description_en||c?.description_fr):c?.description_fr}
+  function nextLessonFor(courseId:string){
+    const completed=new Set(progress.filter(p=>p.course_id===courseId).map(p=>p.lesson_id));
+    return lessons.filter(l=>l.course_id===courseId)
+      .sort((a,b)=>(modulePositions[a.module_id]||0)-(modulePositions[b.module_id]||0)
+        || (Number(a.position)||0)-(Number(b.position)||0))
+      .find(l=>!completed.has(l.id))||null;
+  }
   function pct(courseId:string){
     const total=lessons.filter(l=>l.course_id===courseId).length;
     const done=progress.filter(p=>p.course_id===courseId).length;
@@ -93,17 +114,21 @@ export default function DashboardPage(){
       </> : pending.length>0 ? <>
         <h2>{t({fr:"Suivez vos paiements en attente",ar:"تابع دفعاتك المعلقة",en:"Track your pending payments"})}</h2>
         <p>{t({fr:"Une validation est encore en cours. Vous pouvez continuer à explorer Vydys pendant ce temps.",ar:"لا تزال عملية التحقق جارية. يمكنك متابعة استكشاف Vydys.",en:"A payment review is still in progress. You can keep exploring Vydys meanwhile."})}</p>
-        <Link className="btn" href="/paiement">{t({fr:"Voir mes paiements",ar:"عرض دفعاتي",en:"View payments"})}</Link>
+        <Link className="btn" href="/dashboard#pending-orders">{t({fr:"Voir mes paiements",ar:"عرض دفعاتي",en:"View payments"})}</Link>
       </> : nextEnrollment ? <>
         <h2>{t({fr:"Continuez votre prochaine leçon",ar:"تابع درسك التالي",en:"Continue your next lesson"})}</h2>
         <p><strong>{title(nextEnrollment.courses)}</strong> · {pct(nextEnrollment.course_id)}% {t({fr:"terminé",ar:"مكتمل",en:"complete"})}</p>
-        <Link className="btn" href={"/apprendre/"+nextEnrollment.courses.slug}>{t({fr:"Continuer",ar:"متابعة",en:"Continue learning"})}</Link>
+        <div className="retention-progress-bar" role="progressbar" aria-label={t({fr:"Progression du cours",ar:"تقدم الدورة",en:"Course progress"})} aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct(nextEnrollment.course_id)}><span style={{width:pct(nextEnrollment.course_id)+"%"}} /></div>
+        {nextLessonFor(nextEnrollment.course_id)&&<p><strong>{t({fr:"Prochaine leçon :",ar:"الدرس التالي:",en:"Next lesson:"})}</strong> {title(nextLessonFor(nextEnrollment.course_id))}</p>}
+        <Link className="btn" href={"/apprendre/"+nextEnrollment.courses.slug+(nextLessonFor(nextEnrollment.course_id)?"?lesson="+encodeURIComponent(nextLessonFor(nextEnrollment.course_id).id):"")}>{t({fr:"Reprendre ma formation",ar:"استئناف الدورة",en:"Resume my course"})}</Link>
       </> : <>
         <h2>{t({fr:"Choisissez votre première compétence",ar:"اختر مهارتك الأولى",en:"Choose your first skill"})}</h2>
         <p>{t({fr:"Commencez par une formation ou un challenge pratique.",ar:"ابدأ بدورة أو تحدٍ عملي.",en:"Start with a course or a hands-on challenge."})}</p>
         <div style={{display:"flex",gap:10,flexWrap:"wrap"}}><Link className="btn" href="/formations">{t({fr:"Explorer les formations",ar:"استكشف الدورات",en:"Browse courses"})}</Link><Link className="btn btn-ghost" href="/practice">Practice Hub</Link></div>
       </>}
     </article>
+
+    {studentId&&<StudentRetentionHub userId={studentId} enrolledCourseIds={enrollments.map(e=>e.course_id)} calendarEvents={allCalendarEvents}/>}
 
     {allCalendarEvents.length>0&&<section className="panel" style={{marginBottom:20}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}><div><span className="eyebrow">{t({fr:"Agenda des formations",ar:"تقويم التكوينات",en:"Training calendar"})}</span><h2 style={{margin:"6px 0"}}>{t({fr:"Mes prochaines séances Classroom",ar:"حصصي القادمة",en:"My Classroom sessions"})}</h2><p>{t({fr:"Ajoutez les cours à Google Agenda, Outlook ou au calendrier de votre téléphone.",ar:"أضف الحصص إلى تقويم Google أو Outlook أو هاتفك.",en:"Add your classes to Google Calendar, Outlook, or your phone."})}</p></div><button type="button" className="btn" onClick={()=>downloadIcs(allCalendarEvents,"vydys-mes-formations","Vydys Academy — Mes formations")}>↓ {t({fr:"Tous mes cours (.ics)",ar:"كل دروسي (.ics)",en:"All my classes (.ics)"})}</button></div>
@@ -129,7 +154,7 @@ export default function DashboardPage(){
       <Link className="panel vydys-tool-card" href="/portfolio"><span className="tool-icon">↗</span><div><strong>{t({fr:"Portfolio",ar:"الملف المهني",en:"Portfolio"})}</strong><p>{t({fr:"Montrez vos projets et certificats aux entreprises.",ar:"اعرض مشاريعك وشهاداتك للشركات.",en:"Show employers your projects and certificates."})}</p></div></Link>
     </div>
 
-    {pending.length>0&&<article className="panel pending-orders"><h2>{t({fr:"Paiements en cours de validation",ar:"دفعات قيد المراجعة",en:"Payments awaiting approval"})}</h2>{pending.map(p=><div className="pending-order" key={p.id}><div><strong>{title(p.courses)}</strong><small>{Number(p.expected_amount_mru).toLocaleString("fr-FR")} MRU</small></div><span className="status pending">{t({fr:"En attente",ar:"قيد المراجعة",en:"Pending"})}</span></div>)}</article>}
+    {pending.length>0&&<article id="pending-orders" className="panel pending-orders"><h2>{t({fr:"Paiements en cours de validation",ar:"دفعات قيد المراجعة",en:"Payments awaiting approval"})}</h2>{pending.map(p=><div className="pending-order" key={p.id}><div><strong>{title(p.courses)}</strong><small>{Number(p.expected_amount_mru).toLocaleString("fr-FR")} MRU</small></div><span className="status pending">{t({fr:"En attente",ar:"قيد المراجعة",en:"Pending"})}</span></div>)}</article>}
 
     <div className="student-course-grid">
       {enrollments.length===0?<article className="panel empty-state"><h2>{t({fr:"Vous n'avez pas encore de formation.",ar:"لم تسجل في أي دورة بعد.",en:"You have no courses yet."})}</h2><p>{t({fr:"Explorez la marketplace et choisissez votre prochaine compétence.",ar:"استكشف السوق واختر مهارتك القادمة.",en:"Explore the marketplace and choose your next skill."})}</p><Link className="btn" href="/formations">{t({fr:"Voir les formations",ar:"عرض الدورات",en:"Browse courses"})}</Link></article>:enrollments.map(e=>{
