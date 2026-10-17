@@ -104,6 +104,7 @@ test("Redirect after login only permits learner pages on the same origin",()=>{
   for(const malicious of [
     "https://evil.example/steal","//evil.example","/\\\\evil.example",
     "/admin","/formateur","/api/private","/formation/../admin",
+    "/practice/%2e%2e/admin","/practice/%2E%2E/formateur",
     "/payment","/practice\nnext=http://evil.example"
   ]) assert.equal(safe(malicious),"",malicious);
   assert.equal(safe("/practice"),"/practice");
