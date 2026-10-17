@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useLanguage } from "../../components/language-provider";
 import { supabase, supabasePublishableKey, supabaseUrl } from "../../lib/supabase";
 import { safeStudentReturnPath } from "../../lib/post-auth-path";
+import { trackGrowthEvent } from "../../lib/growth-events";
 
 export default function ConnexionPage(){
   const { t } = useLanguage();
@@ -19,6 +20,7 @@ export default function ConnexionPage(){
   const [quickLoading,setQuickLoading]=useState<"google"|"magic"|null>(null);
   const [googleEnabled,setGoogleEnabled]=useState<boolean|null>(null);
   const [nextAfterAuth,setNextAfterAuth]=useState("");
+  useEffect(()=>{if(mode==="register")void trackGrowthEvent("signup_started")},[mode]);
 
   useEffect(()=>{
     const params=new URLSearchParams(window.location.search);
