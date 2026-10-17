@@ -19,7 +19,7 @@ export default function PracticeHub(){
 
   useEffect(()=>{(async()=>{
     const {data:{user}}=await supabase.auth.getUser();
-    if(!user){window.location.href="/connexion";return}
+    if(!user){window.location.href="/connexion?next=%2Fpractice";return}
     const {data:p}=await supabase.from("profiles").select("role").eq("id",user.id).single();
     const ok=p?.role==="student";setAllowed(ok);if(!ok)return;
     const [{data:c},{data:a}]=await Promise.all([

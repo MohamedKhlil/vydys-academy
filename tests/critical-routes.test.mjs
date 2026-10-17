@@ -81,3 +81,54 @@ test("Private instructor studio routes are excluded from crawler indexing",()=>{
     assert.ok(robots.includes('"'+route+'"'),"Missing crawler exclusion for "+route);
   }
 });
+
+test("Public homepage features existing published courses with authoritative active prices",()=>{
+  const homepage=source("app/page.tsx");
+  const featured=source("components/home-growth.tsx");
+  assert.match(homepage,/\.eq\("status","published"\)/);
+  assert.match(homepage,/\.from\("course_prices"\)/);
+  assert.match(homepage,/\.eq\("is_active",true\)/);
+  assert.match(homepage,/featuredCourses=/);
+  assert.match(featured,/\/formation\//);
+  assert.match(featured,/utm_source=community/);
+  assert.match(featured,/navigator\.share/);
+  assert.match(featured,/aria-pressed=/);
+});
+
+test("Redirect after login only permits learner pages on the same origin",()=>{
+  const typescript=source("lib/post-auth-path.ts");
+  const javascript=typescript
+    .replace("] as const;","];" )
+    .replace("export function safeStudentReturnPath(value: string | null | undefined): string {","function safeStudentReturnPath(value) {");
+  const safe=new Function(javascript+"\nreturn safeStudentReturnPath;")();
+  for(const malicious of [
+    "https://evil.example/steal","//evil.example","/\\\\evil.example",
+    "/admin","/formateur","/api/private","/formation/../admin",
+    "/payment","/practice\nnext=http://evil.example"
+  ]) assert.equal(safe(malicious),"",malicious);
+  assert.equal(safe("/practice"),"/practice");
+  assert.equal(safe("/skill-engine?focus=ai"),"/skill-engine?focus=ai");
+  assert.equal(safe("/formation/introduction-intelligence-artificielle-2026"),"/formation/introduction-intelligence-artificielle-2026");
+  const login=source("app/connexion/page.tsx");
+  const callback=source("app/auth/complete/page.tsx");
+  assert.match(login,/nextAfterAuth/);
+  assert.match(callback,/safeStudentReturnPath/);
+});
+
+test("Growth journeys are transparent about illustrative content and paid courses",()=>{
+  const homepage=source("components/home-page-client.tsx");
+  const section=source("components/home-growth.tsx");
+  assert.match(homepage,/Illustrative preview of Vydys/);
+  assert.match(homepage,/href="\/connexion\?mode=register/);
+  assert.match(section,/some courses are paid/);
+  assert.match(section,/\/devenir-formateur/);
+});
+
+test("UTM campaign tracking uses sanitized tags and management-only report",()=>{
+  const tracking=source("components/site-analytics-tracker.tsx");
+  const report=source("components/admin-visitor-analytics.tsx");
+  assert.match(tracking,/utm_source/);
+  assert.match(tracking,/\[\^a-z0-9_-\]/);
+  assert.match(tracking,/isEntry\?campaignTags/);
+  assert.match(report,/vydys_acquisition_campaigns/);
+});

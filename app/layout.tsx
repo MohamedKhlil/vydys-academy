@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import "./growth.css";
 import { Header } from "../components/header";
 import { Footer } from "../components/footer";
 import { LanguageProvider } from "../components/language-provider";

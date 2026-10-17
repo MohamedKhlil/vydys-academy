@@ -35,6 +35,20 @@ function getBrowser(){
   return "Other";
 }
 
+function campaignTags(){
+  const params=new URLSearchParams(window.location.search);
+  const clean=(field:string,max:number)=>{
+    const raw=params.get(field)||"";
+    // Campaign names should never contain email addresses, URLs or IDs.
+    return raw.toLowerCase().replace(/[^a-z0-9_-]/g,"").slice(0,max)||null;
+  };
+  return {
+    utm_source:clean("utm_source",48),
+    utm_medium:clean("utm_medium",48),
+    utm_campaign:clean("utm_campaign",64)
+  };
+}
+
 function referrerHost(){
   if(!document.referrer)return "";
   try{return new URL(document.referrer).hostname.toLowerCase()}catch{return ""}
@@ -64,7 +78,8 @@ export default function SiteAnalyticsTracker(){
           is_entry:isEntry,
           device:getDevice(),
           browser:getBrowser(),
-          language:(navigator.language||"").slice(0,20)
+          language:(navigator.language||"").slice(0,20),
+          ...(isEntry?campaignTags():{})
         });
 
         if(!error&&isEntry)sessionStorage.setItem(ENTRY_KEY,"1");
