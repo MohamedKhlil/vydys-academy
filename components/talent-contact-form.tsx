@@ -9,11 +9,19 @@ import { trackGrowthEvent } from "../lib/growth-events";
 export default function TalentContactForm({slug,available}:{slug:string;available:boolean}){
  const {t}=useLanguage();
  const [uid,setUid]=useState("");
+ const [verified,setVerified]=useState<boolean|null>(null);
  const [message,setMessage]=useState("");
  const [busy,setBusy]=useState(false);
  const [notice,setNotice]=useState("");
  const [submitted,setSubmitted]=useState(false);
- useEffect(()=>{void supabase.auth.getUser().then(({data:{user}})=>setUid(user?.id||""))},[]);
+ useEffect(()=>{let active=true;(async()=>{
+   const {data:{user}}=await supabase.auth.getUser();
+   if(!active)return;
+   setUid(user?.id||"");
+   if(!user){setVerified(false);return}
+   const {data}=await supabase.from("career_companies").select("status").eq("user_id",user.id).maybeSingle();
+   if(active)setVerified(data?.status==="approved");
+ })();return()=>{active=false}},[]);
  if(!available)return null;
  async function submit(e:FormEvent){
   e.preventDefault();if(!uid||busy)return;
@@ -36,6 +44,10 @@ export default function TalentContactForm({slug,available}:{slug:string;availabl
     <Link href="/carriere/contacts">{t({fr:"Mes demandes",ar:"طلباتي",en:"My requests"})} →</Link></div>
   :!uid?<Link className="btn" href={"/connexion?next="+encodeURIComponent("/talent/"+slug)}>
     {t({fr:"Me connecter pour contacter",ar:"تسجيل الدخول للتواصل",en:"Sign in to contact"})}</Link>
+  :verified!==true?<div className="career-apply-info">
+      <p>{t({fr:"Seuls les recruteurs d'entreprises validées peuvent envoyer une première demande. La vérification se fait depuis l'espace entreprise.",ar:"يمكن للشركات المعتمدة فقط إرسال طلب تواصل أولي. اطلب التحقق عبر مساحة الشركة.",en:"Only approved employers can initiate contact. Request verification in your employer workspace."})}</p>
+      <Link href="/carriere/entreprise">{t({fr:"Vérifier mon entreprise",ar:"التحقق من شركتي",en:"Verify my company"})} →</Link>
+    </div>
   :<form onSubmit={e=>void submit(e)}>
     <label><span>{t({fr:"Votre message professionnel",ar:"رسالتك المهنية",en:"Your professional message"})}</span>
       <textarea required minLength={20} maxLength={1000} rows={4} value={message} onChange={e=>setMessage(e.target.value)}
