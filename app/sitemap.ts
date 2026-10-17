@@ -10,9 +10,9 @@ export const revalidate = 3600;
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPaths = [
-    "", "/formations", "/classroom", "/formateurs", "/marketplace",
+    "", "/formations", "/classroom", "/formateurs", "/talents", "/marketplace",
     "/forum", "/hub", "/practice", "/ai-lab", "/skill-engine",
-    "/competences", "/projects", "/portfolio", "/recherche",
+    "/recherche",
     "/devenir-formateur", "/support", "/conditions", "/confidentialite",
     "/remboursements", "/regles-contenu"
   ];
@@ -24,10 +24,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   try {
-    const [courses, instructors, classrooms] = await Promise.all([
+    const [courses, instructors, classrooms, talents] = await Promise.all([
       supabase.from("courses").select("slug,published_at,created_at").eq("status", "published"),
       supabase.from("instructor_profiles").select("public_slug,updated_at,created_at").eq("is_public", true),
-      supabase.from("classrooms").select("slug,updated_at,created_at").eq("status", "published").eq("visibility", "public").is("course_id", null)
+      supabase.from("classrooms").select("slug,updated_at,created_at").eq("status", "published").eq("visibility", "public").is("course_id", null),
+      supabase.from("student_profiles").select("public_slug,updated_at")
+        .eq("is_public",true).eq("discoverable",true)
     ]);
     const listed = new Set<string>();
     const dynamicEntries: MetadataRoute.Sitemap = [];
@@ -51,7 +53,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (!classrooms.error) for (const room of classrooms.data ?? []) {
       if (room.slug) add("/classroom/" + encodeURIComponent(room.slug), room.updated_at || room.created_at);
     }
-    if (courses.error || instructors.error || classrooms.error) {
+    if (!talents.error) for (const talent of talents.data ?? []) {
+      if (talent.public_slug) add("/talent/" + encodeURIComponent(talent.public_slug),talent.updated_at);
+    }
+    if (courses.error || instructors.error || classrooms.error || talents.error) {
       console.warn("Vydys sitemap: partial database response; retry on next revalidation.");
     }
     return [...staticEntries, ...dynamicEntries];
