@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useLanguage } from "../../../components/language-provider";
 import { supabase } from "../../../lib/supabase";
 import AdminVisitorAnalytics from "../../../components/admin-visitor-analytics";
+import AdminGrowthRetention from "../../../components/admin-growth-retention";
+import "../../admin-growth.css";
 
 type PlatformStats = {
   totalUsers:number;
@@ -154,6 +156,7 @@ export default function AdminAnalyticsPage(){
 
     {message&&<div className="manual-note">{message}</div>}
 
+    <AdminGrowthRetention />
     <AdminVisitorAnalytics />
 
     <div className="admin-data-section-head">
