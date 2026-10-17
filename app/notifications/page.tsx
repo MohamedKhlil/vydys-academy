@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "../../components/language-provider";
+import Link from "next/link";
 import { supabase } from "../../lib/supabase";
 
 type NotificationRow={
@@ -107,6 +108,13 @@ export default function NotificationsPage(){
     await load();
   }
 
+  function labelType(type:string){
+    if(type==="classroom_reminder")return t({fr:"Rappel de Classroom",ar:"تذكير بالحصة",en:"Classroom reminder"});
+    if(type==="study_reminder")return t({fr:"Reprise de formation",ar:"تذكير بالدراسة",en:"Study reminder"});
+    if(type==="learning_milestone")return t({fr:"Progression",ar:"إنجاز دراسي",en:"Learning milestone"});
+    return type.replace(/_/g," ");
+  }
+
   function formatDate(value:string){
     return new Intl.DateTimeFormat(
       lang==="ar"?"ar":lang==="fr"?"fr-FR":"en-US",
@@ -119,6 +127,7 @@ export default function NotificationsPage(){
       <div>
         <span className="eyebrow">{t({fr:"Centre de notifications",ar:"مركز الإشعارات",en:"Notification center"})}</span>
         <h1>{t({fr:"Notifications",ar:"الإشعارات",en:"Notifications"})}</h1>
+        <Link className="retention-text-link" href="/dashboard#learning-reminders">{t({fr:"Gérer mes rappels",ar:"إدارة التذكيرات",en:"Manage reminders"})} →</Link>
         <p>{t({
           fr:`${unreadCount} notification(s) non lue(s) affichée(s).`,
           ar:`${unreadCount} إشعار غير مقروء معروض.`,
@@ -149,7 +158,7 @@ export default function NotificationsPage(){
         <span className="sr-only">{t({fr:"Type",ar:"النوع",en:"Type"})}</span>
         <select value={typeFilter} onChange={e=>{setTypeFilter(e.target.value);setLimit(PAGE_SIZE)}}>
           <option value="all">{t({fr:"Tous les types",ar:"كل الأنواع",en:"All types"})}</option>
-          {types.map(type=><option key={type} value={type}>{type}</option>)}
+          {types.map(type=><option key={type} value={type}>{labelType(type)}</option>)}
         </select>
       </label>
     </div>
@@ -167,7 +176,7 @@ export default function NotificationsPage(){
         <div>
           <strong>{n.title}</strong>
           {n.body&&<p>{n.body}</p>}
-          <small>{formatDate(n.created_at)} · {n.notification_type}</small>
+          <small>{formatDate(n.created_at)} · {labelType(n.notification_type)}</small>
         </div>
       </button>)}
     </div>}
