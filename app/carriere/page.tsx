@@ -13,7 +13,7 @@ export type CareerListing={
  id:string;title:string;description:string;required_skills:string[];
  city:string|null;country:string|null;remote_allowed:boolean;
  employment_type:string;created_at:string;expires_at:string|null;
- career_companies:{company_name:string;country:string|null}|null
+ career_companies:{company_name:string;country:string|null}[]
 };
 export default async function CareerPage(){
  const {data,error}=await supabase.from("career_jobs")
