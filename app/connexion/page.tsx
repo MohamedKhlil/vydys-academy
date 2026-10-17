@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useLanguage } from "../../components/language-provider";
 import { supabase, supabasePublishableKey, supabaseUrl } from "../../lib/supabase";
+import { safeStudentReturnPath } from "../../lib/post-auth-path";
 
 export default function ConnexionPage(){
   const { t } = useLanguage();
@@ -17,6 +18,13 @@ export default function ConnexionPage(){
   const [magicEmail,setMagicEmail]=useState("");
   const [quickLoading,setQuickLoading]=useState<"google"|"magic"|null>(null);
   const [googleEnabled,setGoogleEnabled]=useState<boolean|null>(null);
+  const [nextAfterAuth,setNextAfterAuth]=useState("");
+
+  useEffect(()=>{
+    const params=new URLSearchParams(window.location.search);
+    if(params.get("mode")==="register")setMode("register");
+    setNextAfterAuth(safeStudentReturnPath(params.get("next")));
+  },[]);
 
   useEffect(()=>{
     let active=true;
@@ -37,8 +45,10 @@ export default function ConnexionPage(){
   },[]);
 
   function authRedirect(){
-    if(typeof window==="undefined") return "https://www.vydys.com/auth/complete";
-    return window.location.origin+"/auth/complete";
+    const root=typeof window==="undefined" ? "https://www.vydys.com" : window.location.origin;
+    const url=new URL("/auth/complete",root);
+    if(nextAfterAuth)url.searchParams.set("next",nextAfterAuth);
+    return url.toString();
   }
 
   async function signInGoogle(){
@@ -117,7 +127,7 @@ export default function ConnexionPage(){
       if(mode==="register"){
         const { error } = await supabase.auth.signUp({
           email,password,
-          options:{data:{full_name:fullName,phone,terms_accepted:true,terms_version:"2026-10-03"}}
+          options:{emailRedirectTo:authRedirect(),data:{full_name:fullName,phone,terms_accepted:true,terms_version:"2026-10-03"}}
         });
         if(error) throw error;
         setMessage(t({
@@ -131,7 +141,7 @@ export default function ConnexionPage(){
         if(error) throw error;
 
         const userId=data.user?.id;
-        if(!userId){window.location.href="/dashboard";return}
+        if(!userId){window.location.href=nextAfterAuth||"/dashboard";return}
 
         const { data:profile } = await supabase
           .from("profiles")
@@ -144,7 +154,7 @@ export default function ConnexionPage(){
             ? "/admin"
             : profile?.role==="instructor"
               ? "/formateur"
-              : "/dashboard";
+              : (nextAfterAuth||"/dashboard");
       }
     }catch(err){
       setMessage(err instanceof Error ? err.message : "Erreur");
