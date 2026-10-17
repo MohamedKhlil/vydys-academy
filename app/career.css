@@ -198,3 +198,12 @@
  .career-card,.career-cv-progress>span{transition:none}
  .career-card:hover{transform:none}
 }
+
+/* Employer shortlisting now includes a consent-based interview invitation. */
+.career-cv-link{display:inline-flex;margin-top:8px;color:#2367c4;font-size:.76rem;font-weight:780;overflow-wrap:anywhere}
+.career-cv-link:hover{text-decoration:underline}
+.career-interview-box{padding:11px 12px;background:#f3f8ff;border:1px solid #dce9fa;border-radius:10px;margin-top:8px}
+.career-interview-box label{display:grid;gap:7px;font-size:.78rem;color:#426184}
+.career-interview-box textarea{width:100%;min-width:0;padding:10px 11px;border-radius:8px;border:1px solid #cbdff5;background:#fff;font-size:.81rem;color:#294263;resize:vertical}
+.career-interview-start{background:#e8f2ff;border:1px solid #c9e1ff;border-radius:9px;color:#215cb3;padding:10px 14px;font-size:.77rem;font-weight:760;cursor:pointer}
+.career-interview-start:hover{background:#dcecff}
