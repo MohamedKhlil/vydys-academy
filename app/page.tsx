@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import HomePageClient from "../components/home-page-client";
 import { supabase } from "../lib/supabase";
-import type { FeaturedCourse } from "../components/home-growth";
+import type { PremiumCourse } from "../components/home-page-client";
 
 export const revalidate = 60;
 
@@ -29,7 +29,7 @@ export const metadata:Metadata={
  */
 export default async function HomePage(){
   const { data: published, error } = await supabase.from("courses")
-    .select("id,slug,title_fr,title_ar,title_en,description_fr,description_ar,description_en,base_price_amount,base_currency,registration_deadline")
+    .select("id,instructor_id,slug,title_fr,title_ar,title_en,description_fr,description_ar,description_en,base_price_amount,base_currency,registration_deadline")
     .eq("status","published")
     .order("published_at",{ascending:false})
     .limit(6);
@@ -37,24 +37,37 @@ export default async function HomePage(){
   if(error)console.warn("Vydys homepage: unable to fetch published courses.");
   const rows=published||[];
   const ids=rows.map(course=>course.id);
-  const [{data:prices},{data:modules}]=ids.length
+  const [{data:prices},{data:modules},{data:teachers}]=ids.length
     ? await Promise.all([
         supabase.from("course_prices").select("course_id,currency,amount")
           .in("course_id",ids).eq("is_active",true),
-        supabase.from("course_modules").select("course_id").in("course_id",ids)
+        supabase.from("course_modules")
+          .select("course_id,title_fr,title_ar,title_en,position").in("course_id",ids)
+          .order("position",{ascending:true}),
+        supabase.from("instructor_profiles")
+          .select("user_id,display_name,public_slug")
+          .in("user_id",Array.from(new Set(rows.map(course=>course.instructor_id).filter(Boolean))))
+          .eq("is_public",true)
       ])
-    : [{data:[]},{data:[]}];
+    : [{data:[]},{data:[]},{data:[]}];
 
   const activePrices=new Map((prices||[]).map(price=>[
     price.course_id+":"+String(price.currency||"").toUpperCase(),
     Number(price.amount)
   ]));
   const modulesCount=new Map<string,number>();
-  for(const module of modules||[])modulesCount.set(
-    module.course_id,(modulesCount.get(module.course_id)||0)+1
-  );
+  const previews=new Map<string,Array<{fr:string;ar:string|null;en:string|null}>>();
+  for(const module of modules||[]){
+    modulesCount.set(module.course_id,(modulesCount.get(module.course_id)||0)+1);
+    if((previews.get(module.course_id)||[]).length<3){
+      const list=previews.get(module.course_id)||[];
+      list.push({fr:module.title_fr||"",ar:module.title_ar||null,en:module.title_en||null});
+      previews.set(module.course_id,list);
+    }
+  }
+  const teacherById=new Map((teachers||[]).map(teacher=>[teacher.user_id,teacher]));
 
-  const featured:FeaturedCourse[]=rows.map(course=>{
+  const featured:PremiumCourse[]=rows.map(course=>{
     const currency=String(course.base_currency||"MRU").toUpperCase();
     return {
       id:course.id,slug:course.slug,
@@ -64,9 +77,12 @@ export default async function HomePage(){
       currency,
       price:activePrices.get(course.id+":"+currency) ?? Number(course.base_price_amount||0),
       modules:modulesCount.get(course.id)||0,
-      registration_deadline:course.registration_deadline
+      registration_deadline:course.registration_deadline,
+      instructor_name:teacherById.get(course.instructor_id)?.display_name||null,
+      instructor_slug:teacherById.get(course.instructor_id)?.public_slug||null,
+      module_preview:previews.get(course.id)||[]
     };
-  }).filter(course=>course.modules>0).slice(0,3);
+  }).slice(0,3);
 
   return <HomePageClient featuredCourses={featured}/>;
 }
