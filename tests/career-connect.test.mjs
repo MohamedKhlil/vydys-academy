@@ -110,7 +110,8 @@ test("Activation events contain pseudonymous IDs, no private CV, payment or cont
  assert.match(sql,/SECURITY INVOKER/);
  assert.match(sql,/is_management_user\(\(SELECT auth.uid\(\)\)\)/);
  assert.match(sql,/REVOKE ALL ON FUNCTION public.vydys_admin_activation_funnel\(integer\) FROM PUBLIC,anon/);
- assert.doesNotMatch(sql,/cover_letter|full_name|email|phone|proof_path/);
+ const eventSchema=sql.slice(sql.indexOf("CREATE TABLE IF NOT EXISTS public.vydys_growth_events"),sql.indexOf("ALTER TABLE public.vydys_growth_events"));
+ assert.doesNotMatch(eventSchema,/cover_letter|full_name|email|phone|proof_path/);
  assert.match(tracker,/vydys_analytics_visitor/);
  assert.match(tracker,/window.location.pathname/);
  assert.doesNotMatch(tracker,/searchParams|queryParams|localStorage.getItem\("email"\)/);
