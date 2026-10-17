@@ -141,3 +141,36 @@ test("New public navigation and authentication return paths are coherent",()=>{
  assert.match(read("app/admin/page.tsx"),/\/admin\/entreprises/);
  assert.match(read("app/robots.ts"),/\/admin/);
 });
+
+test("Only verified employers may send first contact requests; application interview follows shortlist",()=>{
+ const sql=read("supabase/migrations/202610170315_career_verified_recruiter.sql");
+ const detail=read("components/talent-contact-form.tsx");
+ assert.match(sql,/career_companies/);
+ assert.match(sql,/status='approved'/);
+ assert.match(sql,/is_public AND discoverable AND open_to_work/);
+ assert.match(detail,/\.eq\("user_id",user.id\)/);
+ assert.match(detail,/data\?\.status==="approved"/);
+ const appSql=read("supabase/migrations/202610170300_career_applicant_contact.sql");
+ assert.match(appSql,/career_request_applicant_contact/);
+ assert.match(appSql,/a.status='shortlisted'/);
+ assert.match(appSql,/co.status='approved'/);
+ assert.match(appSql,/talent_id/);
+ assert.match(appSql,/REVOKE ALL ON FUNCTION public.career_request_applicant_contact\(uuid,text\) FROM PUBLIC,anon/);
+ const employer=read("app/carriere/entreprise/page.tsx");
+ assert.match(employer,/career_request_applicant_contact/);
+ assert.match(employer,/career-interview-box/);
+});
+
+test("Applicants must explicitly agree to share public CV; employers see only consented link",()=>{
+ const sql=read("supabase/migrations/202610170300_career_applicant_contact.sql");
+ const apply=read("components/career-apply-form.tsx");
+ const employer=read("app/carriere/entreprise/page.tsx");
+ assert.match(sql,/share_cv boolean NOT NULL DEFAULT false/);
+ assert.match(sql,/IF NEW.share_cv=true THEN/);
+ assert.match(sql,/WHERE user_id=NEW.applicant_id AND is_public=true/);
+ assert.match(sql,/ELSE NEW.shared_public_slug:=NULL/);
+ assert.match(apply,/share_cv:shareCv/);
+ assert.match(apply,/shareCv,setShareCv/);
+ assert.match(employer,/a.share_cv&&a.shared_public_slug/);
+ assert.match(employer,/candidate_name/);
+});
