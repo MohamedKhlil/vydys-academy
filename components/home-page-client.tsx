@@ -294,7 +294,7 @@ export default function HomePageClient({featuredCourses}:{featuredCourses:Premiu
         </div>
         {featured.length?<div className="v4-course-grid">{featured.map((course,i)=>
           <article className="v4-featured-course" key={course.id}>
-            <div className={"v4-featured-art v4-art-"+i%3}>
+            <div className={"v4-featured-art v4-art-"+(i%3)}>
               <span>VYDYS <b>ACADEMY</b></span>
               <span className="v4-featured-art-mark" aria-hidden="true">{i===0?"AI":i===1?"01":"✧"}</span>
               <span>{t({fr:"FORMATION EN LIGNE",ar:"دورة عبر الإنترنت",en:"ONLINE COURSE"})}</span>
