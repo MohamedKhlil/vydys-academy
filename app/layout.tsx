@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./growth.css";
 import "./home-premium.css";
+import "./talents.css";
 import "./retention.css";
 import { Header } from "../components/header";
 import { Footer } from "../components/footer";
