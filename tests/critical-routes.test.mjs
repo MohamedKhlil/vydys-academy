@@ -84,7 +84,7 @@ test("Private instructor studio routes are excluded from crawler indexing",()=>{
 
 test("Public homepage features existing published courses with authoritative active prices",()=>{
   const homepage=source("app/page.tsx");
-  const featured=source("components/home-growth.tsx");
+  const featured=source("components/home-page-client.tsx");
   assert.match(homepage,/\.eq\("status","published"\)/);
   assert.match(homepage,/\.from\("course_prices"\)/);
   assert.match(homepage,/\.eq\("is_active",true\)/);
@@ -118,10 +118,10 @@ test("Redirect after login only permits learner pages on the same origin",()=>{
 
 test("Growth journeys are transparent about illustrative content and paid courses",()=>{
   const homepage=source("components/home-page-client.tsx");
-  const section=source("components/home-growth.tsx");
-  assert.match(homepage,/Illustrative preview of Vydys/);
+  const section=source("components/home-page-client.tsx");
+  assert.match(homepage,/Preview of a published Vydys course/);
   assert.match(homepage,/href="\/connexion\?mode=register/);
-  assert.match(section,/some courses are paid/);
+  assert.match(section,/Paid courses clearly priced/);
   assert.match(section,/\/devenir-formateur/);
 });
 
