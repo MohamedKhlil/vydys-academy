@@ -8,6 +8,7 @@ import { supabase } from "../../../lib/supabase";
 import WhatsAppBubble from "../../../components/whatsapp-bubble";
 import CourseShare from "../../../components/course-share";
 import ClassroomCalendarActions from "../../../components/classroom-calendar-actions";
+import { trackGrowthEvent } from "../../../lib/growth-events";
 
 // Mauritania uses UTC throughout the year: enrollment stays open until 23:59 on the deadline day.
 const isRegistrationClosed=(deadline?:string|null)=>Boolean(deadline && new Date().toISOString().slice(0,10)>deadline);
@@ -86,7 +87,7 @@ export default function FormationDetailClient({ initialCourse, initialModules }:
     }else setCheckoutCurrency(String(c.base_currency||"MRU").toUpperCase());
     setDetailsLoaded(true);
   }
-  useEffect(()=>{load()},[params.slug]);
+  useEffect(()=>{load();void trackGrowthEvent("course_viewed")},[params.slug]);
 
   const method=methods.find(m=>m.id===selectedMethod);
   const priceMap=useMemo(()=>Object.fromEntries(prices.map(p=>[String(p.currency).toUpperCase(),Number(p.amount)])),[prices]);
@@ -139,6 +140,7 @@ export default function FormationDetailClient({ initialCourse, initialModules }:
     if(payable==null){setMessage(t({fr:"Le formateur n’a pas configuré de prix dans la devise de cette méthode.",ar:"لم يحدد المدرب سعراً بعملة وسيلة الدفع هذه.",en:"The instructor has not configured a price in this payment method's currency."}));return}
 
     if(method.payment_mode==="automatic"){
+      void trackGrowthEvent("course_checkout_started");
       setBusy(true);
       const {data,error}=await supabase.functions.invoke("vydys-payments",{body:{
         action:"create_checkout",course_id:course.id,payment_method_id:method.id,currency:selectedCurrency,
@@ -146,17 +148,19 @@ export default function FormationDetailClient({ initialCourse, initialModules }:
       }});
       setBusy(false);
       if(error||data?.error){setMessage(data?.detail||data?.error||error?.message||"Checkout error");return}
-      if(data?.url)window.location.href=data.url;
+      if(data?.url){void trackGrowthEvent("course_order_submitted");window.location.href=data.url;}
       return;
     }
 
     if(!proof){setMessage(t({fr:"Ajoutez la preuve du paiement.",ar:"أضف إثبات الدفع.",en:"Add the payment proof."}));return}
+    void trackGrowthEvent("course_checkout_started");
     const safe=proof.name.replace(/[^a-zA-Z0-9._-]/g,"_");
     const path=`${user.id}/${crypto.randomUUID()}-${safe}`;
     const {error:upErr}=await supabase.storage.from("payment-proofs").upload(path,proof,{contentType:proof.type});
     if(upErr){setMessage(upErr.message);return}
     const {error}=await supabase.rpc("create_manual_course_order",{p_course_id:course.id,p_payment_method_id:method.id,p_transaction_reference:reference,p_proof_path:path,p_coupon_code:coupon?.valid?couponCode.trim():""});
     if(error){setMessage(error.message);return}
+    void trackGrowthEvent("course_order_submitted");
     setMessage(t({fr:"Paiement envoyé directement au formateur pour validation.",ar:"تم إرسال إثبات الدفع مباشرة للمدرب للمراجعة.",en:"Payment proof sent directly to the instructor for approval."}));
     setProof(null);setReference("");setCoupon(null);setCouponCode("");
   }
