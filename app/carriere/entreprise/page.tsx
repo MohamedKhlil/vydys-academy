@@ -8,7 +8,7 @@ import { trackGrowthEvent } from "../../../lib/growth-events";
 
 type Company={user_id:string;company_name:string;website:string|null;country:string|null;description:string|null;status:string};
 type Job={id:string;title:string;description:string;required_skills:string[];country:string|null;city:string|null;remote_allowed:boolean;employment_type:string;status:string;expires_at:string|null};
-type Application={id:string;job_id:string;applicant_id:string;cover_letter:string;status:string;created_at:string};
+type Application={id:string;job_id:string;applicant_id:string;candidate_name:string|null;share_cv:boolean;shared_public_slug:string|null;cover_letter:string;status:string;created_at:string};
 const initialJob={id:"",title:"",description:"",skills:"",country:"",city:"",remote_allowed:false,employment_type:"full_time",status:"draft"};
 
 export default function CareerCompanyPage(){
@@ -25,6 +25,8 @@ export default function CareerCompanyPage(){
  const [loading,setLoading]=useState(true);
  const [busy,setBusy]=useState(false);
  const [notice,setNotice]=useState("");
+ const [interviewId,setInterviewId]=useState("");
+ const [interviewMessage,setInterviewMessage]=useState("");
 
  async function refresh(userId:string){
    const {data:c}=await supabase.from("career_companies").select("*").eq("user_id",userId).maybeSingle();
@@ -34,7 +36,7 @@ export default function CareerCompanyPage(){
    const list=(j||[]) as Job[];setJobs(list);
    if(list.length){
      const {data:a}=await supabase.from("career_applications")
-       .select("id,job_id,applicant_id,cover_letter,status,created_at")
+       .select("id,job_id,applicant_id,candidate_name,share_cv,shared_public_slug,cover_letter,status,created_at")
        .in("job_id",list.map(row=>row.id)).order("created_at",{ascending:false}).limit(100);
      setApplications((a||[]) as Application[]);
    }else setApplications([]);
@@ -77,6 +79,17 @@ export default function CareerCompanyPage(){
    if(result.error){setNotice(result.error.message);return}
    setJob({...initialJob});await refresh(uid);
    setNotice(t({fr:"Offre enregistrée.",ar:"تم حفظ العرض.",en:"Job saved."}));
+ }
+ async function requestInterview(applicationId:string){
+   if(busy||!interviewMessage.trim())return;
+   setBusy(true);setNotice("");
+   const {error}=await supabase.rpc("career_request_applicant_contact",{
+     p_application_id:applicationId,p_message:interviewMessage.trim()
+   });
+   setBusy(false);
+   if(error){setNotice(error.message);return}
+   setInterviewId("");setInterviewMessage("");
+   setNotice(t({fr:"Demande d'entretien envoyée. Le candidat pourra accepter ou refuser.",ar:"تم إرسال طلب المقابلة ويمكن للمتقدم قبوله أو رفضه.",en:"Interview request sent. The applicant can accept or decline."}));
  }
  async function review(id:string,newStatus:"shortlisted"|"rejected"){
    if(busy)return;setBusy(true);setNotice("");
@@ -156,9 +169,12 @@ export default function CareerCompanyPage(){
            {!applications.length&&<p>{t({fr:"Aucune candidature reçue.",ar:"لا توجد طلبات.",en:"No applications yet."})}</p>}
            <div className="career-employer-list">{applications.map(a=><article key={a.id} className="career-application-summary">
              <div><strong>{jobs.find(j=>j.id===a.job_id)?.title||"Job"}</strong>
-               <small>{t({fr:"Candidat (référence)",ar:"مرجع المتقدم",en:"Applicant reference"})}: {a.applicant_id.slice(0,8)} · {label(a.status)}</small>
+               <small>{a.candidate_name||t({fr:"Candidat",ar:"متقدم",en:"Applicant"})} · {label(a.status)}</small>
+               {a.share_cv&&a.shared_public_slug&&<Link className="career-cv-link" href={"/talent/"+encodeURIComponent(a.shared_public_slug)}>{t({fr:"CV partagé volontairement",ar:"السيرة الذاتية المشتركة بموافقة",en:"CV shared with consent"})} ↗</Link>}
                <p>{a.cover_letter}</p>
              </div>
+             {a.status==="shortlisted"&&<div className="career-interview-box">
+               {interviewId===a.id?<><label><span>{t({fr:"Votre proposition d’entretien",ar:"رسالة طلب المقابلة",en:"Interview proposal"})}</span><textarea minLength={20} maxLength={1000} rows={3} value={interviewMessage} onChange={e=>setInterviewMessage(e.target.value)} /></label><div className="career-application-actions"><button type="button" disabled={busy||interviewMessage.trim().length<20} onClick={()=>void requestInterview(a.id)}>{t({fr:"Envoyer la demande",ar:"إرسال الطلب",en:"Send request"})}</button><button type="button" onClick={()=>setInterviewId("")}>{t({fr:"Annuler",ar:"إلغاء",en:"Cancel"})}</button></div></>:<button className="career-interview-start" type="button" onClick={()=>{setInterviewId(a.id);setInterviewMessage("")}}>{t({fr:"Proposer un entretien",ar:"اقترح مقابلة",en:"Request an interview"})}</button>}</div>}
              {a.status==="submitted"&&<div className="career-application-actions">
                <button type="button" disabled={busy} onClick={()=>void review(a.id,"shortlisted")}>{t({fr:"Présélectionner",ar:"قبول مبدئي",en:"Shortlist"})}</button>
                <button type="button" disabled={busy} onClick={()=>void review(a.id,"rejected")}>{t({fr:"Refuser",ar:"رفض",en:"Reject"})}</button>
