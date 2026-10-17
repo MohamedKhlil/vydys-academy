@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useLanguage } from "../components/language-provider";
+import HomeGrowth, { type FeaturedCourse } from "./home-growth";
 
-export default function HomePageClient(){
+export default function HomePageClient({featuredCourses}:{featuredCourses:FeaturedCourse[]}){
   const {t}=useLanguage();
 
   const ecosystem=[
@@ -35,8 +36,8 @@ export default function HomePageClient(){
           en:"Vydys is an international ecosystem for learning AI and emerging technologies, practicing in real labs, joining live Classrooms, building projects and turning every milestone into professional proof."
         })}</p>
         <div className="home-hero-actions">
-          <Link className="btn home-primary-cta" href="/formations">{t({fr:"Commencer à apprendre",ar:"ابدأ التعلم",en:"Start learning"})}</Link>
-          <Link className="btn btn-ghost home-secondary-cta" href="/classroom">{t({fr:"Découvrir les Classrooms",ar:"اكتشف الفصول",en:"Explore Classrooms"})}</Link>
+          <Link className="btn home-primary-cta" href="/connexion?mode=register&utm_source=homepage&utm_medium=cta&utm_campaign=free_account">{t({fr:"Créer mon compte gratuit",ar:"إنشاء حساب مجاني",en:"Create my free account"})}</Link>
+          <Link className="btn btn-ghost home-secondary-cta" href="/formations">{t({fr:"Voir les formations",ar:"عرض الدورات",en:"Explore courses"})}</Link>
         </div>
         <div className="home-proof-row">
           <div><strong>AI</strong><span>{t({fr:"Tutor personnel",ar:"مدرس شخصي",en:"Personal tutor"})}</span></div>
@@ -48,6 +49,7 @@ export default function HomePageClient(){
 
       <div className="home-product-stage">
         <div className="home-stage-glow"></div>
+        <small className="growth-mock-caption">{t({fr:"Aperçu illustratif de l’expérience Vydys",ar:"عرض توضيحي لتجربة Vydys",en:"Illustrative preview of Vydys" })}</small>
         <article className="home-product-shell">
           <div className="home-product-topbar"><div><i></i><i></i><i></i></div><span>vydys.com</span><b>V</b></div>
           <div className="home-product-body">
@@ -66,7 +68,7 @@ export default function HomePageClient(){
                   <span>○ Agent orchestration</span>
                 </div>
               </div>
-              <div className="home-live-card"><div><span>LIVE</span><strong>AI Agents · Cohort 08</strong><small>Session 4 · 19:00 GMT</small></div><button>{t({fr:"Rejoindre",ar:"انضم",en:"Join"})}</button></div>
+              <div className="home-live-card"><div><span>LIVE</span><strong>AI Agents · Cohort 08</strong><small>Session 4 · 19:00 GMT</small></div><span className="growth-demo-join">{t({fr:"Aperçu",ar:"عرض",en:"Preview"})}</span></div>
               <div className="home-evidence-row"><div><span>✓</span><div><small>Verified Skill</small><strong>Python · Intermediate</strong></div></div><div><span>⌘</span><div><small>Project</small><strong>Support AI Agent</strong></div></div></div>
             </div>
           </div>
@@ -78,6 +80,8 @@ export default function HomePageClient(){
       <span>{t({fr:"Un seul compte. Un parcours complet.",ar:"حساب واحد. مسار كامل.",en:"One account. One complete journey."})}</span>
       <div><b>COURSES</b><b>CLASSROOM</b><b>AI TUTOR</b><b>AI LAB</b><b>PRACTICE</b><b>SKILLS</b><b>PORTFOLIO</b></div>
     </div></section>
+
+    <HomeGrowth courses={featuredCourses}/>
 
     <section className="section home-ecosystem"><div className="container">
       <div className="home-section-intro">
