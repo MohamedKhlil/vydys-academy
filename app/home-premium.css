@@ -338,3 +338,20 @@
   .v4-home .v4-btn,.v4-home .v4-goal-tabs button,.v4-home .v4-tool-card,.v4-home .v4-featured-course{transition:none}
   .v4-home .v4-btn:hover,.v4-home .v4-tool-card:hover,.v4-home .v4-featured-course:hover{transform:none}
 }
+
+/* Opt-in Vydys Talents discovery, clearly separated from course sales. */
+.v4-home .v4-talents-banner{padding:56px 0;background:#f1f6ff;border-block:1px solid #dfeafb}
+.v4-home .v4-talents-grid{display:grid;grid-template-columns:100px minmax(0,1fr) auto;gap:28px;align-items:center}
+.v4-home .v4-talents-icon{position:relative;width:94px;height:94px;border-radius:24px;background:#dceaff;color:#2861ba;display:grid;place-items:center}
+.v4-home .v4-talents-icon span:first-child{font-size:3.3rem;font-weight:740}
+.v4-home .v4-talents-icon span:last-child{position:absolute;bottom:14px;right:14px;font-size:.73rem;font-weight:890;background:#256fe1;color:#fff;padding:5px;border-radius:6px}
+.v4-home .v4-talents-banner .v4-kicker{margin-bottom:9px}
+.v4-home .v4-talents-banner h2{font-size:clamp(1.6rem,2.65vw,2.28rem);line-height:1.19;letter-spacing:-.038em;color:#183762;margin:0 0 10px}
+.v4-home .v4-talents-banner p{font-size:.88rem;color:#5a6d88;line-height:1.67;margin:0;max-width:700px}
+.v4-home .v4-talents-actions{display:grid;gap:14px;justify-items:center}
+.v4-home .v4-talents-actions .v4-btn{white-space:nowrap}
+.v4-home .v4-talents-secondary{font-size:.82rem;font-weight:760;color:#2562b6}
+.v4-home .v4-talents-secondary:hover{text-decoration:underline}
+[dir=rtl] .v4-home .v4-talents-icon span:last-child{right:auto;left:14px}
+@media(max-width:1100px){.v4-home .v4-talents-grid{grid-template-columns:75px minmax(0,1fr)}.v4-home .v4-talents-icon{width:75px;height:75px}.v4-home .v4-talents-actions{grid-column:2;justify-items:start;display:flex;align-items:center;flex-wrap:wrap;gap:19px}}
+@media(max-width:690px){.v4-home .v4-talents-banner{padding:40px 0}.v4-home .v4-talents-grid{grid-template-columns:1fr;gap:13px}.v4-home .v4-talents-actions{grid-column:1}.v4-home .v4-talents-icon{width:66px;height:66px;border-radius:18px}.v4-home .v4-talents-icon span:first-child{font-size:2.6rem}.v4-home .v4-talents-banner h2{font-size:1.74rem}}
