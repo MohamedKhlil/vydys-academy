@@ -1,0 +1,149 @@
+/* Vydys Talents public directory, printable CV and private portfolio editor. */
+.talents-directory,.talent-cv{background:#f6f8fc;color:#142947}
+.talents-directory :is(a,button,input,select):focus-visible,.talent-cv :is(a,button):focus-visible,.cv-editor-grid :is(button,input,select,textarea):focus-visible{outline:3px solid #76acff;outline-offset:3px}
+.talents-hero{background:radial-gradient(ellipse at 84% 10%,rgba(54,119,224,.2),transparent 52%),linear-gradient(120deg,#09172e,#123467);color:#fff;padding:74px 0 68px}
+.talents-hero-inner{display:flex;justify-content:space-between;align-items:end;gap:40px}
+.talents-hero-inner>div:first-child{max-width:780px}
+.talents-hero .eyebrow{color:#8abaff}
+.talents-hero h1{font-size:clamp(2.1rem,4.8vw,3.8rem);line-height:1.1;letter-spacing:-.05em;font-weight:850;margin:0 0 17px}
+.talents-hero p{color:#cad8ef;font-size:1rem;line-height:1.7;max-width:640px;margin:0}
+.talents-hero-actions{display:grid;gap:10px;min-width:205px}
+.talents-hero-actions .btn{white-space:normal;line-height:1.25;text-align:center}
+.talents-hero-actions .btn-ghost{background:transparent;color:#f2f8ff;border-color:#6a87b5}
+.talents-content{padding-block:64px 88px}
+.talents-content-head{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:23px}
+.talents-content-head>div{max-width:690px}
+.talents-content-head h2{font-size:clamp(1.65rem,3vw,2.4rem);margin:0 0 10px;line-height:1.2;letter-spacing:-.035em}
+.talents-content-head p{font-size:.91rem;color:#667891;line-height:1.6;margin:0}
+.talents-count{white-space:nowrap;background:#e8f0ff;border-radius:999px;padding:10px 15px;color:#2858a7;font-size:.8rem;font-weight:850}
+.talents-filters{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) auto;align-items:end;gap:13px;margin-bottom:25px}
+.talents-filters label{display:grid;gap:8px;font-size:.79rem;font-weight:760;color:#394e6c}
+.talents-filters input[type=search],.talents-filters select{min-width:0;min-height:46px;border:1px solid #d5e1f1;border-radius:11px;padding:11px 13px;background:#fff;color:#193357;font-size:.85rem;outline-offset:3px}
+.talents-filters .talents-work-check{display:flex;align-items:center;gap:9px;min-height:46px;border-radius:11px;padding:10px 13px;border:1px solid #d5e1f1;background:#fff;cursor:pointer;font-size:.77rem}
+.talents-filters input[type=checkbox]{accent-color:#2465dc;width:16px;height:16px;flex:0 0 16px}
+.talents-card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.talents-person{display:flex;flex-direction:column;gap:0;min-width:0;border:1px solid #dde6f3;border-radius:18px;background:#fff;padding:24px;box-shadow:0 7px 25px rgba(30,57,105,.045);transition:transform .17s,border-color .17s}
+.talents-person:hover{transform:translateY(-3px);border-color:#b6d2f5}
+.talents-person-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:16px}
+.talents-avatar{width:58px;height:58px;border-radius:17px;flex:0 0 58px;background:linear-gradient(135deg,#2156a6,#5092e7);color:#fff;display:grid;place-items:center;font-size:1.2rem;font-weight:830;letter-spacing:-.05em}
+.talents-available{color:#126748;background:#e5f8ee;border-radius:999px;font-weight:770;font-size:.63rem;padding:7px 9px;line-height:1.35}
+.talents-person h3{font-size:1.22rem;color:#10294e;line-height:1.3;margin:0 0 6px;overflow-wrap:anywhere}
+.talents-person p{line-height:1.56}
+.talents-headline{font-size:.89rem;color:#415b80;margin:0 0 8px}
+.talents-location{font-size:.76rem;color:#75859b;margin:0 0 8px}
+.talents-person-bio{color:#6d7d91;font-size:.78rem;margin:8px 0 16px;min-height:36px;flex:1;overflow-wrap:anywhere}
+.talents-skill-tags{display:flex;flex-wrap:wrap;gap:6px;margin:7px 0 19px;min-height:22px}
+.talents-skill-tags span,.talent-cv-tags span{border-radius:7px;background:#edf4ff;color:#27578f;padding:6px 8px;font-size:.67rem;line-height:1.2;font-weight:670}
+.talents-profile-link{display:flex;align-items:center;justify-content:space-between;gap:11px;color:#195ac5;font-size:.82rem;font-weight:790;border-top:1px solid #e8edf5;padding-top:16px;margin-top:auto}
+.talents-profile-link:hover{text-decoration:underline}
+.talents-empty{text-align:center;padding:55px 25px;background:#fff;border:1px solid #e1eaf4;border-radius:18px}
+.talents-empty-icon{font-size:3rem;color:#3179dc;margin-bottom:15px}
+.talents-empty h3{font-size:1.4rem;color:#17345b;margin:0 0 11px}
+.talents-empty p{font-size:.9rem;color:#74849b;line-height:1.6;max-width:590px;margin:0 auto 22px}
+.talents-directory-note{font-size:.75rem;line-height:1.6;color:#8290a3;margin-top:27px}
+
+/* Public CV */
+.talent-cv{padding-block:33px 72px}
+.talent-cv-topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:19px}
+.talent-cv-topbar>a,.talent-cv-topbar>div>a{font-size:.8rem;color:#235eb2;font-weight:750}
+.talent-cv-topbar>div{display:flex;flex-wrap:wrap;align-items:center;gap:16px}
+.talent-cv-topbar button{border:1px solid #d1deee;border-radius:9px;background:#fff;color:#2c5e9c;padding:9px 13px;font-size:.78rem;font-weight:740;cursor:pointer}
+.talent-cv-hero{display:flex;align-items:flex-start;gap:23px;padding:35px 39px;border-radius:22px;background:linear-gradient(112deg,#0b1e3b,#154178);color:#fff;border:1px solid #214674}
+.talent-cv-avatar{width:88px;height:88px;flex:0 0 88px;border-radius:23px;background:linear-gradient(135deg,#296fe1,#78b0f8);display:grid;place-items:center;color:#fff;font-weight:820;font-size:1.7rem}
+.talent-cv-hero-main{min-width:0;flex:1}
+.talent-cv-label{font-size:.67rem;letter-spacing:.12em;color:#80baff;font-weight:840}
+.talent-cv-hero h1{font-size:clamp(1.8rem,3vw,2.8rem);line-height:1.14;margin:8px 0 6px;color:#fff;letter-spacing:-.04em}
+.talent-cv-hero h2{font-size:1.05rem;line-height:1.45;color:#bfddff;font-weight:670;margin:0 0 6px}
+.talent-cv-location{font-size:.82rem;color:#a5c0df;margin:5px 0 0}
+.talent-cv-bio{font-size:.87rem;line-height:1.68;color:#e0ecfc;white-space:pre-line;margin:13px 0}
+.talent-cv-socials{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.talent-cv-socials a{font-size:.73rem;color:#fff;padding:8px 12px;background:rgba(255,255,255,.1);border:1px solid rgba(173,203,244,.2);border-radius:9px}
+.talent-cv-socials a:hover{background:rgba(100,160,255,.22)}
+.talent-open-badge{color:#dcffe9;background:rgba(37,151,110,.28);border:1px solid rgba(112,205,158,.55);border-radius:999px;padding:9px 13px;font-size:.7rem;font-weight:760;line-height:1.4;flex:0 0 auto}
+.talent-cv-content{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(270px,.85fr);gap:24px;margin-top:25px;align-items:start}
+.talent-cv-main{display:grid;gap:16px;min-width:0}
+.talent-cv-section,.talent-cv-sidecard{background:#fff;padding:27px 29px;border:1px solid #e1e9f4;border-radius:17px;min-width:0}
+.talent-cv-section>h2,.talent-cv-section-heading h2,.talent-cv-sidecard h2{font-size:1.18rem;line-height:1.25;color:#143358;margin:0 0 21px}
+.talent-cv-section-heading{display:flex;justify-content:space-between;gap:10px}
+.talent-cv-section-heading>span{font-size:.75rem;color:#6a8dbd}
+.talent-cv-timeline{border-inline-start:2px solid #dce9f9;padding-inline-start:22px;display:grid;gap:21px}
+.talent-cv-timeline>article{position:relative}
+.talent-timeline-dot{width:11px;height:11px;position:absolute;inset-inline-start:-29px;top:4px;background:#3676e4;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 2px #bed7f9}
+.talent-cv-timeline h3{font-size:1rem;color:#16355e;line-height:1.3;margin:0 0 4px}
+.talent-cv-timeline strong{display:block;font-size:.83rem;color:#496785}
+.talent-cv-timeline small{display:block;font-size:.75rem;color:#7890ad;margin-top:5px}
+.talent-cv-timeline p{font-size:.84rem;color:#566b88;line-height:1.6;margin:7px 0 0;white-space:pre-wrap}
+.talent-cv-projects{display:grid;gap:13px}
+.talent-cv-projects article{background:#f9fbff;border:1px solid #e7edf7;border-radius:12px;padding:19px}
+.talent-verified-badge{color:#067b58;font-size:.69rem;font-weight:780}
+.talent-cv-projects h3{color:#18385b;font-size:.95rem;margin:10px 0 8px}
+.talent-cv-projects p{font-size:.82rem;line-height:1.6;color:#627997;margin:0 0 13px}
+.talent-cv-tags{display:flex;flex-wrap:wrap;gap:6px}
+.talent-cv-links{display:flex;gap:15px;margin-top:14px}
+.talent-cv-links a{color:#2065c2;font-size:.78rem;font-weight:800}
+.talent-cv-certs{display:grid;gap:11px}
+.talent-cv-certs a{display:flex;align-items:center;gap:12px;border-radius:11px;background:#f5f8ff;padding:13px}
+.talent-cv-certs a>span{width:37px;height:37px;border-radius:9px;background:#e2edff;color:#2566bb;font-weight:900;display:grid;place-items:center}
+.talent-cv-certs a>div{min-width:0;flex:1;display:grid;gap:6px}
+.talent-cv-certs strong{font-size:.83rem;color:#224c81;line-height:1.4}
+.talent-cv-certs small{font-size:.69rem;color:#7e91aa}
+.talent-cv-certs b{color:#2763ba}
+.talent-cv-sidebar{display:grid;gap:16px}
+.talent-cv-sidecard{padding:25px}
+.talent-cv-sidecard>p{color:#63768e;font-size:.82rem;line-height:1.6;margin:0}
+.talent-cv-sidecard .talent-cv-tags{margin-top:13px}
+.talent-cv-skill-group{display:grid;gap:10px;margin-top:13px}
+.talent-cv-skill-group>strong{font-size:.79rem;color:#3d5d87}
+.talent-cv-skill-group>div{display:flex;flex-wrap:wrap;gap:8px}
+.talent-cv-skill-group>div span{padding:6px 9px;border-radius:8px;background:#e8f6ed;color:#1b6a47;font-size:.71rem;font-weight:730}
+.talent-cv-clarifier{font-size:.75rem!important;line-height:1.5!important}
+.talent-cv-help a{display:inline-block;margin-top:15px;font-size:.81rem;color:#2464bd;font-weight:800}
+
+/* Student private CV builder */
+.cv-editor-intro{display:flex;justify-content:space-between;align-items:center;gap:22px;background:#f3f8ff;border:1px solid #d9e6f8;padding:23px 26px;margin:21px 0;border-radius:15px}
+.cv-editor-intro>div{max-width:730px}
+.cv-editor-intro h2{font-size:1.37rem;margin:0 0 7px}
+.cv-editor-intro p{margin:0;font-size:.85rem;line-height:1.6;color:#637990}
+.cv-editor-intro .btn{flex:0 0 auto}
+.cv-visibility-options{display:grid;gap:14px;background:#f7faff;border:1px solid #e0eaf6;border-radius:13px;padding:19px;margin:16px 0}
+.cv-visibility-options .checkbox-line{margin:0}
+.cv-visibility-options>p{font-size:.77rem;color:#7689a2;line-height:1.6;margin:0}
+.cv-editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:22px 0 48px;align-items:start}
+.cv-editor-section{padding:25px;min-width:0}
+.cv-editor-heading h2{font-size:1.37rem;line-height:1.27;margin:0 0 9px}
+.cv-editor-heading p{font-size:.82rem;line-height:1.6;color:#6c7c92;margin:0 0 20px}
+.cv-edit-form{display:grid;gap:14px}
+.cv-edit-form label{display:grid;gap:7px;font-size:.8rem;font-weight:700;color:#344963;min-width:0}
+.cv-edit-form input,.cv-edit-form textarea,.cv-edit-form select{width:100%;min-width:0;background:#fff;border:1px solid #d6e2f1;border-radius:9px;padding:11px 12px;color:#253851;font-size:.84rem}
+.cv-edit-form textarea{resize:vertical}
+.cv-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cv-edit-form .cv-public-checkbox{display:flex;align-items:center;gap:11px;line-height:1.5;font-size:.8rem;font-weight:600;cursor:pointer}
+.cv-public-checkbox input{width:16px;height:16px;min-width:16px;accent-color:#276bdb}
+.cv-save-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.cv-entry-list{display:grid;gap:9px;margin-bottom:19px}
+.cv-entry{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid #e1eaf6;background:#f9fbff;padding:14px;border-radius:11px}
+.cv-entry>div:first-child{display:grid;gap:5px;min-width:0}
+.cv-entry strong{font-size:.82rem;color:#23466f;line-height:1.4}
+.cv-entry small,.cv-entry span{font-size:.7rem;color:#71859f;line-height:1.4}
+.cv-entry-actions{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.cv-entry-actions button{background:#e7f0ff;color:#235db3;border:0;padding:8px 10px;border-radius:7px;font-size:.7rem;font-weight:750;cursor:pointer}
+.cv-entry-actions button:last-child{color:#9b3841;background:#fff0f0}
+.cv-notice{grid-column:1/-1;color:#1c619e;background:#eaf3ff;padding:12px 15px;border-radius:10px;font-size:.82rem}
+@media(max-width:1050px){.talents-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.cv-editor-grid{grid-template-columns:1fr}.talents-hero-inner{align-items:start;flex-direction:column}.talents-hero-actions{display:flex;flex-wrap:wrap}.talents-filters{grid-template-columns:1.5fr 1fr}.talents-filters .talents-work-check{grid-column:1/-1;justify-self:start}}
+@media(max-width:760px){.talents-hero{padding:53px 0}.talents-content{padding-block:45px}.talents-content-head{align-items:start;flex-direction:column}.talents-filters{grid-template-columns:1fr}.talents-filters .talents-work-check{grid-column:auto}.talents-card-grid{grid-template-columns:1fr}.talents-person{padding:21px}.talent-cv-hero{flex-direction:column;padding:25px}.talent-cv-avatar{width:72px;height:72px;flex-basis:72px}.talent-open-badge{align-self:flex-start}.talent-cv-content{grid-template-columns:1fr}.talent-cv-main{order:2}.talent-cv-sidebar{order:1}.talent-cv-section,.talent-cv-sidecard{padding:20px}.cv-editor-intro{align-items:flex-start;flex-direction:column}.cv-two{grid-template-columns:1fr}}
+@media(max-width:380px){.talents-hero h1{font-size:1.94rem}.talents-hero-actions{flex-direction:column;align-items:stretch}.cv-editor-section{padding:16px}.cv-entry{flex-direction:column;align-items:start}}
+@media(prefers-reduced-motion:reduce){.talents-person{transition:none}.talents-person:hover{transform:none}}
+@media print{
+  @page{size:A4;margin:12mm}
+  body,html{background:#fff!important;color:#111!important}
+  .site-header,.site-header-v3,.footer,.footer-v2,.talent-cv-topbar,.talents-directory-note{display:none!important}
+  .talent-cv{padding:0!important;background:#fff!important}
+  .talent-cv>.container{width:100%!important;max-width:none!important}
+  .talent-cv-hero{color:#183153!important;background:#f1f5fc!important;border:1px solid #c6d7e9!important;border-radius:10px!important;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .talent-cv-hero h1,.talent-cv-hero h2,.talent-cv-bio{color:#183153!important}
+  .talent-cv-section,.talent-cv-sidecard,.talent-cv-projects article{box-shadow:none!important;break-inside:avoid;page-break-inside:avoid}
+  .talent-cv-content{grid-template-columns:1fr 220px;gap:15px}
+  .talent-cv-main{order:0}.talent-cv-sidebar{order:0}
+  .talent-cv-socials a,.talent-cv-section a{color:#1651a6!important}
+  .talent-cv a{text-decoration:none}
+}
