@@ -5,6 +5,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useLanguage } from "../../components/language-provider";
 import { supabase } from "../../lib/supabase";
 import StudentCvEditor from "../../components/student-cv-editor";
+import { trackGrowthEvent } from "../../lib/growth-events";
 
 export default function PortfolioSettingsPage(){
   const {t}=useLanguage();
@@ -37,7 +38,7 @@ export default function PortfolioSettingsPage(){
     if(p){setProfile(p);setDisplayName(p.display_name||"");setHeadline(p.headline||"");setBio(p.bio||"");setGithub(p.github_url||"");setLinkedin(p.linkedin_url||"");setWebsite(p.website_url||"");setIsPublic(Boolean(p.is_public));setDiscoverable(Boolean(p.discoverable));setOpenToWork(Boolean(p.open_to_work));setCity(p.city||"");setCountry(p.country||"");setSkillsText((p.self_reported_skills||[]).join(", "))}
     setSkills(sCount||0);setProjects(pCount||0);
   }
-  useEffect(()=>{load()},[]);
+  useEffect(()=>{load();void trackGrowthEvent("portfolio_opened")},[]);
 
   async function save(e:FormEvent){
     e.preventDefault();if(saving)return;setMessage("");
@@ -58,7 +59,11 @@ export default function PortfolioSettingsPage(){
       self_reported_skills:selfSkills,updated_at:new Date().toISOString()
     }).eq("user_id",user.id);
     setMessage(error?error.message:t({fr:"Portfolio enregistré.",ar:"تم حفظ الملف.",en:"Portfolio saved."}));
-    if(!error)await load();
+    if(!error){
+      void trackGrowthEvent("portfolio_saved");
+      if(isPublic&&discoverable&&!profile.discoverable)void trackGrowthEvent("talent_opt_in");
+      await load();
+    }
     setSaving(false);
   }
 
