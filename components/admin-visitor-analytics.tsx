@@ -36,10 +36,18 @@ export default function AdminVisitorAnalytics(){
   const [data,setData]=useState<Analytics>(empty);
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState("");
+  const [campaigns,setCampaigns]=useState<Array<{source:string;medium:string;campaign:string;sessions:number;visitors:number;signed_in_visitors:number}>>([]);
 
   async function load(period=days){
     setLoading(true);setError("");
-    const {data:res,error:invokeError}=await supabase.functions.invoke("vydys-admin-analytics",{body:{days:period}});
+    const [{data:res,error:invokeError},{data:campaignData,error:campaignError}]=await Promise.all([
+      supabase.functions.invoke("vydys-admin-analytics",{body:{days:period}}),
+      supabase.from("vydys_acquisition_campaigns")
+        .select("source,medium,campaign,sessions,visitors,signed_in_visitors")
+        .order("sessions",{ascending:false})
+        .limit(12)
+    ]);
+    if(!campaignError)setCampaigns((campaignData||[]) as Array<{source:string;medium:string;campaign:string;sessions:number;visitors:number;signed_in_visitors:number}>);
     if(invokeError||res?.error){
       setError(res?.detail||res?.error||invokeError?.message||"Analytics error");
       setLoading(false);return;
@@ -118,6 +126,29 @@ export default function AdminVisitorAnalytics(){
           {(i===0||i===data.daily.length-1||i%Math.max(1,Math.floor(data.daily.length/6))===0)&&<small>{new Date(d.day).toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"})}</small>}
         </div>)}
       </div>}
+    </article>
+
+    <article className="panel analytics-chart-card growth-campaign-report">
+      <div className="admin-section-head">
+        <div>
+          <span className="eyebrow">{t({fr:"Croissance",ar:"النمو",en:"Growth"})}</span>
+          <h3>{t({fr:"Campagnes et partages Vydys",ar:"حملات وروابط مشاركة Vydys",en:"Campaigns and Vydys shares"})}</h3>
+          <p>{t({
+            fr:"Visites identifiées par les liens UTM (90 derniers jours). Les visites directes sans tag ne figurent pas ici.",
+            ar:"زيارات الروابط التسويقية خلال آخر 90 يوماً. الزيارات المباشرة بدون وسم غير مدرجة.",
+            en:"Visits attributed to campaign links in the last 90 days. Direct visits without UTM tags are excluded."
+          })}</p>
+        </div>
+      </div>
+      {campaigns.length===0
+        ? <p className="analytics-empty">{t({fr:"Aucune campagne identifiée pour le moment. Les liens de partage Vydys sont désormais suivis.",ar:"لا توجد حملات مسجلة بعد. يتم الآن تتبع روابط المشاركة.",en:"No tagged campaigns yet. Vydys share links are now tracked."})}</p>
+        : <div className="analytics-ranking compact">
+          {campaigns.map((item,i)=><div key={item.source+"-"+item.medium+"-"+item.campaign}>
+            <b>{i+1}</b>
+            <span><strong>{item.campaign}</strong><small>{item.source} · {item.medium} · {item.visitors} {t({fr:"visiteurs",ar:"زوار",en:"visitors"})}</small></span>
+            <em>{item.sessions} {t({fr:"sessions",ar:"جلسات",en:"sessions"})}</em>
+          </div>)}
+        </div>}
     </article>
 
     <div className="analytics-details-grid">
