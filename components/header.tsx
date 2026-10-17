@@ -79,6 +79,7 @@ export function Header() {
               <small>{t({fr:"Apprendre",ar:"التعلم",en:"Learn"})}</small>
               <Link href="/formations"><b>{t({fr:"Formations",ar:"الدورات",en:"Courses"})}</b><span>{t({fr:"Cours en ligne orientés pratique",ar:"دورات عملية عبر الإنترنت",en:"Practical online courses"})}</span></Link>
               <Link href="/classroom"><b>Vydys Classroom</b><span>{t({fr:"Cohortes live intégrées",ar:"فصول مباشرة مدمجة",en:"Integrated live cohorts"})}</span></Link>
+              <Link href="/carriere"><b>Career Connect</b><span>{t({fr:"Offres d’emploi et stages",ar:"فرص عمل وتدريب",en:"Jobs and internships"})}</span></Link>
               <Link href="/talents"><b>Vydys Talents</b><span>{t({fr:"CV, compétences et profils accessibles aux recruteurs",ar:"السير الذاتية والمهارات للمسؤولين عن التوظيف",en:"CVs, skills and recruitable talent profiles"})}</span></Link>
               <Link href="/formateurs"><b>{t({fr:"Formateurs",ar:"المدربون",en:"Instructors"})}</b><span>{t({fr:"Experts et créateurs",ar:"خبراء ومنشئون",en:"Experts and creators"})}</span></Link>
               <Link href="/forum"><b>Community</b><span>{t({fr:"Forum et entraide Vydys",ar:"منتدى ومجتمع Vydys",en:"Vydys forum and community"})}</span></Link>
@@ -103,6 +104,7 @@ export function Header() {
         <Link href="/hub">Hub</Link>
         <Link href="/formations">{t({fr:"Formations",ar:"الدورات",en:"Courses"})}</Link>
         <Link href="/talents">{t({fr:"Talents",ar:"المواهب",en:"Talents"})}</Link>
+        <Link href="/carriere">{t({fr:"Emploi",ar:"وظائف",en:"Jobs"})}</Link>
         <Link href="/marketplace">Market</Link>
         <Link href="/classroom">Classroom</Link>
         <Link href="/practice">Practice</Link>
@@ -151,6 +153,7 @@ export function Header() {
         <div className="mobile-menu-section">
           <small>{t({fr:"Découvrir",ar:"اكتشف",en:"Discover"})}</small>
           <Link href="/recherche"><span>⌕</span><div><strong>{t({fr:"Rechercher",ar:"بحث",en:"Search"})}</strong><small>{t({fr:"Formations, Classrooms, formateurs et produits",ar:"الدورات والفصول والمدربون والمنتجات",en:"Courses, Classrooms, instructors and products"})}</small></div><b>→</b></Link>\n          <Link href="/hub"><span>00</span><div><strong>Vydys Hub</strong><small>{t({fr:"Tout l’écosystème Vydys",ar:"منظومة Vydys كاملة",en:"The complete Vydys ecosystem"})}</small></div><b>→</b></Link>
+          <Link href="/carriere"><span>◎</span><div><strong>Career Connect</strong><small>{t({fr:"Offres, stages et candidatures",ar:"وظائف وتدريب وطلبات",en:"Jobs, internships and applications"})}</small></div><b>→</b></Link>
           <Link href="/talents"><span>★</span><div><strong>Vydys Talents</strong><small>{t({fr:"CV et profils pour les recruteurs",ar:"سير ذاتية وملفات للباحثين عن المواهب",en:"CVs and recruiter-visible profiles"})}</small></div><b>→</b></Link>
           <Link href="/formations"><span>01</span><div><strong>{t({fr:"Formations",ar:"الدورات",en:"Courses"})}</strong><small>{t({fr:"Apprendre avec des experts",ar:"تعلم مع الخبراء",en:"Learn with experts"})}</small></div><b>→</b></Link>
           <Link href="/classroom"><span>02</span><div><strong>Vydys Classroom</strong><small>{t({fr:"Cohortes live",ar:"فصول مباشرة",en:"Live cohorts"})}</small></div><b>→</b></Link>

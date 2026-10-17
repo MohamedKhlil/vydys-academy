@@ -5,6 +5,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useLanguage } from "../../components/language-provider";
 import { supabase } from "../../lib/supabase";
 import StudentCvEditor from "../../components/student-cv-editor";
+import { trackGrowthEvent } from "../../lib/growth-events";
 
 export default function PortfolioSettingsPage(){
   const {t}=useLanguage();
@@ -24,20 +25,24 @@ export default function PortfolioSettingsPage(){
   const [saving,setSaving]=useState(false);
   const [skills,setSkills]=useState(0);
   const [projects,setProjects]=useState(0);
+  const [educationCount,setEducationCount]=useState(0);
+  const [experienceCount,setExperienceCount]=useState(0);
   const [message,setMessage]=useState("");
 
   async function load(){
     const {data:{user}}=await supabase.auth.getUser();if(!user){window.location.href="/connexion";return}
     await supabase.rpc("ensure_my_student_profile");
-    const [{data:p},{count:sCount},{count:pCount}]=await Promise.all([
+    const [{data:p},{count:sCount},{count:pCount},{count:degreeCount},{count:workCount}]=await Promise.all([
       supabase.from("student_profiles").select("*").eq("user_id",user.id).single(),
       supabase.from("user_skills").select("skill_id",{count:"exact",head:true}).eq("user_id",user.id).eq("verification_status","verified"),
-      supabase.from("student_projects").select("id",{count:"exact",head:true}).eq("user_id",user.id).eq("status","approved")
+      supabase.from("student_projects").select("id",{count:"exact",head:true}).eq("user_id",user.id).eq("status","approved"),
+      supabase.from("student_education").select("id",{count:"exact",head:true}).eq("user_id",user.id),
+      supabase.from("student_experience").select("id",{count:"exact",head:true}).eq("user_id",user.id)
     ]);
     if(p){setProfile(p);setDisplayName(p.display_name||"");setHeadline(p.headline||"");setBio(p.bio||"");setGithub(p.github_url||"");setLinkedin(p.linkedin_url||"");setWebsite(p.website_url||"");setIsPublic(Boolean(p.is_public));setDiscoverable(Boolean(p.discoverable));setOpenToWork(Boolean(p.open_to_work));setCity(p.city||"");setCountry(p.country||"");setSkillsText((p.self_reported_skills||[]).join(", "))}
-    setSkills(sCount||0);setProjects(pCount||0);
+    setSkills(sCount||0);setProjects(pCount||0);setEducationCount(degreeCount||0);setExperienceCount(workCount||0);
   }
-  useEffect(()=>{load()},[]);
+  useEffect(()=>{load();void trackGrowthEvent("portfolio_opened")},[]);
 
   async function save(e:FormEvent){
     e.preventDefault();if(saving)return;setMessage("");
@@ -58,16 +63,51 @@ export default function PortfolioSettingsPage(){
       self_reported_skills:selfSkills,updated_at:new Date().toISOString()
     }).eq("user_id",user.id);
     setMessage(error?error.message:t({fr:"Portfolio enregistré.",ar:"تم حفظ الملف.",en:"Portfolio saved."}));
-    if(!error)await load();
+    if(!error){
+      void trackGrowthEvent("portfolio_saved");
+      if(isPublic&&discoverable&&!profile.discoverable)void trackGrowthEvent("talent_opt_in");
+      await load();
+    }
     setSaving(false);
   }
 
-  if(!profile)return <section className="dashboard-shell"><div className="container">...</div></section>;
+  const checklist=[
+    {done:displayName.trim().length>1,label:t({fr:"Nom public",ar:"الاسم العام",en:"Public name"}),href:"#cv-main-form"},
+    {done:headline.trim().length>3,label:t({fr:"Titre professionnel",ar:"المسمى المهني",en:"Professional headline"}),href:"#cv-main-form"},
+    {done:bio.trim().length>20,label:t({fr:"Présentation personnelle",ar:"نبذة شخصية",en:"Personal introduction"}),href:"#cv-main-form"},
+    {done:Boolean(country.trim()),label:t({fr:"Pays renseigné",ar:"تم تحديد البلد",en:"Country supplied"}),href:"#cv-main-form"},
+    {done:skillsText.trim().length>0,label:t({fr:"Compétences renseignées",ar:"المهارات المضافة",en:"Skills added"}),href:"#cv-main-form"},
+    {done:educationCount>0,label:t({fr:"Au moins un diplôme",ar:"شهادة دراسية واحدة على الأقل",en:"At least one education entry"}),href:"#cv-education-form"},
+    {done:experienceCount>0,label:t({fr:"Expérience ou stage",ar:"خبرة أو تدريب",en:"Work experience or internship"}),href:"#cv-experience-form"},
+    {done:Boolean(linkedin.trim()||github.trim()||website.trim()),label:t({fr:"Lien professionnel",ar:"رابط مهني",en:"Professional link"}),href:"#cv-main-form"}
+  ];
+  const completed=checklist.filter(item=>item.done).length;
+  const completion=Math.round(100*completed/checklist.length);
+  if(!profile)return <section className="dashboard-shell"><div className="container"><p>Loading…</p></div></section>;
   return <section className="dashboard-shell"><div className="container">
     <div className="dash-header"><div><span className="eyebrow">Vydys Portfolio · CV</span><h1>{t({fr:"Votre identité professionnelle Tech",ar:"هويتك المهنية التقنية",en:"Your Tech professional identity"})}</h1><p>{t({fr:"Présentez vos projets, compétences vérifiées et certifications aux entreprises.",ar:"اعرض مشاريعك ومهاراتك المعتمدة وشهاداتك للشركات.",en:"Show employers your projects, verified skills and certifications."})}</p></div>{isPublic&&<Link className="btn" href={"/talent/"+profile.public_slug}>{t({fr:"Voir mon portfolio public",ar:"عرض ملفي العام",en:"View public portfolio"})}</Link>}</div>
 
     <div className="stat-grid"><article className="panel stat"><span>{t({fr:"Compétences vérifiées",ar:"مهارات معتمدة",en:"Verified skills"})}</span><strong>{skills}</strong></article><article className="panel stat"><span>{t({fr:"Projets validés",ar:"مشاريع معتمدة",en:"Approved projects"})}</span><strong>{projects}</strong></article><article className="panel stat"><span>URL</span><strong className="small-stat">/talent/{profile.public_slug}</strong></article></div>
 
+    <div className="panel career-cv-onboarding" id="career-cv-onboarding">
+      <div className="career-workspace-head">
+        <div><span className="eyebrow">{t({fr:"Votre parcours professionnel",ar:"مسارك المهني",en:"Your career profile"})}</span>
+          <h2>{t({fr:"Complétez votre CV, étape par étape.",ar:"أكمل سيرتك خطوة بخطوة.",en:"Build your CV, one step at a time."})}</h2>
+          <p>{t({fr:"Les informations restent privées tant que vous n'autorisez pas leur publication.",ar:"ستبقى المعلومات خاصة إلى أن تسمح بنشرها.",en:"Your information stays private until you choose to publish it."})}</p>
+        </div>
+        <strong>{completion}%</strong>
+      </div>
+      <div className="career-cv-progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={completion} aria-label={t({fr:"Complétude du CV",ar:"اكتمال السيرة",en:"CV completion"})}>
+        <span style={{width:completion+"%"}}/>
+      </div>
+      <div className="career-cv-checklist">{checklist.map(item=><a key={item.label} href={item.href}>
+        <span aria-hidden="true">{item.done?"✓":"○"}</span><span>{item.label}</span>
+      </a>)}</div>
+      <div className="career-cv-quicklinks">
+        <Link href="/carriere">{t({fr:"Voir les offres d'emploi",ar:"فرص العمل",en:"See job opportunities"})} ↗</Link>
+        <Link href="/carriere/contacts">{t({fr:"Mes demandes de contact",ar:"طلبات التواصل",en:"My contact requests"})} ↗</Link>
+      </div>
+    </div>
     <div className="cv-editor-intro panel">
       <div><span className="eyebrow">{t({fr:"Ma visibilité professionnelle",ar:"ظهوري المهني",en:"My professional presence"})}</span>
         <h2>{t({fr:"Un CV numérique qui vous appartient.",ar:"سيرة ذاتية رقمية تحت سيطرتك.",en:"Your CV, your choice."})}</h2>
@@ -76,7 +116,7 @@ export default function PortfolioSettingsPage(){
       <Link href="/talents" className="btn btn-ghost">{t({fr:"Voir l’annuaire des talents",ar:"دليل المواهب",en:"Explore the talent directory"})} →</Link>
     </div>
 
-    <form className="panel trainer-form portfolio-form" onSubmit={save}>
+    <form id="cv-main-form" className="panel trainer-form portfolio-form" onSubmit={save}>
       <div className="form-grid"><label className="form-field"><span>{t({fr:"Nom public",ar:"الاسم العام",en:"Public name"})}</span><input value={displayName} onChange={e=>setDisplayName(e.target.value)} required/></label><label className="form-field"><span>{t({fr:"Titre professionnel",ar:"المسمى المهني",en:"Professional headline"})}</span><input value={headline} onChange={e=>setHeadline(e.target.value)} placeholder="AI Builder · Data Analyst · Developer"/></label></div>
       <label className="form-field"><span>Bio</span><textarea rows={6} value={bio} onChange={e=>setBio(e.target.value)}/></label>
       <div className="form-grid"><label className="form-field"><span>GitHub</span><input value={github} onChange={e=>setGithub(e.target.value)}/></label><label className="form-field"><span>LinkedIn</span><input value={linkedin} onChange={e=>setLinkedin(e.target.value)}/></label></div>
@@ -104,6 +144,6 @@ export default function PortfolioSettingsPage(){
       </div>
       <button className="btn" disabled={saving}>{saving?t({fr:"Enregistrement…",ar:"جار الحفظ...",en:"Saving…"}):t({fr:"Enregistrer mon profil",ar:"حفظ ملفي",en:"Save my profile"})}</button>{message&&<p className="manual-note">{message}</p>}
     </form>
-    {profile.user_id&&<StudentCvEditor userId={profile.user_id}/>}
+    {profile.user_id&&<StudentCvEditor userId={profile.user_id} onChanged={()=>void load()}/>}
   </div></section>
 }

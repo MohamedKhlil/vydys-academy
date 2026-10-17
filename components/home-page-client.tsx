@@ -377,6 +377,7 @@ export default function HomePageClient({featuredCourses}:{featuredCourses:Premiu
         <div className="v4-talents-actions">
           <Link className="v4-btn v4-btn-primary" href="/talents">{t({fr:"Découvrir les talents",ar:"استكشف المواهب",en:"Explore talents"})} ↗</Link>
           <Link href="/portfolio" className="v4-talents-secondary">{t({fr:"Créer mon CV",ar:"أنشئ سيرتي الذاتية",en:"Create my CV"})} →</Link>
+          <Link href="/carriere" className="v4-talents-secondary">{t({fr:"Emplois & stages",ar:"وظائف وتدريب",en:"Jobs & internships"})} →</Link>
         </div>
       </div>
     </section>

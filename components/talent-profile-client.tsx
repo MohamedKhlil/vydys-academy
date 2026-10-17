@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useLanguage } from "./language-provider";
+import TalentContactForm from "./talent-contact-form";
 
 type Profile={
   public_slug:string;display_name:string|null;headline:string|null;bio:string|null;
@@ -136,6 +137,7 @@ export default function TalentProfileClient({
           </section>}
         </div>
         <aside className="talent-cv-sidebar">
+          <TalentContactForm slug={profile.public_slug} available={profile.discoverable&&profile.open_to_work}/>
           <div className="talent-cv-sidecard">
             <h2>{t({fr:"Compétences vérifiées",ar:"المهارات المعتمدة",en:"Verified skills"})}</h2>
             {Array.from(skillsByGroup).length>0?Array.from(skillsByGroup).map(([category,rows])=>

@@ -12,7 +12,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPaths = [
     "", "/formations", "/classroom", "/formateurs", "/talents", "/marketplace",
     "/forum", "/hub", "/practice", "/ai-lab", "/skill-engine",
-    "/recherche",
+    "/recherche", "/carriere",
     "/devenir-formateur", "/support", "/conditions", "/confidentialite",
     "/remboursements", "/regles-contenu"
   ];
@@ -24,12 +24,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   try {
-    const [courses, instructors, classrooms, talents] = await Promise.all([
+    const [courses, instructors, classrooms, talents, jobs] = await Promise.all([
       supabase.from("courses").select("slug,published_at,created_at").eq("status", "published"),
       supabase.from("instructor_profiles").select("public_slug,updated_at,created_at").eq("is_public", true),
       supabase.from("classrooms").select("slug,updated_at,created_at").eq("status", "published").eq("visibility", "public").is("course_id", null),
       supabase.from("student_profiles").select("public_slug,updated_at")
-        .eq("is_public",true).eq("discoverable",true)
+        .eq("is_public",true).eq("discoverable",true),
+      supabase.from("career_jobs").select("id,updated_at").eq("status","published")
     ]);
     const listed = new Set<string>();
     const dynamicEntries: MetadataRoute.Sitemap = [];
@@ -56,7 +57,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (!talents.error) for (const talent of talents.data ?? []) {
       if (talent.public_slug) add("/talent/" + encodeURIComponent(talent.public_slug),talent.updated_at);
     }
-    if (courses.error || instructors.error || classrooms.error || talents.error) {
+    if (!jobs.error) for(const job of jobs.data??[]){
+      if(job.id)add("/carriere/"+encodeURIComponent(job.id),job.updated_at);
+    }
+    if (courses.error || instructors.error || classrooms.error || talents.error || jobs.error) {
       console.warn("Vydys sitemap: partial database response; retry on next revalidation.");
     }
     return [...staticEntries, ...dynamicEntries];
