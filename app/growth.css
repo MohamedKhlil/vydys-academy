@@ -60,3 +60,9 @@
 @media(max-width:720px){.growth-start,.growth-featured{padding-block:45px 52px}.growth-heading{flex-direction:column;align-items:flex-start;gap:10px}.growth-goal-options{gap:8px}.growth-goal-button{min-height:78px;font-size:.82rem;padding:13px 10px;gap:8px}.growth-goal-button span{flex-basis:30px;height:30px;font-size:.7rem}.growth-active-goal{flex-direction:column;align-items:stretch;padding:22px 19px;gap:19px}.growth-goal-cta{width:100%}.growth-course-grid{grid-template-columns:1fr}.growth-course-cover{height:155px}.growth-course-details{padding:20px}.growth-community{padding-block:36px}.growth-community-actions{flex-direction:column;align-items:stretch}.growth-community-actions .btn{width:100%;justify-content:center}}
 @media(max-width:360px){.growth-goal-options{grid-template-columns:1fr}.growth-goal-button{min-height:60px}}
 @media(prefers-reduced-motion:reduce){.growth-goal-button,.growth-course-card{transition:none}}
+
+/* Prototype panels are an illustrative preview, not real live activity. */
+.growth-mock-caption{position:absolute;top:8px;right:18px;z-index:2;border:1px solid rgba(174,212,255,.38);border-radius:999px;padding:5px 10px;color:#d7eaff;font-size:.68rem;font-weight:750;line-height:1.2;background:rgba(8,28,62,.7);backdrop-filter:blur(8px)}
+.growth-demo-join{display:inline-flex;justify-content:center;align-items:center;border-radius:9px;background:rgba(255,255,255,.13);padding:7px 11px;font-size:.72rem;color:#edf5ff;font-weight:760}
+[dir="rtl"] .growth-mock-caption{right:auto;left:18px}
+@media(max-width:720px){.growth-mock-caption{top:5px;right:6px;font-size:.6rem}}
