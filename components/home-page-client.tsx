@@ -362,6 +362,25 @@ export default function HomePageClient({featuredCourses}:{featuredCourses:Premiu
       </div>
     </section>
 
+    <section className="v4-talents-banner" aria-labelledby="v4-talents-title">
+      <div className="container v4-talents-grid">
+        <div className="v4-talents-icon" aria-hidden="true"><span>◎</span><span>CV</span></div>
+        <div>
+          <span className="v4-kicker">VYDYS TALENTS</span>
+          <h2 id="v4-talents-title">{t({fr:"Vos compétences méritent d’être découvertes.",ar:"مهاراتك تستحق أن يكتشفها الآخرون.",en:"Your skills deserve to be discovered."})}</h2>
+          <p>{t({
+            fr:"Créez votre CV numérique, ajoutez diplômes, expériences et projets, puis choisissez si les recruteurs peuvent vous trouver dans notre annuaire.",
+            ar:"أنشئ سيرتك الذاتية الرقمية وأضف الشهادات والخبرات والمشاريع، ثم اختر إن كنت ترغب بالظهور أمام أصحاب العمل.",
+            en:"Build your digital CV with education, experience and projects — then choose whether recruiters can find you in our directory."
+          })}</p>
+        </div>
+        <div className="v4-talents-actions">
+          <Link className="v4-btn v4-btn-primary" href="/talents">{t({fr:"Découvrir les talents",ar:"استكشف المواهب",en:"Explore talents"})} ↗</Link>
+          <Link href="/portfolio" className="v4-talents-secondary">{t({fr:"Créer mon CV",ar:"أنشئ سيرتي الذاتية",en:"Create my CV"})} →</Link>
+        </div>
+      </div>
+    </section>
+
     <section className="v4-section v4-instructor" aria-labelledby="v4-instructor-title">
       <div className="container v4-instructor-grid">
         <div className="v4-instructor-icon" aria-hidden="true"><span>V</span><span>+</span></div>
