@@ -9,6 +9,7 @@ export default function CareerApplyForm({jobId,jobTitle}:{jobId:string;jobTitle:
  const {t}=useLanguage();
  const [uid,setUid]=useState("");
  const [letter,setLetter]=useState("");
+ const [shareCv,setShareCv]=useState(false);
  const [existing,setExisting]=useState<string|null>(null);
  const [checking,setChecking]=useState(true);
  const [busy,setBusy]=useState(false);
@@ -33,7 +34,7 @@ export default function CareerApplyForm({jobId,jobTitle}:{jobId:string;jobTitle:
   const content=letter.trim();
   if(content.length<20||content.length>2000){setError(t({fr:"Le message doit contenir de 20 à 2 000 caractères.",ar:"الرسالة يجب أن تحتوي 20 إلى 2000 حرف.",en:"Write between 20 and 2,000 characters."}));return}
   setBusy(true);setError("");
-  const {error:err}=await supabase.from("career_applications").insert({job_id:jobId,applicant_id:uid,cover_letter:content,status:"submitted"});
+  const {error:err}=await supabase.from("career_applications").insert({job_id:jobId,applicant_id:uid,cover_letter:content,status:"submitted",share_cv:shareCv});
   setBusy(false);
   if(err){setError(err.code==="23505"?t({fr:"Vous avez déjà postulé à cette offre.",ar:"لقد تقدمت لهذه الوظيفة من قبل.",en:"You've already applied for this job."}):err.message);return}
   setComplete(true);setExisting("submitted");
@@ -55,7 +56,9 @@ export default function CareerApplyForm({jobId,jobTitle}:{jobId:string;jobTitle:
      <label><span>{t({fr:"Pourquoi ce poste vous intéresse-t-il ?",ar:"لماذا تريد هذه الوظيفة؟",en:"Why are you interested in this position?"})}</span>
        <textarea required minLength={20} maxLength={2000} rows={8} value={letter} onChange={e=>setLetter(e.target.value)}
         placeholder={t({fr:"Présentez brièvement votre motivation et les compétences utiles pour ce poste.",ar:"اشرح دوافعك ومهاراتك المرتبطة بالوظيفة.",en:"Briefly describe your motivation and relevant skills."})}/></label>
-     <p>{t({fr:"Consultez votre CV avant d'envoyer une candidature.",ar:"راجع سيرتك الذاتية قبل إرسال الطلب.",en:"Review your CV before you apply."})} <Link href="/portfolio">Vydys Portfolio ↗</Link></p>
+     <label className="career-check"><input type="checkbox" checked={shareCv} onChange={e=>setShareCv(e.target.checked)}/>
+       {t({fr:"Joindre le lien de mon CV public Vydys à cette candidature (facultatif)",ar:"إرفاق رابط سيرتي الذاتية العامة بهذا الطلب (اختياري)",en:"Share my public Vydys CV link with this employer (optional)"})}</label>
+     <p>{t({fr:"Votre nom et votre lettre de motivation seront visibles par l'entreprise. Votre CV ne sera joint que si vous cochez cette case et avez rendu votre portfolio accessible par lien.",ar:"سيظهر اسمك ورسالتك للشركة. سيرتك الذاتية لا تُرفق إلا بموافقتك وإذا كانت متاحة عبر رابط عام.",en:"Your name and motivation letter will be visible to the employer. Your CV is shared only if you opt in and your portfolio is already public by link."})} <Link href="/portfolio">Vydys Portfolio ↗</Link></p>
      {error&&<p className="career-form-error" role="alert">{error}</p>}
      <button type="submit" className="btn" disabled={busy}>{busy?t({fr:"Envoi…",ar:"جار الإرسال...",en:"Submitting…"}):t({fr:"Envoyer ma candidature",ar:"إرسال الطلب",en:"Submit application"})}</button>
    </form>}
